@@ -29,7 +29,8 @@ renderer.run();
 ```
 
 This will produce the following layout:
-![Simple graph](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/)
+
+![Simple graph](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/mingraph.png)
 
 The code above adds a link to the graph between nodes `1` and `2`. Since nodes are not in the graph
 yet they will be created. It's equivalent to 
