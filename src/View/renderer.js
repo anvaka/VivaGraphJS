@@ -89,12 +89,12 @@ Viva.Graph.View.renderer = function(graph, settings) {
             }
             
             var from = {
-                x : fromNode.position.x + transform.offsetX + viewPortOffset.x,
-                y : fromNode.position.y + transform.offsetY + viewPortOffset.y
+                x : Math.round(fromNode.position.x + transform.offsetX + viewPortOffset.x),
+                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y)
             },
             to = {
-                x : toNode.position.x + transform.offsetX + viewPortOffset.x,
-                y : toNode.position.y + transform.offsetY + viewPortOffset.y
+                x : Math.round(toNode.position.x + transform.offsetX + viewPortOffset.x),
+                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y)
             };
             
             graphics.updateLinkPosition(link.ui, from, to);
@@ -102,8 +102,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         renderNode = function(node) {
             var position = { 
-                x : node.position.x + transform.offsetX + viewPortOffset.x,
-                y : node.position.y + transform.offsetY + viewPortOffset.y 
+                x : Math.round(node.position.x + transform.offsetX + viewPortOffset.x),
+                y : Math.round(node.position.y + transform.offsetY + viewPortOffset.y) 
             };
             
             graphics.updateNodePosition(node.ui, position);
