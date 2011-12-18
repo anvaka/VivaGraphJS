@@ -112,7 +112,7 @@ The result is:
 
 Tuning layout algorithm
 ----------------------------------------------------
-Graphs vary by their nature. Some graphs have hunders nodes and few edges (or links), others connect every node with each other. To get the best layout tuning is usually required.
+Graphs vary by their nature. Some graphs has hundreds of nodes and few edges (or links), others connect every node with each other. To get the best layout tuning is usually required.
 Consider the following example:
 
 ```javascript
@@ -122,11 +122,12 @@ var renderer = Viva.Graph.View.renderer(graph);
 renderer.run();
 ```
 
-Graph generators are part of the library, which can produce classic graphs. `grid` generator create a grid with given number of columns and rows. But with default layout algorithm parameters the rendering is pretty ugly:
+Graph generators are part of the library, which can produce classic graphs. `grid` generator creates a grid with given number of columns and rows. But with default parameters the rendering is pretty ugly:
 
 ![Grid 3x3 bad](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridBad.png)
 
 Let's tweak original code:
+
 ```javascript
 var graphGenerator = Viva.Graph.generator();
 var graph = graphGenerator.grid(3, 3);
