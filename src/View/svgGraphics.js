@@ -28,7 +28,7 @@ Viva.Graph.View.svgGraphics = function() {
 
         linkBuilder = function(link){
             return Viva.Graph.svg('line')
-                              .attr('stroke', 'white');
+                              .attr('stroke', '#999');
         },
         
         linkPositionCallback = function(linkUI, fromPos, toPos){
