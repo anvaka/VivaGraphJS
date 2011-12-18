@@ -5,7 +5,7 @@ It is designed to be extensible and to support different rendering engines and l
 it supports rendering graphs using either SVG or CSS formats. Layout algorithms currently implemented are:
 
 * [Force Directed](http://en.wikipedia.org/wiki/Force-based_algorithms_\(graph_drawing\)) - based on Barnes-Hut
-simulation and optimized for JavaScript language this algorithm gives `N * lg(N)` performance per iteration. 
+simulation and optimized for JavaScript language this algorithm gives `N * N * lg(N) + V` performance per iteration. 
 * [ ![PDF download](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/pdf-icon.gif) GEM](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.9565&rep=rep1&type=pdf) - Graph Embedder
 algorithm created by Arne Frick, Andreas Ludwig and Heiko Mehldau. Estimated compleixity of this algorithm
 is `O(|V|^3)` - though I must have made a mistake somewhere, because force directed algorithm almost
@@ -48,9 +48,7 @@ renderer.run();
 
 Customization
 ----------------------------------------------------
-VivaGraphJS is all about customization. You can easily change nodes and links appearance,  
-switch layouting algorithm and medium used to display elements of graphs. For example, to use CSS-based
-rendering (instead of default SVG) the following code is used:
+VivaGraphJS is all about customization. You can easily change nodes and links appearance, switch layouting algorithm and medium used to display elements of the graph. For example to use CSS-based rendering (instead of default SVG) the following code is required:
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -65,11 +63,9 @@ var renderer = Viva.Graph.View.renderer(graph,
 renderer.run();
 ```
 
-`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. 
-To change default nodes appearance we should tell `graphics` how to represent them. Here is an example of
-graph with six people whom I follow at github:
+`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. To change nodes appearance tell `graphics` how to represent them. Here is an example of graph with six people whom I follow at github:
 
-```javsacript
+```javascript
 var graph = Viva.Graph.graph();
 
 // Construct the graph
@@ -98,7 +94,7 @@ graphics.node(function(node) {
              .link(node.data.url); // node.data holds custom object passed to graph.addNode();
     })
     .placeNode(function(nodeUI, pos){
-        // Also 'shift' image to let links go to the center:
+        // Shift image to let links go to the center:
         nodeUI.attr('x', pos.x - 12).attr('y', pos.y - 12);
     });
 
@@ -109,6 +105,47 @@ var renderer = Viva.Graph.View.renderer(graph,
 renderer.run();
 ```
 
-And the output is:
+The result is:
 
 ![Custom nodes](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/customNode.png)
+
+
+Tuning layout algorithm
+----------------------------------------------------
+Graphs vary by their nature. Some graphs have hunders nodes and few edges (or links), others connect every node with each other. To get the best layout tuning is usually required.
+Consider the following example:
+
+```javascript
+var graphGenerator = Viva.Graph.generator();
+var graph = graphGenerator.grid(3, 3);
+var renderer = Viva.Graph.View.renderer(graph);
+renderer.run();
+```
+
+Graph generators are part of the library, which can produce classic graphs. `grid` generator create a grid with given number of columns and rows. But with default layout algorithm parameters the rendering is pretty ugly:
+
+![Grid 3x3 bad](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridBad.png)
+
+Let's tweak original code:
+```javascript
+var graphGenerator = Viva.Graph.generator();
+var graph = graphGenerator.grid(3, 3);
+
+var layout = Viva.Graph.Layout.forceDirected(graph, {
+    springLength : 10,
+    springCoeff : 0.0005,
+    dragCoeff : 0.02,
+    gravity : -1.2
+});
+
+var renderer = Viva.Graph.View.renderer(graph, {
+    layout : layout
+});
+renderer.run();
+```
+
+Now result is much better:
+
+![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
+
+Tuning layout algorithm is definitely one of the hardest part of using this library. It has to be improved in future to simplify usage. Each of the force directed algorithm parameters are described in the source code.
