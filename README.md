@@ -18,7 +18,7 @@ accordingly.
 
 Enough talking. Show me the demo!
 ----------------------------------------------------
-To start using the library include vivagraph.js script from the [dist](https://github.com/anvaka/VivaGraphJS/tree/master/dist) folder. The following code is the minimum required to render a graph with two nodes and one edge:
+To start using the library include `vivagraph.js` script from the [dist](https://github.com/anvaka/VivaGraphJS/tree/master/dist) folder. The following code is the minimum required to render a graph with two nodes and one edge:
 
 ```javascript
 var graph = Viva.Graph.graph();
