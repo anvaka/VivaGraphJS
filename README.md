@@ -154,10 +154,11 @@ Tuning layout algorithm is definitely one of the hardest part of using this libr
 
 I need your feedback
 ----------------------------------------------------
-I wrote this library to learn JavaScript. By no means I pretend to be an expert in the language and choosen design may not be the optimal. I would love to hear your feedback and suggestions. 
+Disclaimer: I wrote this library to learn JavaScript. By no means I pretend to be an expert in the language and choosen approach to design may not be the optimal. I would love to hear your feedback and suggestions. 
 
 Though I implemented this library from scratch, I went through many existing libraries to pick the best (at my view) out of them. If you are eveluating libraries for your project make sure to check them out as well:
 
 * [Dracula Graph Library](https://github.com/strathausen/dracula) - written by [Johann Philipp Strathausen](https://github.com/strathausen) and uses [Raphaël](http://raphaeljs.com/) library to render graphs. Has very simple API.
 * [D3](http://mbostock.github.com/d3/ex/force.html) - one of the best data visualization library in JavaScript world. From [Mike Bostock](https://github.com/mbostock).
-                                                                  - 
+
+My goal is to create highly performant javascript library which serves in the field of graph drawing. To certain extent I ahcieved it. But I have no doubt there is much more to improve here.
