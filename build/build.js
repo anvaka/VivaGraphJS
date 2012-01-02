@@ -21,6 +21,7 @@
             "Utils/events.js",
             "Utils/dragndrop.js",
             "Utils/timer.js",
+            "Utils/geom.js",
             "Core/graph.js",
             "Core/generator.js",
             "Physics/primitives.js",
