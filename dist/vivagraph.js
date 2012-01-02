@@ -222,7 +222,8 @@ Viva.Graph.Utils.dragndrop = function(element) {
     var start,
         drag,
         end,
-        
+        prevSelectStart, 
+        prevDragStart,
         documentEvents = Viva.Graph.Utils.events(window.document),
         elementEvents = Viva.Graph.Utils.events(element),
         
@@ -236,6 +237,11 @@ Viva.Graph.Utils.dragndrop = function(element) {
             else { 
                 e.cancelBubble = true; 
             }
+        },
+        
+        handleDisabledEvent = function(e) {
+            stopPropagation(e);
+            return false;
         },
         
         handleMouseMove = function(e) {
@@ -271,12 +277,13 @@ Viva.Graph.Utils.dragndrop = function(element) {
                 stopPropagation(e);
                 // TODO: This is suggested here: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
                 // do we need it? What if event already there?
+                // Not bullet proof:
+                prevSelectStart = document.onselectstart;
+                prevDragStart = document.ondragstart;
                 
-                // prevent text selection in IE
-                document.onselectstart = function () { return false; };
-                // prevent IE from trying to drag an image
-                dragObject.ondragstart = function() { return false; };
-                
+                document.onselectstart = handleDisabledEvent;
+                dragObject.ondragstart = handleDisabledEvent;
+
                 // prevent text selection (except IE)
                 return false;
             }
@@ -285,10 +292,12 @@ Viva.Graph.Utils.dragndrop = function(element) {
         handleMouseUp = function(e) {
             e = e || window.event;
 
-            dragObject = null;
             documentEvents.stop('mousemove', handleMouseMove);
             documentEvents.stop('mouseup', handleMouseUp);
- 
+                
+            document.onselectstart = prevSelectStart;
+            dragObject.ondragstart = prevDragStart; 
+            dragObject = null;
             if (end) { end(); }
         };
     
@@ -345,7 +354,91 @@ Viva.Graph.Utils.timer = function(callback, interval){
         }
     };
 };
-/**
+/*global Viva*/
+
+Viva.Graph.geom = function() {
+    
+    return {
+        // function from Graphics GEM to determine lines intersection:
+        // http://www.opensource.apple.com/source/graphviz/graphviz-498/graphviz/dynagraph/common/xlines.c
+        intersect : function(x1, y1, x2, y2, // first line segment
+                            x3, y3, x4, y4) { // second line segment
+            var a1, a2, b1, b2, c1, c2, /* Coefficients of line eqns. */
+                r1, r2, r3, r4,         /* 'Sign' values */
+                denom, offset, num,     /* Intermediate values */
+                result = { x: 0, y : 0};
+
+            /* Compute a1, b1, c1, where line joining points 1 and 2
+             * is "a1 x  +  b1 y  +  c1  =  0".
+             */
+            a1 = y2 - y1;
+            b1 = x1 - x2;
+            c1 = x2 * y1 - x1 * y2;
+
+            /* Compute r3 and r4.
+             */
+            r3 = a1 * x3 + b1 * y3 + c1;
+            r4 = a1 * x4 + b1 * y4 + c1;
+
+            /* Check signs of r3 and r4.  If both point 3 and point 4 lie on
+             * same side of line 1, the line segments do not intersect.
+             */
+        
+            if (r3 !== 0 && r4 !== 0 && ((r3 >= 0) === (r4 >= 4))) {
+                return null; //no itersection.
+            }
+
+            /* Compute a2, b2, c2 */
+            a2 = y4 - y3;
+            b2 = x3 - x4;
+            c2 = x4 * y3 - x3 * y4;
+
+            /* Compute r1 and r2 */
+        
+            r1 = a2 * x1 + b2 * y1 + c2;
+            r2 = a2 * x2 + b2 * y2 + c2;
+        
+            /* Check signs of r1 and r2.  If both point 1 and point 2 lie
+             * on same side of second line segment, the line segments do
+             * not intersect.
+             */
+            if (r1 !== 0 && r2 !== 0 && ((r1 >= 0) === (r2 >= 0 ))) {
+                return null; // no intersection;
+            }
+            /* Line segments intersect: compute intersection point. 
+             */
+
+            denom = a1 * b2 - a2 * b1;
+            if ( denom === 0 ) {
+                return null; // Actually collinear..
+            }
+
+            offset = denom < 0 ? - denom / 2 : denom / 2;
+            offset = 0.0;
+
+            /* The denom/2 is to get rounding instead of truncating.  It
+             * is added or subtracted to the numerator, depending upon the
+             * sign of the numerator.
+             */
+        
+            
+            num = b1 * c2 - b2 * c1;
+            result.x = ( num < 0 ? num - offset : num + offset ) / denom;
+        
+            num = a2 * c1 - a1 * c2;
+            result.y = ( num < 0 ? num - offset : num + offset ) / denom;
+        
+            return result;                                
+        },
+                
+        intersectRect : function(left, top, right, bottom, x1, y1, x2, y2) {
+            return this.intersect(left, top, left, bottom, x1, y1, x2, y2) ||
+                   this.intersect(left, bottom, right, bottom, x1, y1, x2, y2) ||
+                   this.intersect(right, bottom, right, top, x1, y1, x2, y2) ||
+                   this.intersect(right, top, left, top, x1, y1, x2, y2);
+        }
+    };
+};/**
  * @fileOverview Contains definition of the core graph object.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -714,8 +807,6 @@ Viva.Graph.graph = function() {
             for (var i = 0; i < node.links.length; ++i) {
                 var link = node.links[i];
                 if (link.fromId === fromNodeId && link.toId === toNodeId) {
-                    return link;
-                } else if (link.toId === fromNodeId && link.fromId === toNodeId) {
                     return link;
                 }
             }
@@ -2780,6 +2871,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  */
 Viva.Graph.View.svgGraphics = function() {
     var svgContainer,
+        svgRoot,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -2869,12 +2961,12 @@ Viva.Graph.View.svgGraphics = function() {
         * provider prepare to render.
         */
        init : function(container) {
-           var svg = Viva.Graph.svg("svg");
+           svgRoot = Viva.Graph.svg("svg");
            
            svgContainer = Viva.Graph.svg("g");
 
-           svg.appendChild(svgContainer);
-           container.appendChild(svg);
+           svgRoot.appendChild(svgContainer);
+           container.appendChild(svgRoot);
        },
        
        /**
@@ -2935,6 +3027,15 @@ Viva.Graph.View.svgGraphics = function() {
        */  
        updateLinkPosition : function(link, fromPos, toPos) {
            linkPositionCallback(link, fromPos, toPos);
+       },
+       
+       /**
+        * Returns root svg element. 
+        * 
+        * Note: This is internal method specific to this renderer
+        */
+       getSvgRoot : function() {
+           return svgRoot;
        }
     };
 };
@@ -3030,11 +3131,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
             
             var from = {
                 x : Math.round(fromNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y)
+                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y),
+                node: fromNode
             },
             to = {
                 x : Math.round(toNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y)
+                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y),
+                node : toNode
             };
             
             graphics.updateLinkPosition(link.ui, from, to);
