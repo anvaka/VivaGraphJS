@@ -12,6 +12,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  */
 Viva.Graph.View.svgGraphics = function() {
     var svgContainer,
+        svgRoot,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -101,12 +102,12 @@ Viva.Graph.View.svgGraphics = function() {
         * provider prepare to render.
         */
        init : function(container) {
-           var svg = Viva.Graph.svg("svg");
+           svgRoot = Viva.Graph.svg("svg");
            
            svgContainer = Viva.Graph.svg("g");
 
-           svg.appendChild(svgContainer);
-           container.appendChild(svg);
+           svgRoot.appendChild(svgContainer);
+           container.appendChild(svgRoot);
        },
        
        /**
@@ -167,6 +168,15 @@ Viva.Graph.View.svgGraphics = function() {
        */  
        updateLinkPosition : function(link, fromPos, toPos) {
            linkPositionCallback(link, fromPos, toPos);
+       },
+       
+       /**
+        * Returns root svg element. 
+        * 
+        * Note: This is internal method specific to this renderer
+        */
+       getSvgRoot : function() {
+           return svgRoot;
        }
     };
 };
