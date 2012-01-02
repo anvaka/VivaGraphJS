@@ -368,8 +368,6 @@ Viva.Graph.graph = function() {
                 var link = node.links[i];
                 if (link.fromId === fromNodeId && link.toId === toNodeId) {
                     return link;
-                } else if (link.toId === fromNodeId && link.fromId === toNodeId) {
-                    return link;
                 }
             }
             
