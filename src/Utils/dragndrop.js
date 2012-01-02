@@ -10,7 +10,8 @@ Viva.Graph.Utils.dragndrop = function(element) {
     var start,
         drag,
         end,
-        
+        prevSelectStart, 
+        prevDragStart,
         documentEvents = Viva.Graph.Utils.events(window.document),
         elementEvents = Viva.Graph.Utils.events(element),
         
@@ -24,6 +25,11 @@ Viva.Graph.Utils.dragndrop = function(element) {
             else { 
                 e.cancelBubble = true; 
             }
+        },
+        
+        handleDisabledEvent = function(e) {
+            stopPropagation(e);
+            return false;
         },
         
         handleMouseMove = function(e) {
@@ -59,12 +65,13 @@ Viva.Graph.Utils.dragndrop = function(element) {
                 stopPropagation(e);
                 // TODO: This is suggested here: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
                 // do we need it? What if event already there?
+                // Not bullet proof:
+                prevSelectStart = document.onselectstart;
+                prevDragStart = document.ondragstart;
                 
-                // prevent text selection in IE
-                document.onselectstart = function () { return false; };
-                // prevent IE from trying to drag an image
-                dragObject.ondragstart = function() { return false; };
-                
+                document.onselectstart = handleDisabledEvent;
+                dragObject.ondragstart = handleDisabledEvent;
+
                 // prevent text selection (except IE)
                 return false;
             }
@@ -73,10 +80,12 @@ Viva.Graph.Utils.dragndrop = function(element) {
         handleMouseUp = function(e) {
             e = e || window.event;
 
-            dragObject = null;
             documentEvents.stop('mousemove', handleMouseMove);
             documentEvents.stop('mouseup', handleMouseUp);
- 
+                
+            document.onselectstart = prevSelectStart;
+            dragObject.ondragstart = prevDragStart; 
+            dragObject = null;
             if (end) { end(); }
         };
     
