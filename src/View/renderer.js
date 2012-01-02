@@ -90,11 +90,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
             
             var from = {
                 x : Math.round(fromNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y)
+                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y),
+                node: fromNode
             },
             to = {
                 x : Math.round(toNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y)
+                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y),
+                node : toNode
             };
             
             graphics.updateLinkPosition(link.ui, from, to);
