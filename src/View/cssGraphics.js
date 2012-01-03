@@ -10,22 +10,22 @@ Viva.Graph.View = Viva.Graph.View || {};
  * Performs css-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edeges of the graph.
  * 
+ * NOTE: Most likely I will remove this graphics engine due to superior svg support. 
+ * In certain cases it doesn't work and require further imporvments:
+ *  * does not properly work for dragging.
+ *  * does not support scaling.
+ *  * does not support IE versions prior to IE9.
+ * 
  */
 Viva.Graph.View.cssGraphics = function() {
     var container, // Where graph will be rendered
-
-       /** 
-        * Returns a function (ui, x, y, angleRad).
-        * 
-        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
-        * and position it to 'x' 'y' coordinates.
-        * 
-        * Operation works in most modern browsers that support transform css style
-        * and IE.  
-        * */
-        positionLink = (function() {
-            var browserName = Viva.BrowserInfo.browser;
-            var prefix = '';
+    	OLD_IE = 'OLD_IE',
+        offsetX,
+        offsetY,
+        
+        transformName = (function(){
+			var browserName = Viva.BrowserInfo.browser,
+                prefix;
     
             switch (browserName) {
                 case 'mozilla' :
@@ -42,44 +42,61 @@ Viva.Graph.View.cssGraphics = function() {
                     if(version > 8) {
                         prefix = 'ms';
                     } else {
-                        return function(ui, x, y, angleRad) {
-                            var cos = Math.cos(angleRad);
-                            var sin = Math.sin(angleRad);
-
-                            // IE 6, 7 and 8 are screwed up when it comes to transforms;
-                            // I could not find justification for their choice of "floating"
-                            // matrix transform origin. The following ugly code was written
-                            // out of complete dispair.
-                            if(angleRad < 0) {
-                                angleRad = 2 * Math.PI + angleRad;
-                            }
-
-                            if(angleRad < Math.PI / 2) {
-                                ui.style.left = x + 'px';
-                                ui.style.top = y + 'px';
-                            } else if(angleRad < Math.PI) {
-                                ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                                ui.style.top = y;
-                            } else if(angleRad < (Math.PI + Math.PI / 2)) {
-                                ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                                ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
-                            } else {
-                                ui.style.left = x;
-                                ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
-                            }
-                            ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
-                        };
+                    	return OLD_IE;
                     }
-                    break;
-            }
-    
-            if(prefix) {
+             }
+             if (prefix) { // CSS3
+             	return prefix + 'Transform';
+             } else { // Unknown browser
+                 return null; 
+             }
+        })(),
+        
+       /** 
+        * Returns a function (ui, x, y, angleRad).
+        * 
+        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
+        * and position it to 'x' 'y' coordinates.
+        * 
+        * Operation works in most modern browsers that support transform css style
+        * and IE.  
+        * */
+        positionLink = (function() {
+        	if (transformName === OLD_IE) { // This is old IE, use filters
+                return function(ui, x, y, angleRad) {
+                    var cos = Math.cos(angleRad);
+                    var sin = Math.sin(angleRad);
+
+                    // IE 6, 7 and 8 are screwed up when it comes to transforms;
+                    // I could not find justification for their choice of "floating"
+                    // matrix transform origin. The following ugly code was written
+                    // out of complete dispair.
+                    if(angleRad < 0) {
+                        angleRad = 2 * Math.PI + angleRad;
+                    }
+
+                    if(angleRad < Math.PI / 2) {
+                        ui.style.left = x + 'px';
+                        ui.style.top = y + 'px';
+                    } else if(angleRad < Math.PI) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y;
+                    } else if(angleRad < (Math.PI + Math.PI / 2)) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
+                    } else {
+                        ui.style.left = x;
+                        ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
+                    }
+                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
+                };
+            } else if (transformName) { // Modern CSS3 browser
                 return function(ui, x, y, angleRad) {
                     ui.style.left = x + 'px';
                     ui.style.top = y + 'px';
     
-                    ui.style[prefix + 'Transform'] = 'rotate(' + angleRad + 'rad)';
-                    ui.style[prefix + 'TransformOrigin'] = 'left';
+                    ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
+                    ui.style[transformName + 'Origin'] = 'left';
                 };
             } else {
                 return function(ui, x, y, angleRad) {
@@ -116,6 +133,16 @@ Viva.Graph.View.cssGraphics = function() {
             linkUI.setAttribute('class', 'link');
             
             return linkUI;
+        },
+        
+        updateTransform = function() {
+        	if (container) {
+        	    if (transformName && transformName !== OLD_IE) {
+        	        container.style[transformName] = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+        	    } else {
+        	        // TODO Implement OLD_IE Filter based transform
+        	    }
+	        }
         };
         
     return {
@@ -160,8 +187,17 @@ Viva.Graph.View.cssGraphics = function() {
             linkBuilder = builderCallbackOrLink;
             return this;
         },
-
         
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        translate : function(x, y) {
+        	offsetX = x;
+        	offsetY = y;
+        	
+        	updateTransform();
+        },
+
         /**
          * Allows to override default position setter for the node with a new
          * function. newPlaceCallback(node, position) is function which
@@ -183,6 +219,7 @@ Viva.Graph.View.cssGraphics = function() {
          */
         init : function (parentContainer) {
             container = parentContainer;
+            updateTransform();
         },
         
        /**

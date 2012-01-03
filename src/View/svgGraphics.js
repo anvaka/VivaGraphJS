@@ -13,6 +13,8 @@ Viva.Graph.View = Viva.Graph.View || {};
 Viva.Graph.View.svgGraphics = function() {
     var svgContainer,
         svgRoot,
+        offsetX,
+        offsetY,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -37,6 +39,12 @@ Viva.Graph.View.svgGraphics = function() {
                   .attr("y1", fromPos.y)
                   .attr("x2", toPos.x)
                   .attr("y2", toPos.y);
+        },
+        
+        updateTransform = function() {
+        	if (svgContainer) {
+	        	svgContainer.attr('transform', 'translate(' + offsetX + ',' + offsetY +')');
+	        }
         };
     
     return {
@@ -61,7 +69,7 @@ Viva.Graph.View.svgGraphics = function() {
             
             return this;
         },
-
+        
         /**
          * Sets the collback that creates link representation or creates a new link
          * presentation if builderCallbackOrLink is not a function. 
@@ -97,6 +105,15 @@ Viva.Graph.View.svgGraphics = function() {
             return this;
         },
         
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        translate : function(x, y) {
+        	offsetX = x;
+        	offsetY = y;
+        	updateTransform();
+        },
+
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output 
         * provider prepare to render.
@@ -108,6 +125,7 @@ Viva.Graph.View.svgGraphics = function() {
 
            svgRoot.appendChild(svgContainer);
            container.appendChild(svgRoot);
+           updateTransform();
        },
        
        /**

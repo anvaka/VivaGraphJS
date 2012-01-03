@@ -89,13 +89,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
             }
             
             var from = {
-                x : Math.round(fromNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y),
+                x : Math.round(fromNode.position.x),
+                y : Math.round(fromNode.position.y),
                 node: fromNode
             },
             to = {
-                x : Math.round(toNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y),
+                x : Math.round(toNode.position.x),
+                y : Math.round(toNode.position.y),
                 node : toNode
             };
             
@@ -104,8 +104,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         renderNode = function(node) {
             var position = { 
-                x : Math.round(node.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(node.position.y + transform.offsetY + viewPortOffset.y) 
+                x : Math.round(node.position.x),
+                y : Math.round(node.position.y) 
             };
             
             graphics.updateNodePosition(node.ui, position);
@@ -174,6 +174,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
            transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
+           graphics.translate(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
            
            updateCenterRequired = false;
        },
@@ -306,6 +307,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
             containerDrag.onDrag(function(e, offset){
                 viewPortOffset.x += offset.x;
                 viewPortOffset.y += offset.y;
+                graphics.translate(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
                 
                 renderGraph();
             });
@@ -324,7 +326,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 
                 increaseTotalIterations(100);
             });
-
        };
        
     return {
