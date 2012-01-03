@@ -19,9 +19,11 @@ Viva.Graph.View = Viva.Graph.View || {};
  */
 Viva.Graph.View.cssGraphics = function() {
     var container, // Where graph will be rendered
-    	OLD_IE = 'OLD_IE',
+        OLD_IE = 'OLD_IE',
         offsetX,
         offsetY,
+        scaleX = 1,
+        scaleY = 1,
         
         transformName = (function(){
 			var browserName = Viva.BrowserInfo.browser,
@@ -42,11 +44,11 @@ Viva.Graph.View.cssGraphics = function() {
                     if(version > 8) {
                         prefix = 'ms';
                     } else {
-                    	return OLD_IE;
+                        return OLD_IE;
                     }
              }
              if (prefix) { // CSS3
-             	return prefix + 'Transform';
+                return prefix + 'Transform';
              } else { // Unknown browser
                  return null; 
              }
@@ -62,7 +64,7 @@ Viva.Graph.View.cssGraphics = function() {
         * and IE.  
         * */
         positionLink = (function() {
-        	if (transformName === OLD_IE) { // This is old IE, use filters
+            if (transformName === OLD_IE) { // This is old IE, use filters
                 return function(ui, x, y, angleRad) {
                     var cos = Math.cos(angleRad);
                     var sin = Math.sin(angleRad);
@@ -136,13 +138,14 @@ Viva.Graph.View.cssGraphics = function() {
         },
         
         updateTransform = function() {
-        	if (container) {
-        	    if (transformName && transformName !== OLD_IE) {
-        	        container.style[transformName] = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
-        	    } else {
-        	        // TODO Implement OLD_IE Filter based transform
-        	    }
-	        }
+            if (container) {
+                if (transformName && transformName !== OLD_IE) {
+                    var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                    container.style[transformName] = transform;
+                } else {
+                    // TODO Implement OLD_IE Filter based transform
+                }
+            }
         };
         
     return {
@@ -196,6 +199,10 @@ Viva.Graph.View.cssGraphics = function() {
         	offsetY = y;
         	
         	updateTransform();
+        },
+        
+        scale : function(x, y) {
+            // TODO: implement me
         },
 
         /**

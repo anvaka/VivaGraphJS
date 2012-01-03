@@ -10,6 +10,7 @@ Viva.Graph.Utils.dragndrop = function(element) {
     var start,
         drag,
         end,
+        scroll,
         prevSelectStart, 
         prevDragStart,
         documentEvents = Viva.Graph.Utils.events(window.document),
@@ -87,7 +88,46 @@ Viva.Graph.Utils.dragndrop = function(element) {
             dragObject.ondragstart = prevDragStart; 
             dragObject = null;
             if (end) { end(); }
+        },
+        
+        handleMouseWheel = function(e){
+            e = e || window.event;
+            if(e.preventDefault) { 
+                e.preventDefault();
+            }
+
+            e.returnValue = false;
+            var delta;
+            if(e.wheelDelta) {
+                delta = e.wheelDelta / 360; // Chrome/Safari
+            } else { 
+                delta = e.detail / -9; // Mozilla
+            }
+            
+            if (scroll) {
+                scroll(e, delta);
+            }
+        },
+        
+        updateScrollEvents = function(scrollCallback) {
+           if (!scroll && scrollCallback) {
+               // client is interested in scrolling. Start listening to events:
+               if (Viva.BrowserInfo.browser === 'webkit') {
+                   element.addEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
+               } else {
+                   element.addEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
+               }
+           } else if (scroll && !scrollCallback) {
+               if (Viva.BrowserInfo.browser === 'webkit') {
+                   element.removeEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
+               } else {
+                   element.removeEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
+               }
+           }
+           
+           scroll = scrollCallback;
         };
+        
     
     elementEvents.on('mousedown', handleMouseDown);
 
@@ -107,11 +147,20 @@ Viva.Graph.Utils.dragndrop = function(element) {
             return this;
         },
         
+        /**
+         * Occurs when mouse wheel event happens. callback = function(e, scrollDelta);
+         */
+        onScroll : function(callback) {
+            updateScrollEvents(callback);
+            return this;
+        },
+        
         release : function() {
             // TODO: could be unsafe. We might wanna release dragObject, etc.
             documentEvents.stop('mousemove', handleMouseMove);
             documentEvents.stop('mousedown', handleMouseDown);
             documentEvents.stop('mouseup', handleMouseUp);
+            updateScrollEvents(null);
         }
     };
 };

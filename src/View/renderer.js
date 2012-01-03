@@ -65,7 +65,9 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         transform = {
             offsetX : 0,
-            offsetY : 0 // TODO: Could add scale later.
+            offsetY : 0,
+            scaleX : 1,
+            scaleY : 1
         };
     
     var prepareSettings = function() {
@@ -168,8 +170,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
        },
        
        updateCenter = function() {
-           var graphRect = layout.getGraphRect();
-           var containerSize = Viva.Utils.getDimension(container);
+           var graphRect = layout.getGraphRect(),
+               containerSize = Viva.Utils.getDimension(container);
            
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
@@ -225,8 +227,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     node.isPinned = true;
                 })
                 .onDrag(function(e, offset){
-                    node.position.x += offset.x;
-                    node.position.y += offset.y;
+                    node.position.x += offset.x / transform.scaleX;
+                    node.position.y += offset.y / transform.scaleY;
                     increaseTotalIterations(2);
                 })
                 .onStop(function(){
@@ -312,9 +314,24 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 renderGraph();
             });
             
+            containerDrag.onScroll(function(e, scaleOffset) {
+                var scale = transform.scaleX,
+                    ds = scale * 0.05;
+                    
+                if (scaleOffset < 0) {
+                    ds = -ds;
+                }
+                
+                scale += ds;
+                if (scale > 0) {
+                    transform.scaleX = transform.scaleY = scale;
+                    graphics.scale(transform.scaleX, transform.scaleY);
+                }
+            });
+            
             graph.forEachNode(listenNodeEvents);
             
-           Viva.Graph.Utils.events(graph).on('changed', function(changes){
+            Viva.Graph.Utils.events(graph).on('changed', function(changes){
                 for(var i = 0; i < changes.length; ++i){
                     var change = changes[i];
                     if (change.node) {

@@ -15,6 +15,8 @@ Viva.Graph.View.svgGraphics = function() {
         svgRoot,
         offsetX,
         offsetY,
+        scaleX = 1,
+        scaleY = 1,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -42,9 +44,15 @@ Viva.Graph.View.svgGraphics = function() {
         },
         
         updateTransform = function() {
-        	if (svgContainer) {
-	        	svgContainer.attr('transform', 'translate(' + offsetX + ',' + offsetY +')');
-	        }
+            if (svgContainer) {
+                // var matrix = {
+                    // a : scaleX, c : 0, e : offsetX,
+                    // b : 0, d : scaleY, f : offsetY
+                // },
+                // str = 'matrix(' + matrix.a + "," + matrix.b + "," + matrix.c + "," + matrix.d + "," + matrix.e + "," + matrix.f + ")";
+                var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                svgContainer.attr('transform', transform);
+            }
         };
     
     return {
@@ -112,6 +120,12 @@ Viva.Graph.View.svgGraphics = function() {
         	offsetX = x;
         	offsetY = y;
         	updateTransform();
+        },
+        
+        scale : function(x, y) {
+            scaleX = x;
+            scaleY = y;
+            updateTransform();
         },
 
        /**
