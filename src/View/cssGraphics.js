@@ -194,15 +194,21 @@ Viva.Graph.View.cssGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        translate : function(x, y) {
-        	offsetX = x;
-        	offsetY = y;
-        	
-        	updateTransform();
+        setInitialOffset : function(x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
+        },
+        
+        translateRel : function(dx, dy) {
+            offsetX += dx;
+            offsetY += dy;
+            updateTransform();
         },
         
         scale : function(x, y) {
             // TODO: implement me
+            return 1;
         },
 
         /**

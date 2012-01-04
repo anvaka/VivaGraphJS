@@ -44,6 +44,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  */
 Viva.Graph.View.renderer = function(graph, settings) {
     // TODO: This class is getting hard to understand. Consider refactoring.
+    // TODO: I have a technical debt here: fix scaling/recentring! Currently it's total mess.
     var FRAME_INTERVAL = 30;
     
     settings = settings || {};
@@ -66,8 +67,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
         transform = {
             offsetX : 0,
             offsetY : 0,
-            scaleX : 1,
-            scaleY : 1
+            scale : 1
         };
     
     var prepareSettings = function() {
@@ -171,12 +171,12 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        updateCenter = function() {
            var graphRect = layout.getGraphRect(),
-               containerSize = Viva.Utils.getDimension(container);
+               containerSize = Viva.Graph.Utils.getDimension(container);
            
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
            transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
-           graphics.translate(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
+           graphics.setInitialOffset(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
            
            updateCenterRequired = false;
        },
@@ -227,8 +227,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     node.isPinned = true;
                 })
                 .onDrag(function(e, offset){
-                    node.position.x += offset.x / transform.scaleX;
-                    node.position.y += offset.y / transform.scaleY;
+                    node.position.x += offset.x / transform.scale;
+                    node.position.y += offset.y / transform.scale;
                     increaseTotalIterations(2);
                 })
                 .onStop(function(){
@@ -309,24 +309,14 @@ Viva.Graph.View.renderer = function(graph, settings) {
             containerDrag.onDrag(function(e, offset){
                 viewPortOffset.x += offset.x;
                 viewPortOffset.y += offset.y;
-                graphics.translate(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
+                graphics.translateRel(offset.x, offset.y);
                 
                 renderGraph();
             });
             
-            containerDrag.onScroll(function(e, scaleOffset) {
-                var scale = transform.scaleX,
-                    ds = scale * 0.05;
-                    
-                if (scaleOffset < 0) {
-                    ds = -ds;
-                }
-                
-                scale += ds;
-                if (scale > 0) {
-                    transform.scaleX = transform.scaleY = scale;
-                    graphics.scale(transform.scaleX, transform.scaleY);
-                }
+            containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
+                var scaleFactor = Math.pow(1 + 0.4, scaleOffset < 0 ? -0.2 : 0.2);
+                transform.scale = graphics.scale(scaleFactor, scrollPoint);
             });
             
             graph.forEachNode(listenNodeEvents);

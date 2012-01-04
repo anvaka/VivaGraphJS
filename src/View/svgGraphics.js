@@ -15,8 +15,7 @@ Viva.Graph.View.svgGraphics = function() {
         svgRoot,
         offsetX,
         offsetY,
-        scaleX = 1,
-        scaleY = 1,
+        actualScale = 1,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -45,12 +44,7 @@ Viva.Graph.View.svgGraphics = function() {
         
         updateTransform = function() {
             if (svgContainer) {
-                // var matrix = {
-                    // a : scaleX, c : 0, e : offsetX,
-                    // b : 0, d : scaleY, f : offsetY
-                // },
-                // str = 'matrix(' + matrix.a + "," + matrix.b + "," + matrix.c + "," + matrix.d + "," + matrix.e + "," + matrix.f + ")";
-                var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
                 svgContainer.attr('transform', transform);
             }
         };
@@ -116,16 +110,52 @@ Viva.Graph.View.svgGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        translate : function(x, y) {
-        	offsetX = x;
-        	offsetY = y;
-        	updateTransform();
+        setInitialOffset : function(x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
         },
         
-        scale : function(x, y) {
-            scaleX = x;
-            scaleY = y;
-            updateTransform();
+        translateRel : function(dx, dy) {
+            var p = svgRoot.createSVGPoint(),
+                t = svgContainer.getCTM(),
+                origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
+                
+            p.x = dx;
+            p.y = dy;
+            
+            p = p.matrixTransform(t.inverse());
+            p.x = (p.x - origin.x) * t.a;
+            p.y = (p.y - origin.y) * t.d;
+            
+            t.e += p.x;
+            t.f += p.y;
+            
+            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr('transform', transform);
+        },
+        
+        scale : function(scaleFactor, scrollPoint) {
+            // scaleX = x;
+            // scaleY = y;
+            
+            var p = svgRoot.createSVGPoint();
+            p.x = scrollPoint.x;
+            p.y = scrollPoint.y;
+            
+            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
+            
+            // Compute new scale matrix in current mouse position
+            var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
+                t = svgContainer.getCTM().multiply(k);
+
+            actualScale = t.a;
+            offsetX = t.e;
+            offsetY = t.f;
+            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr('transform', transform);
+            
+            return actualScale;
         },
 
        /**

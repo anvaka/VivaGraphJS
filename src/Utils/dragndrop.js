@@ -15,10 +15,29 @@ Viva.Graph.Utils.dragndrop = function(element) {
         prevDragStart,
         documentEvents = Viva.Graph.Utils.events(window.document),
         elementEvents = Viva.Graph.Utils.events(element),
+        findElementPosition = Viva.Graph.Utils.findElementPosition,
         
         startX = 0,
         startY = 0,
         dragObject,
+        
+        getMousePos = function(e) {
+            var posx = 0,
+                posy = 0;
+                
+            e = e || window.event;
+            
+            if (e.pageX || e.pageY)     {
+                posx = e.pageX;
+                posy = e.pageY;
+            }
+            else if (e.clientX || e.clientY) {
+                posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            
+            return [posx, posy];
+        },
         
         stopPropagation = function (e)
         {
@@ -91,22 +110,31 @@ Viva.Graph.Utils.dragndrop = function(element) {
         },
         
         handleMouseWheel = function(e){
+            if (typeof scroll !== 'function') {
+                return;
+            }
+            
             e = e || window.event;
             if(e.preventDefault) { 
                 e.preventDefault();
             }
 
             e.returnValue = false;
-            var delta;
+            var delta,
+                mousePos = getMousePos(e),
+                elementOffset = findElementPosition(element),
+                relMousePos = {
+                    x: mousePos[0] - elementOffset[0], 
+                    y: mousePos[1] - elementOffset[1] 
+                };
+                
             if(e.wheelDelta) {
                 delta = e.wheelDelta / 360; // Chrome/Safari
             } else { 
                 delta = e.detail / -9; // Mozilla
             }
             
-            if (scroll) {
-                scroll(e, delta);
-            }
+            scroll(e, delta, relMousePos);
         },
         
         updateScrollEvents = function(scrollCallback) {
@@ -148,7 +176,7 @@ Viva.Graph.Utils.dragndrop = function(element) {
         },
         
         /**
-         * Occurs when mouse wheel event happens. callback = function(e, scrollDelta);
+         * Occurs when mouse wheel event happens. callback = function(e, scrollDelta, scrollPoint);
          */
         onScroll : function(callback) {
             updateScrollEvents(callback);

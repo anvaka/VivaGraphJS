@@ -53,30 +53,41 @@ Viva.Graph.Utils.indexOfElementInArray = function(element, array) {
     return -1;
 };
 /*global Viva*/
+Viva.Graph.Utils = Viva.Graph.Utils || {};
 
-Viva.Utils = (function(){
+Viva.Graph.Utils.getDimension = function(container) {
+    if (!container){
+        throw {
+            message : 'Cannot get dimensions of undefined container'
+        };
+    }
+    
+    // TODO: Potential cross browser bug.
+    var width = container.clientWidth;
+    var height = container.clientHeight;
+    
     return {
-        getDimension : function(container){
-            if (!container){
-                throw {
-                    message : 'Cannot get dimensions of undefined container'
-                };
-            }
-            
-            // TODO: Potential cross browser bug.
-            var width = container.clientWidth;
-            var height = container.clientHeight;
-            
-            return {
-                left : 0,
-                top : 0,
-                width : width,
-                height : height
-            };
-        }
+        left : 0,
+        top : 0,
+        width : width,
+        height : height
     };
-})();
+};
+        
 /**
+ * Finds the absolute position of an element on a page
+ */
+Viva.Graph.Utils.findElementPosition = function(obj) {
+    var curleft = 0,
+        curtop = 0;
+    if (obj.offsetParent) { 
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;    
+        } while ( (obj = obj.offsetParent) ); // This is not a mistake. Should be assignment.
+    }
+    return [curleft,curtop];
+};/**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
@@ -222,14 +233,34 @@ Viva.Graph.Utils.dragndrop = function(element) {
     var start,
         drag,
         end,
+        scroll,
         prevSelectStart, 
         prevDragStart,
         documentEvents = Viva.Graph.Utils.events(window.document),
         elementEvents = Viva.Graph.Utils.events(element),
+        findElementPosition = Viva.Graph.Utils.findElementPosition,
         
         startX = 0,
         startY = 0,
         dragObject,
+        
+        getMousePos = function(e) {
+            var posx = 0,
+                posy = 0;
+                
+            e = e || window.event;
+            
+            if (e.pageX || e.pageY)     {
+                posx = e.pageX;
+                posy = e.pageY;
+            }
+            else if (e.clientX || e.clientY) {
+                posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            
+            return [posx, posy];
+        },
         
         stopPropagation = function (e)
         {
@@ -299,7 +330,55 @@ Viva.Graph.Utils.dragndrop = function(element) {
             dragObject.ondragstart = prevDragStart; 
             dragObject = null;
             if (end) { end(); }
+        },
+        
+        handleMouseWheel = function(e){
+            if (typeof scroll !== 'function') {
+                return;
+            }
+            
+            e = e || window.event;
+            if(e.preventDefault) { 
+                e.preventDefault();
+            }
+
+            e.returnValue = false;
+            var delta,
+                mousePos = getMousePos(e),
+                elementOffset = findElementPosition(element),
+                relMousePos = {
+                    x: mousePos[0] - elementOffset[0], 
+                    y: mousePos[1] - elementOffset[1] 
+                };
+                
+            if(e.wheelDelta) {
+                delta = e.wheelDelta / 360; // Chrome/Safari
+            } else { 
+                delta = e.detail / -9; // Mozilla
+            }
+            
+            scroll(e, delta, relMousePos);
+        },
+        
+        updateScrollEvents = function(scrollCallback) {
+           if (!scroll && scrollCallback) {
+               // client is interested in scrolling. Start listening to events:
+               if (Viva.BrowserInfo.browser === 'webkit') {
+                   element.addEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
+               } else {
+                   element.addEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
+               }
+           } else if (scroll && !scrollCallback) {
+               if (Viva.BrowserInfo.browser === 'webkit') {
+                   element.removeEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
+               } else {
+                   element.removeEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
+               }
+           }
+           
+           scroll = scrollCallback;
         };
+        
     
     elementEvents.on('mousedown', handleMouseDown);
 
@@ -319,11 +398,20 @@ Viva.Graph.Utils.dragndrop = function(element) {
             return this;
         },
         
+        /**
+         * Occurs when mouse wheel event happens. callback = function(e, scrollDelta, scrollPoint);
+         */
+        onScroll : function(callback) {
+            updateScrollEvents(callback);
+            return this;
+        },
+        
         release : function() {
             // TODO: could be unsafe. We might wanna release dragObject, etc.
             documentEvents.stop('mousemove', handleMouseMove);
             documentEvents.stop('mousedown', handleMouseDown);
             documentEvents.stop('mouseup', handleMouseUp);
+            updateScrollEvents(null);
         }
     };
 };
@@ -2551,22 +2639,24 @@ Viva.Graph.View = Viva.Graph.View || {};
  * Performs css-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edeges of the graph.
  * 
+ * NOTE: Most likely I will remove this graphics engine due to superior svg support. 
+ * In certain cases it doesn't work and require further imporvments:
+ *  * does not properly work for dragging.
+ *  * does not support scaling.
+ *  * does not support IE versions prior to IE9.
+ * 
  */
 Viva.Graph.View.cssGraphics = function() {
     var container, // Where graph will be rendered
-
-       /** 
-        * Returns a function (ui, x, y, angleRad).
-        * 
-        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
-        * and position it to 'x' 'y' coordinates.
-        * 
-        * Operation works in most modern browsers that support transform css style
-        * and IE.  
-        * */
-        positionLink = (function() {
-            var browserName = Viva.BrowserInfo.browser;
-            var prefix = '';
+        OLD_IE = 'OLD_IE',
+        offsetX,
+        offsetY,
+        scaleX = 1,
+        scaleY = 1,
+        
+        transformName = (function(){
+			var browserName = Viva.BrowserInfo.browser,
+                prefix;
     
             switch (browserName) {
                 case 'mozilla' :
@@ -2583,44 +2673,61 @@ Viva.Graph.View.cssGraphics = function() {
                     if(version > 8) {
                         prefix = 'ms';
                     } else {
-                        return function(ui, x, y, angleRad) {
-                            var cos = Math.cos(angleRad);
-                            var sin = Math.sin(angleRad);
-
-                            // IE 6, 7 and 8 are screwed up when it comes to transforms;
-                            // I could not find justification for their choice of "floating"
-                            // matrix transform origin. The following ugly code was written
-                            // out of complete dispair.
-                            if(angleRad < 0) {
-                                angleRad = 2 * Math.PI + angleRad;
-                            }
-
-                            if(angleRad < Math.PI / 2) {
-                                ui.style.left = x + 'px';
-                                ui.style.top = y + 'px';
-                            } else if(angleRad < Math.PI) {
-                                ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                                ui.style.top = y;
-                            } else if(angleRad < (Math.PI + Math.PI / 2)) {
-                                ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                                ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
-                            } else {
-                                ui.style.left = x;
-                                ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
-                            }
-                            ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
-                        };
+                        return OLD_IE;
                     }
-                    break;
-            }
-    
-            if(prefix) {
+             }
+             if (prefix) { // CSS3
+                return prefix + 'Transform';
+             } else { // Unknown browser
+                 return null; 
+             }
+        })(),
+        
+       /** 
+        * Returns a function (ui, x, y, angleRad).
+        * 
+        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
+        * and position it to 'x' 'y' coordinates.
+        * 
+        * Operation works in most modern browsers that support transform css style
+        * and IE.  
+        * */
+        positionLink = (function() {
+            if (transformName === OLD_IE) { // This is old IE, use filters
+                return function(ui, x, y, angleRad) {
+                    var cos = Math.cos(angleRad);
+                    var sin = Math.sin(angleRad);
+
+                    // IE 6, 7 and 8 are screwed up when it comes to transforms;
+                    // I could not find justification for their choice of "floating"
+                    // matrix transform origin. The following ugly code was written
+                    // out of complete dispair.
+                    if(angleRad < 0) {
+                        angleRad = 2 * Math.PI + angleRad;
+                    }
+
+                    if(angleRad < Math.PI / 2) {
+                        ui.style.left = x + 'px';
+                        ui.style.top = y + 'px';
+                    } else if(angleRad < Math.PI) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y;
+                    } else if(angleRad < (Math.PI + Math.PI / 2)) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
+                    } else {
+                        ui.style.left = x;
+                        ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
+                    }
+                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
+                };
+            } else if (transformName) { // Modern CSS3 browser
                 return function(ui, x, y, angleRad) {
                     ui.style.left = x + 'px';
                     ui.style.top = y + 'px';
     
-                    ui.style[prefix + 'Transform'] = 'rotate(' + angleRad + 'rad)';
-                    ui.style[prefix + 'TransformOrigin'] = 'left';
+                    ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
+                    ui.style[transformName + 'Origin'] = 'left';
                 };
             } else {
                 return function(ui, x, y, angleRad) {
@@ -2657,6 +2764,17 @@ Viva.Graph.View.cssGraphics = function() {
             linkUI.setAttribute('class', 'link');
             
             return linkUI;
+        },
+        
+        updateTransform = function() {
+            if (container) {
+                if (transformName && transformName !== OLD_IE) {
+                    var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                    container.style[transformName] = transform;
+                } else {
+                    // TODO Implement OLD_IE Filter based transform
+                }
+            }
         };
         
     return {
@@ -2701,8 +2819,27 @@ Viva.Graph.View.cssGraphics = function() {
             linkBuilder = builderCallbackOrLink;
             return this;
         },
-
         
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        setInitialOffset : function(x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
+        },
+        
+        translateRel : function(dx, dy) {
+            offsetX += dx;
+            offsetY += dy;
+            updateTransform();
+        },
+        
+        scale : function(x, y) {
+            // TODO: implement me
+            return 1;
+        },
+
         /**
          * Allows to override default position setter for the node with a new
          * function. newPlaceCallback(node, position) is function which
@@ -2724,6 +2861,7 @@ Viva.Graph.View.cssGraphics = function() {
          */
         init : function (parentContainer) {
             container = parentContainer;
+            updateTransform();
         },
         
        /**
@@ -2872,6 +3010,9 @@ Viva.Graph.View = Viva.Graph.View || {};
 Viva.Graph.View.svgGraphics = function() {
     var svgContainer,
         svgRoot,
+        offsetX,
+        offsetY,
+        actualScale = 1,
  
         nodeBuilder = function(node){
             return Viva.Graph.svg('rect')
@@ -2896,6 +3037,13 @@ Viva.Graph.View.svgGraphics = function() {
                   .attr("y1", fromPos.y)
                   .attr("x2", toPos.x)
                   .attr("y2", toPos.y);
+        },
+        
+        updateTransform = function() {
+            if (svgContainer) {
+                var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
+                svgContainer.attr('transform', transform);
+            }
         };
     
     return {
@@ -2920,7 +3068,7 @@ Viva.Graph.View.svgGraphics = function() {
             
             return this;
         },
-
+        
         /**
          * Sets the collback that creates link representation or creates a new link
          * presentation if builderCallbackOrLink is not a function. 
@@ -2956,6 +3104,57 @@ Viva.Graph.View.svgGraphics = function() {
             return this;
         },
         
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        setInitialOffset : function(x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
+        },
+        
+        translateRel : function(dx, dy) {
+            var p = svgRoot.createSVGPoint(),
+                t = svgContainer.getCTM(),
+                origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
+                
+            p.x = dx;
+            p.y = dy;
+            
+            p = p.matrixTransform(t.inverse());
+            p.x = (p.x - origin.x) * t.a;
+            p.y = (p.y - origin.y) * t.d;
+            
+            t.e += p.x;
+            t.f += p.y;
+            
+            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr('transform', transform);
+        },
+        
+        scale : function(scaleFactor, scrollPoint) {
+            // scaleX = x;
+            // scaleY = y;
+            
+            var p = svgRoot.createSVGPoint();
+            p.x = scrollPoint.x;
+            p.y = scrollPoint.y;
+            
+            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
+            
+            // Compute new scale matrix in current mouse position
+            var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
+                t = svgContainer.getCTM().multiply(k);
+
+            actualScale = t.a;
+            offsetX = t.e;
+            offsetY = t.f;
+            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr('transform', transform);
+            
+            return actualScale;
+        },
+
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output 
         * provider prepare to render.
@@ -2967,6 +3166,7 @@ Viva.Graph.View.svgGraphics = function() {
 
            svgRoot.appendChild(svgContainer);
            container.appendChild(svgRoot);
+           updateTransform();
        },
        
        /**
@@ -3106,7 +3306,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         transform = {
             offsetX : 0,
-            offsetY : 0 // TODO: Could add scale later.
+            offsetY : 0,
+            scale : 1
         };
     
     var prepareSettings = function() {
@@ -3130,13 +3331,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
             }
             
             var from = {
-                x : Math.round(fromNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(fromNode.position.y + transform.offsetY + viewPortOffset.y),
+                x : Math.round(fromNode.position.x),
+                y : Math.round(fromNode.position.y),
                 node: fromNode
             },
             to = {
-                x : Math.round(toNode.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(toNode.position.y + transform.offsetY + viewPortOffset.y),
+                x : Math.round(toNode.position.x),
+                y : Math.round(toNode.position.y),
                 node : toNode
             };
             
@@ -3145,8 +3346,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         renderNode = function(node) {
             var position = { 
-                x : Math.round(node.position.x + transform.offsetX + viewPortOffset.x),
-                y : Math.round(node.position.y + transform.offsetY + viewPortOffset.y) 
+                x : Math.round(node.position.x),
+                y : Math.round(node.position.y) 
             };
             
             graphics.updateNodePosition(node.ui, position);
@@ -3209,12 +3410,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
        },
        
        updateCenter = function() {
-           var graphRect = layout.getGraphRect();
-           var containerSize = Viva.Utils.getDimension(container);
+           var graphRect = layout.getGraphRect(),
+               containerSize = Viva.Graph.Utils.getDimension(container);
            
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
            transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
+           graphics.setInitialOffset(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
            
            updateCenterRequired = false;
        },
@@ -3265,8 +3467,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     node.isPinned = true;
                 })
                 .onDrag(function(e, offset){
-                    node.position.x += offset.x;
-                    node.position.y += offset.y;
+                    node.position.x += offset.x / transform.scale;
+                    node.position.y += offset.y / transform.scale;
                     increaseTotalIterations(2);
                 })
                 .onStop(function(){
@@ -3347,13 +3549,19 @@ Viva.Graph.View.renderer = function(graph, settings) {
             containerDrag.onDrag(function(e, offset){
                 viewPortOffset.x += offset.x;
                 viewPortOffset.y += offset.y;
+                graphics.translateRel(offset.x, offset.y);
                 
                 renderGraph();
             });
             
+            containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
+                var scaleFactor = Math.pow(1 + 0.4, scaleOffset < 0 ? -0.2 : 0.2);
+                transform.scale = graphics.scale(scaleFactor, scrollPoint);
+            });
+            
             graph.forEachNode(listenNodeEvents);
             
-           Viva.Graph.Utils.events(graph).on('changed', function(changes){
+            Viva.Graph.Utils.events(graph).on('changed', function(changes){
                 for(var i = 0; i < changes.length; ++i){
                     var change = changes[i];
                     if (change.node) {
@@ -3365,7 +3573,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 
                 increaseTotalIterations(100);
             });
-
        };
        
     return {
