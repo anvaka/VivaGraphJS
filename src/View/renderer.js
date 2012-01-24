@@ -114,7 +114,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
         },
         
         renderGraph = function(){
-            if(settings.renderLinks) {
+            if(settings.renderLinks && !graphics.omitLinksRendering) {
                 graph.forEachLink(renderLink);
             }
 
@@ -205,10 +205,16 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        createLinkUi = function(link) {
            var linkUI = graphics.link(link);
+           if (!linkUI) {
+               return;
+           }
+           
            link.ui = linkUI;
            graphics.initLink(linkUI);
 
-           renderLink(link);
+           if (!graphics.omitLinksRendering){ 
+               renderLink(link);
+           }
        },
        
        removeLinkUi = function(link) {
@@ -249,11 +255,11 @@ Viva.Graph.View.renderer = function(graph, settings) {
        initDom = function() {
            graphics.init(container);
            
+           graph.forEachNode(createNodeUi);
+           
            if(settings.renderLinks) {
                 graph.forEachLink(createLinkUi);
            }
-           
-           graph.forEachNode(createNodeUi);
        },
        
        processNodeChange = function(change) {

@@ -36,6 +36,7 @@
             "View/cssGraphics.js",
             "Svg/svg.js",
             "View/svgGraphics.js",
+            "View/svgNodeFactory.js",
             "View/renderer.js",
             "Core/serializer.js"];
             

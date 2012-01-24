@@ -74,7 +74,12 @@ Viva.Graph.geom = function() {
         
             return result;                                
         },
-                
+          
+          /**
+           * Returns intersection point of the rectangle defined by
+           * left, top, right, bottom and a line starting in x1, y1
+           * and ending in x2, y2;
+           */      
         intersectRect : function(left, top, right, bottom, x1, y1, x2, y2) {
             return this.intersect(left, top, left, bottom, x1, y1, x2, y2) ||
                    this.intersect(left, bottom, right, bottom, x1, y1, x2, y2) ||

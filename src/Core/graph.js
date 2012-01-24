@@ -253,6 +253,13 @@ Viva.Graph.graph = function() {
         },
         
         /**
+         * Gets total number of links in the graph.
+         */
+        getLinksCount : function() {
+            return links.length;
+        },
+        
+        /**
          * Gets all links (inbound and outbound) from the node with given id.
          * If node with given id is not found null is returned.
          *

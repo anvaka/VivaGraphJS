@@ -165,7 +165,9 @@ Viva.Graph.View.svgGraphics = function() {
        init : function(container) {
            svgRoot = Viva.Graph.svg("svg");
            
-           svgContainer = Viva.Graph.svg("g");
+           svgContainer = Viva.Graph.svg("g")
+                .attr('shape-rendering', 'optimizeSpeed')
+                .attr('buffered-rendering', 'dynamic');
 
            svgRoot.appendChild(svgContainer);
            container.appendChild(svgRoot);

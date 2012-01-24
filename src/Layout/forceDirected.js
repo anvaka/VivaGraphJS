@@ -81,6 +81,11 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
             };  
         },
         
+        updateNodeMass = function(node){
+            var body = node.force_directed_body; 
+            body.mass = 1 + graph.getLinks(node.id).length / 3.0;
+        },
+        
         initNode = function(node) {
             var body = node.force_directed_body;
             if (!body){
@@ -89,8 +94,8 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
                 node.position = node.position || getBestNodePosition(node);
                     
                 body = new Viva.Graph.Physics.Body();
-                body.mass = 1 + graph.getLinks(node.id).length / 3.0;
                 node.force_directed_body = body;
+                updateNodeMass(node);
                 
                 body.loc(node.position);
                 forceSimulator.addBody(body);                                
@@ -109,15 +114,22 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
         
         initLink = function(link) {
             // TODO: what if bodies are not initialized?
-            var from = graph.getNode(link.fromId).force_directed_body,
-                to = graph.getNode(link.toId).force_directed_body;
+            var from = graph.getNode(link.fromId),
+                to = graph.getNode(link.toId);
             
-            link.force_directed_spring = forceSimulator.addSpring(from, to, -1.0);
+            updateNodeMass(from);
+            updateNodeMass(to);
+            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0);
         },
         
         releaseLink = function(link) {
             var spring = link.force_directed_spring;
             if (spring) {
+                var from = graph.getNode(link.fromId),
+                    to = graph.getNode(link.toId);
+                if (from) { updateNodeMass(from); }
+                if (to) { updateNodeMass(to); }
+
                 link.force_directed_spring = null;
                 delete link.force_directed_spring ;
                 

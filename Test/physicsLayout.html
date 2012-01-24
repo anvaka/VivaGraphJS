@@ -13,17 +13,25 @@
 
                 //var graph = graphGenerator.randomNoLinks(500);
                 //var graph = graphGenerator.completeBipartite(10, 10);
-                //var graph = graphGenerator.complete(20);
+                //var graph = graphGenerator.complete(100);
                 var graph = graphGenerator.grid(10, 10);
                 
                 var layout = Viva.Graph.Layout.forceDirected(graph, {
                     springLength : 10,
-                    springCoeff : 0.0005,
+                    springCoeff : 0.0001,
                     dragCoeff : 0.02,
                     gravity : -4.2
                 });
                 
-                var graphics = Viva.Graph.View.svgGraphics();
+                var graphics = Viva.Graph.View.svgGraphics(),
+                    graphElements = Viva.Graph.View.svgNodeFactory(graph);
+                
+                graphics.omitLinksRendering = true;
+                
+                graphics.node(graphElements.node)
+                    .placeNode(graphElements.placeNode);
+                graphics.link(graphElements.link)
+                    .placeLink(graphElements.placeLink);
                 // graphics.node(function(node){
                     // return Viva.Graph.svg('image')
                         // .attr('width', 64)
