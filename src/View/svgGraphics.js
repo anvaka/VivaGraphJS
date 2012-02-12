@@ -157,6 +157,13 @@ Viva.Graph.View.svgGraphics = function() {
             
             return actualScale;
         },
+        
+        resetScale : function(){
+            actualScale = 1;
+            var transform = 'matrix(1, 0, 0, 1, 0, 0)';
+            svgContainer.attr('transform', transform);
+            return this;
+        },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output 

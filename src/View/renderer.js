@@ -367,6 +367,12 @@ Viva.Graph.View.renderer = function(graph, settings) {
             renderIterations(iterationsCount);
 
             return this;
+        },
+        
+        reset : function(){
+            graphics.resetScale();
+            updateCenter();
+            transform.scale = 1;
         }
     };
 };

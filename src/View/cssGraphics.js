@@ -210,6 +210,11 @@ Viva.Graph.View.cssGraphics = function() {
             // TODO: implement me
             return 1;
         },
+        
+        resetScale : function(){
+            // TODO: implement me
+            return this;
+        },
 
         /**
          * Allows to override default position setter for the node with a new

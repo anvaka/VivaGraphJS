@@ -2863,6 +2863,11 @@ Viva.Graph.View.cssGraphics = function() {
             // TODO: implement me
             return 1;
         },
+        
+        resetScale : function(){
+            // TODO: implement me
+            return this;
+        },
 
         /**
          * Allows to override default position setter for the node with a new
@@ -3177,6 +3182,13 @@ Viva.Graph.View.svgGraphics = function() {
             svgContainer.attr('transform', transform);
             
             return actualScale;
+        },
+        
+        resetScale : function(){
+            actualScale = 1;
+            var transform = 'matrix(1, 0, 0, 1, 0, 0)';
+            svgContainer.attr('transform', transform);
+            return this;
         },
 
        /**
@@ -3743,6 +3755,12 @@ Viva.Graph.View.renderer = function(graph, settings) {
             renderIterations(iterationsCount);
 
             return this;
+        },
+        
+        reset : function(){
+            graphics.resetScale();
+            updateCenter();
+            transform.scale = 1;
         }
     };
 };
