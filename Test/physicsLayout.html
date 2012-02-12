@@ -15,6 +15,7 @@
                 //var graph = graphGenerator.completeBipartite(10, 10);
                 //var graph = graphGenerator.complete(100);
                 var graph = graphGenerator.grid(10, 10);
+                //var graph = graphGenerator.balancedBinTree(10);
                 
                 var layout = Viva.Graph.Layout.forceDirected(graph, {
                     springLength : 10,
@@ -26,12 +27,12 @@
                 var graphics = Viva.Graph.View.svgGraphics(),
                     graphElements = Viva.Graph.View.svgNodeFactory(graph);
                 
-                graphics.omitLinksRendering = true;
+                //graphics.omitLinksRendering = true;
                 
-                graphics.node(graphElements.node)
-                    .placeNode(graphElements.placeNode);
-                graphics.link(graphElements.link)
-                    .placeLink(graphElements.placeLink);
+                // graphics.node(graphElements.node)
+                    // .placeNode(graphElements.placeNode);
+                // graphics.link(graphElements.link)
+                    // .placeLink(graphElements.placeLink);
                 // graphics.node(function(node){
                     // return Viva.Graph.svg('image')
                         // .attr('width', 64)
@@ -40,9 +41,9 @@
                         // // .attr('stroke-width', '1.5px')
                         // // .attr("fill", '#00a2e8');
                     // });
-                    // // .placeNode(function(nodeUI, pos){
-                        // // nodeUI.attr( "cx", pos.x).attr("cy", pos.y); 
-                    // // });
+                    // .placeNode(function(nodeUI, pos){
+                        // nodeUI.attr( "cx", pos.x).attr("cy", pos.y); 
+                    // });
                 
                 
                 var renderer = Viva.Graph.View.renderer(graph,
