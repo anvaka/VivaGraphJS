@@ -58,6 +58,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         currentStep = 0,
         totalIterationsCount = 0, 
+        isStable = false,
+        userInteraction = false,
         
         viewPortOffset = {
             x : 0,
@@ -122,10 +124,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
         },
         
         onRenderFrame = function() {
-            var completed = layout.step();
+            isStable = layout.step() && !userInteraction;
             renderGraph();
             
-            return !completed;
+            return !isStable;
         },
     
        renderIterations = function(iterationsCount) {
@@ -138,11 +140,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
                totalIterationsCount += iterationsCount;
                
                animationTimer = Viva.Graph.Utils.timer(function() {
-                   currentStep++;
-                   onRenderFrame();
-                   var isOver = currentStep >= totalIterationsCount;
-                   if (isOver) { animationTimer = null;}
-                   return !isOver;
+                   return onRenderFrame();
                }, FRAME_INTERVAL);
            } else { 
                 currentStep = 0;
@@ -151,11 +149,16 @@ Viva.Graph.View.renderer = function(graph, settings) {
            }
        },
        
-       increaseTotalIterations = function(increaseBy){
-           if (totalIterationsCount > 0){
-               renderIterations(increaseBy);
-           }
+       resetStable = function(){
+           isStable = false;
+           animationTimer.restart();
        },
+       
+       // increaseTotalIterations = function(increaseBy){
+           // if (totalIterationsCount > 0){
+               // renderIterations(increaseBy);
+           // }
+       // },
        
        prerender = function() {
            // To get good initial positions for the graph
@@ -231,15 +234,19 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 .onStart(function(){
                     wasPinned = node.isPinned;
                     node.isPinned = true;
+                    userInteraction = true;
+                    resetStable();
                 })
                 .onDrag(function(e, offset){
                     node.position.x += offset.x / transform.scale;
                     node.position.y += offset.y / transform.scale;
-                    increaseTotalIterations(2);
+                    userInteraction = true;
+                    //resetStable();
                 })
                 .onStop(function(){
                     node.isPinned = wasPinned;
-                    increaseTotalIterations(100);
+                    userInteraction = false;
+                    //resetStable();
                 });
         },
         
@@ -337,7 +344,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     }
                 }
                 
-                increaseTotalIterations(100);
+                resetStable();
             });
        };
        

@@ -10,8 +10,14 @@ Viva.Graph.Physics = Viva.Graph.Physics || {};
  */
 Viva.Graph.Physics.eulerIntegrator = function() {
     return {
+        /**
+         * Performs forces integration, using given timestep and force simulator.
+         * 
+         * @returns squared distance of total position updates. 
+         */
         integrate : function(simulator, timeStep){
-            var speedLimit = simulator.speedLimit;
+            var speedLimit = simulator.speedLimit,
+                tx = 0, ty = 0;
             
             for(var i = 0, max = simulator.bodies.length; i < max; ++i){
                 var body = simulator.bodies[i];
@@ -27,9 +33,13 @@ Viva.Graph.Physics.eulerIntegrator = function() {
                     body.velocity.y = speedLimit * vy / v;
                 }
                 
-                body.location.x += timeStep * body.velocity.x;
-                body.location.y += timeStep * body.velocity.y;
+                tx = timeStep * body.velocity.x;
+                ty = timeStep * body.velocity.y;
+                body.location.x += tx;
+                body.location.y += ty;
             }
+
+            return tx * tx + ty * ty; 
         }       
     };
 };

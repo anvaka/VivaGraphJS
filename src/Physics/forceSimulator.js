@@ -71,7 +71,7 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
          */
         run : function(timeStep){
             this.accumulate();
-            integrator.integrate(this, timeStep);            
+            return integrator.integrate(this, timeStep);
         },
         
         /**

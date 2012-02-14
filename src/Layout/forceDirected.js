@@ -3,6 +3,8 @@
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
+    var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
+    
     if(!graph) {
         throw {
             message : "Graph structure cannot be undefined"
@@ -209,8 +211,10 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
                 initializationRequired = false;
             }
             
-            forceSimulator.run(20);
+            var energy = forceSimulator.run(20);
             updateNodePositions();
+            
+            return energy < STABLE_THRESHOLD;
         },
         
         /**

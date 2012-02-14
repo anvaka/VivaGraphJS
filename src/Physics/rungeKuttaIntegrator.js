@@ -127,6 +127,8 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
 
             forceSimulator.accumulate();
 
+            var tx = 0, ty = 0;
+            
             for( i = 0; i < max; i++) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
@@ -163,9 +165,14 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
                     vy = speedLimit * vy / v;
                 }
 
+                tx += vy;
+                ty += vy; // not quite right; should be distances, to comply with eulerIntegrator, but not sure whether I need this anyway
+                
                 body.velocity.x += vx;
                 body.velocity.y += vy;
             }
+            
+            return tx * tx + ty * ty; 
         }
     };
 };

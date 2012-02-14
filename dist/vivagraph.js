@@ -429,16 +429,35 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 Viva.Graph.Utils.timer = function(callback, interval){
  // I wanted to extract this to make further transition to 
  // requestAnimationFrame easier: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
- var intervalId = setInterval(function() {
-        if (!callback()) { clearInterval(intervalId); }
-    }, interval);
+ var intervalId,
+     stopTimer = function(){
+        clearInterval(intervalId);
+        intervalId = 0;  
+     },
+
+     startTimer = function(){
+        intervalId = setInterval(
+            function() {
+                if (!callback()) {
+                    stopTimer(); 
+                }
+            }, 
+            interval); 
+     };
+     
+     
+     startTimer(); // start it right away.
     
     return {
         /**
          * Stops execution of the callback
          */
-        stop: function() {
-            clearInterval(intervalId);
+        stop: stopTimer,
+        
+        restart : function(){
+            if (!intervalId) {
+                startTimer();
+            }
         }
     };
 };
@@ -1312,6 +1331,8 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
 
             forceSimulator.accumulate();
 
+            var tx = 0, ty = 0;
+            
             for( i = 0; i < max; i++) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
@@ -1348,9 +1369,14 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
                     vy = speedLimit * vy / v;
                 }
 
+                tx += vy;
+                ty += vy; // not quite right; should be distances, to comply with eulerIntegrator, but not sure whether I need this anyway
+                
                 body.velocity.x += vx;
                 body.velocity.y += vy;
             }
+            
+            return tx * tx + ty * ty; 
         }
     };
 };
@@ -1366,8 +1392,14 @@ Viva.Graph.Physics = Viva.Graph.Physics || {};
  */
 Viva.Graph.Physics.eulerIntegrator = function() {
     return {
+        /**
+         * Performs forces integration, using given timestep and force simulator.
+         * 
+         * @returns squared distance of total position updates. 
+         */
         integrate : function(simulator, timeStep){
-            var speedLimit = simulator.speedLimit;
+            var speedLimit = simulator.speedLimit,
+                tx = 0, ty = 0;
             
             for(var i = 0, max = simulator.bodies.length; i < max; ++i){
                 var body = simulator.bodies[i];
@@ -1383,9 +1415,13 @@ Viva.Graph.Physics.eulerIntegrator = function() {
                     body.velocity.y = speedLimit * vy / v;
                 }
                 
-                body.location.x += timeStep * body.velocity.x;
-                body.location.y += timeStep * body.velocity.y;
+                tx = timeStep * body.velocity.x;
+                ty = timeStep * body.velocity.y;
+                body.location.x += tx;
+                body.location.y += ty;
             }
+
+            return tx * tx + ty * ty; 
         }       
     };
 };
@@ -1874,7 +1910,7 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
          */
         run : function(timeStep){
             this.accumulate();
-            integrator.integrate(this, timeStep);            
+            return integrator.integrate(this, timeStep);
         },
         
         /**
@@ -1969,6 +2005,8 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
+    var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
+    
     if(!graph) {
         throw {
             message : "Graph structure cannot be undefined"
@@ -2175,8 +2213,10 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
                 initializationRequired = false;
             }
             
-            forceSimulator.run(20);
+            var energy = forceSimulator.run(20);
             updateNodePositions();
+            
+            return energy < STABLE_THRESHOLD;
         },
         
         /**
@@ -3446,6 +3486,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         currentStep = 0,
         totalIterationsCount = 0, 
+        isStable = false,
+        userInteraction = false,
         
         viewPortOffset = {
             x : 0,
@@ -3510,10 +3552,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
         },
         
         onRenderFrame = function() {
-            var completed = layout.step();
+            isStable = layout.step() && !userInteraction;
             renderGraph();
             
-            return !completed;
+            return !isStable;
         },
     
        renderIterations = function(iterationsCount) {
@@ -3526,11 +3568,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
                totalIterationsCount += iterationsCount;
                
                animationTimer = Viva.Graph.Utils.timer(function() {
-                   currentStep++;
-                   onRenderFrame();
-                   var isOver = currentStep >= totalIterationsCount;
-                   if (isOver) { animationTimer = null;}
-                   return !isOver;
+                   return onRenderFrame();
                }, FRAME_INTERVAL);
            } else { 
                 currentStep = 0;
@@ -3539,11 +3577,16 @@ Viva.Graph.View.renderer = function(graph, settings) {
            }
        },
        
-       increaseTotalIterations = function(increaseBy){
-           if (totalIterationsCount > 0){
-               renderIterations(increaseBy);
-           }
+       resetStable = function(){
+           isStable = false;
+           animationTimer.restart();
        },
+       
+       // increaseTotalIterations = function(increaseBy){
+           // if (totalIterationsCount > 0){
+               // renderIterations(increaseBy);
+           // }
+       // },
        
        prerender = function() {
            // To get good initial positions for the graph
@@ -3619,15 +3662,19 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 .onStart(function(){
                     wasPinned = node.isPinned;
                     node.isPinned = true;
+                    userInteraction = true;
+                    resetStable();
                 })
                 .onDrag(function(e, offset){
                     node.position.x += offset.x / transform.scale;
                     node.position.y += offset.y / transform.scale;
-                    increaseTotalIterations(2);
+                    userInteraction = true;
+                    //resetStable();
                 })
                 .onStop(function(){
                     node.isPinned = wasPinned;
-                    increaseTotalIterations(100);
+                    userInteraction = false;
+                    //resetStable();
                 });
         },
         
@@ -3725,7 +3772,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     }
                 }
                 
-                increaseTotalIterations(100);
+                resetStable();
             });
        };
        
