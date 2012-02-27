@@ -3108,6 +3108,11 @@ Viva.Graph.View.svgGraphics = function() {
                   .attr("y2", toPos.y);
         },
         
+        fireRescaled = function(graphics){
+            // TODO: maybe we shall copy changes? 
+            graphics.fire('rescaled');
+        },
+        
         updateTransform = function() {
             if (svgContainer) {
                 var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
@@ -3115,7 +3120,7 @@ Viva.Graph.View.svgGraphics = function() {
             }
         };
     
-    return {
+    var graphics = {
         /**
          * Sets the collback that creates node representation or creates a new node
          * presentation if builderCallbackOrNode is not a function. 
@@ -3221,6 +3226,7 @@ Viva.Graph.View.svgGraphics = function() {
             var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
             svgContainer.attr('transform', transform);
             
+            fireRescaled(this);
             return actualScale;
         },
         
@@ -3228,6 +3234,7 @@ Viva.Graph.View.svgGraphics = function() {
             actualScale = 1;
             var transform = 'matrix(1, 0, 0, 1, 0, 0)';
             svgContainer.attr('transform', transform);
+            fireRescaled(this);
             return this;
         },
 
@@ -3239,7 +3246,6 @@ Viva.Graph.View.svgGraphics = function() {
            svgRoot = Viva.Graph.svg("svg");
            
            svgContainer = Viva.Graph.svg("g")
-                .attr('shape-rendering', 'optimizeSpeed')
                 .attr('buffered-rendering', 'dynamic');
 
            svgRoot.appendChild(svgContainer);
@@ -3316,6 +3322,11 @@ Viva.Graph.View.svgGraphics = function() {
            return svgRoot;
        }
     };
+    
+    // Let graphics fire events before we return it to the caller.
+    Viva.Graph.Utils.events(graphics).extend();
+    
+    return graphics;
 };
 /*global Viva*/
 
