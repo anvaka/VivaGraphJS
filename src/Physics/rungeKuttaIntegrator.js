@@ -165,7 +165,7 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
                     vy = speedLimit * vy / v;
                 }
 
-                tx += vy;
+                tx += vx;
                 ty += vy; // not quite right; should be distances, to comply with eulerIntegrator, but not sure whether I need this anyway
                 
                 body.velocity.x += vx;
