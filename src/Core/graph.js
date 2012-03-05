@@ -107,9 +107,14 @@ Viva.Graph.graph = function() {
             }
 
             if(data) {
-                var augmentedData = node.data || {};
-                if (typeof data === 'string' || isArray(data)) {
+                var augmentedData = node.data || {},
+                    dataType = typeof data;
+                
+                if (dataType === 'string' || isArray(data) ||
+                    dataType === 'number' || dataType === 'boolean') {
                     augmentedData = data;
+                } else if (dataType === 'undefined') {
+                    augmentedData = null;
                 } else {
                     for(var name in data) {
                         // TODO: Do we want to copy everything, including prototype's properties?
@@ -141,7 +146,7 @@ Viva.Graph.graph = function() {
          */
         addLink : function(fromId, toId, data) {
             enterModification();
-            // It is not oriented graph. Probably have to rethink this.
+            
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
