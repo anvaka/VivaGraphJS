@@ -40,7 +40,7 @@ Viva.testing = function(context){
            }
            var domRecord = document.createElement('div');
            domRecord.className = level;
-           domRecord.innerText = message;
+           domRecord.innerHTML = message;
            
            if (level === 'info') {
                out.appendChild(document.createElement('br'));
@@ -66,7 +66,7 @@ Viva.testing = function(context){
        },
        
        run : function(testName, testFunction) {
-           framework.log('info', "Running " + testName + '...', 3);
+           framework.log('info', " * " + testName + '...', 3);
            try{
                testFunction();
                framework.log('success', 'Success');
