@@ -25,6 +25,7 @@
             "Core/graph.js",
             "Core/generator.js",
             "Core/operations.js",
+            "Algorithms/centrality.js",
             "Physics/primitives.js",
             "Physics/rungeKuttaIntegrator.js",
             "Physics/eulerIntegrator.js",

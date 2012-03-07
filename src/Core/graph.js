@@ -305,15 +305,27 @@ Viva.Graph.graph = function() {
          * @param nodeId Identifier of the requested node.
          * @param {Function(node, link)} callback Function to be called on all linked nodes.
          *   The function is passed two parameters: adjacent node and link object itself.
+         * @param oriented if true graph treated as oriented.
          */
-        forEachLinkedNode : function(nodeId, callback) {
-            var node = this.getNode(nodeId);
+        forEachLinkedNode : function(nodeId, callback, oriented) {
+            var node = this.getNode(nodeId),
+                i, link, linkedNodeId;
             if(node && node.links && typeof callback === 'function') {
-                for(var i = 0; i < node.links.length; ++i) {
-                    var link = node.links[i];
-                    var linkedNodeId = link.fromId === nodeId ? link.toId : link.fromId;
-
-                    callback(nodes[linkedNodeId], link);
+                // Extraced orientation check out of the loop to increase performance
+                if (oriented){
+                    for(i = 0; i < node.links.length; ++i) {
+                        link = node.links[i];
+                        if (link.fromId === nodeId){
+                            callback(nodes[link.toId], link);
+                        }
+                    }
+                } else {
+                    for(i = 0; i < node.links.length; ++i) {
+                        link = node.links[i];
+                        linkedNodeId = link.fromId === nodeId ? link.toId : link.fromId;
+    
+                        callback(nodes[linkedNodeId], link);
+                    }
                 }
             }
         },
