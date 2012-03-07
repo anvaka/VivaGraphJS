@@ -24,6 +24,7 @@
             "Utils/geom.js",
             "Core/graph.js",
             "Core/generator.js",
+            "Core/operations.js",
             "Physics/primitives.js",
             "Physics/rungeKuttaIntegrator.js",
             "Physics/eulerIntegrator.js",

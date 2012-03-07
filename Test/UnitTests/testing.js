@@ -11,8 +11,24 @@
 
 if (typeof Viva === 'undefined') { Viva = {}; }
 
-Viva.testing = function(){
-    return {
+Viva.testing = function(context){
+    var isTestCategoryName = function(propertyName){
+        return propertyName && propertyName.indexOf('test_') === 0;
+    },
+        
+    getAllCategoryNamesFromContext = function(){
+        var categoryNames = [];
+        
+        for(var key in context){
+            if (context.hasOwnProperty(key) && isTestCategoryName(key)) {
+                categoryNames.push(key);
+            }
+        }
+        
+        return categoryNames;
+    };
+    
+    var framework = {
        log : function(level, message) {
            console.log(message);
            
@@ -50,13 +66,38 @@ Viva.testing = function(){
        },
        
        run : function(testName, testFunction) {
-           this.log('info', "Running " + testName + '...');
+           framework.log('info', "Running " + testName + '...', 3);
            try{
                testFunction();
-               this.log('success', 'Success');
+               framework.log('success', 'Success');
            } catch (e){
-               this.log('fail', 'FAILED: ' + e);
+               framework.log('fail', 'FAILED: ' + e);
            }
+       },
+       
+       runAll : function(){
+          var categoryNames = getAllCategoryNamesFromContext();
+          framework.log('info', 'Running all tests'); 
+          
+          for(var i = 0; i < categoryNames.length; ++i) {
+              var categoryName = categoryNames[i],
+                  shortName = categoryName.match(/.+_(.+)/),
+                  tests = context[categoryName](framework);
+                  
+              shortName = (shortName && shortName[1]) || categoryName;
+               
+              framework.log('info', 'Running ' + shortName + ' category');
+              
+              for(var testName in tests) {
+                   if (tests.hasOwnProperty(testName)){
+                        framework.run(testName, tests[testName]);
+                   }
+              }
+           }
+           
+           framework.log('info', 'Done');
        }
    };
+   
+   return framework;
 };
