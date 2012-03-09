@@ -35,6 +35,24 @@ var test_GraphOperations = function(test){
            var density = operations.density(graph);
            
            test.assertEqual(density, 0, 'Density of graph with no edges should be 0');
+       },
+       
+       degreeCentralityOneEdge : function(){
+           var graph = Viva.Graph.graph(),
+               cd;
+           graph.addLink(0, 1);
+           cd = Viva.Graph.centrality().degreeCentrality(graph);
+           
+           test.assertEqual(cd[0].value, 1, 'Unexpected node degree centrality');
+       },
+       
+       degreeCentralityCompleteGraph : function() {
+           var graph = Viva.Graph.generator().complete(6),
+               cd;
+
+           cd = Viva.Graph.centrality().degreeCentrality(graph);
+           
+           test.assertEqual(cd[0].value, 5, 'Unexpected complete graph node centrality');
        }
   };             
 };

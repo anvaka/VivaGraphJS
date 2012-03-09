@@ -186,7 +186,7 @@ Viva.Graph.centrality = function() {
                     if (!nodes) { continue; }
                     
                     for(var j = 0; j < nodes.length; ++j){
-                        result.unshift({key : nodes[j], value : degree});
+                        result.unshift({key : nodes[j], value : parseInt(degree, 10)});
                     }
                 }
             }
