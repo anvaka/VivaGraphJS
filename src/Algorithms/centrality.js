@@ -8,11 +8,10 @@
 
 /*global Viva*/
 
-Viva.Graph.centrality = function(oriented) {
-    //var oriented = false, // centrailityconsiders graph as oriented. TODO: extract to parameters?
-        
-    var singleSourceShortestPath = function(graph, node) {
+Viva.Graph.centrality = function() {
+    var singleSourceShortestPath = function(graph, node, oriented) {
         // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
+        // sorry about cryptic names.
         var P = {}, // predcessors lists. 
             S = [], 
             sigma = {},
@@ -77,6 +76,16 @@ Viva.Graph.centrality = function(oriented) {
                 betweenness[w] += delta[w];
             }
         }
+    },
+    
+    sortBetweennes = function(b) {
+        var sorted = [];
+        for(var key in b){
+            if (b.hasOwnProperty(key)){
+                sorted.push({ key : key, value : b[key]});
+            }
+        }
+        return sorted.sort(function(x, y) { return y.value - x.value; });
     };
 
     return {
@@ -102,9 +111,10 @@ Viva.Graph.centrality = function(oriented) {
          *      International Journal of Bifurcation and Chaos 17(7):2303-2318, 2007.
          *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
          * 
-         * @param graph oriented and non-weighted.
+         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
+         * @param oriented - identifies how to treat the graph
          */
-        betweennessCentrality : function(graph) {
+        betweennessCentrality : function(graph, oriented) {
             var betweennes = {};
             graph.forEachNode(function(node) {
                 betweennes[node.id] = 0;
@@ -115,7 +125,73 @@ Viva.Graph.centrality = function(oriented) {
                accumulate(betweennes, shortestPath, node);
             });
             
-            return betweennes;
+            return sortBetweennes(betweennes);
+        },
+        
+        /**
+         * Calculates graph nodes degree centrality (in/out or both).
+         * 
+         * @see http://en.wikipedia.org/wiki/Centrality#Degree_centrality
+         * 
+         * @param graph for which we are calculating centrality.
+         * @param kind optional parameter. Valid values are
+         *   'in'  - calculate in-degree centrality
+         *   'out' - calculate out-degree centrality
+         *         - if it's not set generic degree centrality is calculated
+         */
+        degreeCentrality : function(graph, kind) {
+            var calcDegFunction;
+            
+            kind = (kind || 'both').toLowerCase();
+            if (kind === 'in') {
+                calcDegFunction = function(links, nodeId) {
+                    var total = 0;
+                    for(var i = 0; i < links.length; ++i) {
+                         total += (links[i].toId === nodeId) ? 1 : 0;
+                    }
+                    return total;
+                };
+            } else if (kind === 'out') {
+                calcDegFunction = function(links, nodeId) {
+                    var total = 0;
+                    for(var i = 0; i < links.length; ++i) {
+                         total += (links[i].fromId === nodeId) ? 1 : 0;
+                    }
+                    return total;
+                };
+            } else if (kind === 'both') {
+                calcDegFunction = function(links, nodeId) {
+                    return links.length;
+                };
+            } else {
+                throw 'Expected centrality degree kind is: in, out or both';
+            }
+            
+            var sortedDegrees = [];
+            graph.forEachNode(function(node){
+                var links = graph.getLinks(node.id),
+                    nodeDeg = calcDegFunction(links, node.id);
+                
+                if (!sortedDegrees.hasOwnProperty(nodeDeg)) {
+                    sortedDegrees[nodeDeg] = [node.id];
+                } else {
+                    sortedDegrees[nodeDeg].push(node.id);
+                }
+            });
+            
+            var result = [];
+            for (var degree in sortedDegrees){
+                if (sortedDegrees.hasOwnProperty(degree)) {
+                    var nodes = sortedDegrees[degree];
+                    if (!nodes) { continue; }
+                    
+                    for(var j = 0; j < nodes.length; ++j){
+                        result.unshift({key : nodes[j], value : degree});
+                    }
+                }
+            }
+            
+            return result;
         }
     };
 };
