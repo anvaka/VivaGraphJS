@@ -15,6 +15,7 @@
 		COMPLETE_BUILD = [
             "vivagraph.js",
             "version.js",
+            "Utils/etc.js",
             "Utils/browserInfo.js",
             "Utils/indexOf.js",
             "Utils/getDimensions.js",
