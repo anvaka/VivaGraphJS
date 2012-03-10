@@ -1,14 +1,15 @@
-/*global Viva*/
+/*global Viva, Alea*/
 
+var aleaRandom = new Alea("Let seed ", 31337, "be");
 /**
- * Returns a random integer number between 0 and maxValue inclusive. 
+ * Returns a random integer number between 0 and maxValue inclusive.
  * 
- * @note: I wanted to extract this method to support deterministic randomness
- * in future.
+ * @param maxValue is required parameter. 
+ * 
  * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function (maxValue) {
-    return Math.floor(Math.random() * (maxValue || 0xffffffff));
+    return Math.floor(aleaRandom() * maxValue);
 };
 
 /**

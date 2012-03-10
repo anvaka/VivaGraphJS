@@ -6,17 +6,91 @@
 var Viva = Viva || {};
 
 Viva.Graph = Viva.Graph || {};
-Viva.Graph.version = '1.0.0.42';/*global Viva*/
+Viva.Graph.version = '1.0.0.42';// From http://baagoe.com/en/RandomMusings/javascript/
+function Alea() {
+  function Mash() {
+    var n = 0xefc8249d;
+ 
+    var mash = function(data) {
+      data = data.toString();
+      for (var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+ 
+    mash.version = 'Mash 0.9';
+    return mash;
+  }
+  
+  return (function(args) {
+    // Johannes BaagÃ¸e <baagoe@baagoe.com>, 2010
+    var s0 = 0;
+    var s1 = 0;
+    var s2 = 0;
+    var c = 1;
 
+    if (args.length === 0) {
+      args = [+new Date()];
+    }
+    var mash = Mash();
+    s0 = mash(' ');
+    s1 = mash(' ');
+    s2 = mash(' ');
+
+    for (var i = 0; i < args.length; i++) {
+      s0 -= mash(args[i]);
+      if (s0 < 0) {
+        s0 += 1;
+      }
+      s1 -= mash(args[i]);
+      if (s1 < 0) {
+        s1 += 1;
+      }
+      s2 -= mash(args[i]);
+      if (s2 < 0) {
+        s2 += 1;
+      }
+    }
+    mash = null;
+
+    var random = function() {
+      var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+      s0 = s1;
+      s1 = s2;
+      return (s2 = t - (c = t | 0));
+    };
+    random.uint32 = function() {
+      return random() * 0x100000000; // 2^32
+    };
+    random.fract53 = function() {
+      return random() + 
+        (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+    };
+    random.version = 'Alea 0.9';
+    random.args = args;
+    return random;
+
+  } (Array.prototype.slice.call(arguments)));
+}/*global Viva, Alea*/
+
+var aleaRandom = new Alea("Let seed ", 31337, "be");
 /**
- * Returns a random integer number between 0 and maxValue inclusive. 
+ * Returns a random integer number between 0 and maxValue inclusive.
  * 
- * @note: I wanted to extract this method to support deterministic randomness
- * in future.
- * TODO: remove usage of Math.random() from other palces.
+ * @param maxValue is required parameter. 
+ * 
+ * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function (maxValue) {
-    return Math.floor(Math.random() * (maxValue || 0xffffffff));
+    return Math.floor(aleaRandom() * maxValue);
 };
 
 /**
@@ -1406,6 +1480,151 @@ Viva.Graph.centrality = function() {
             }
             
             return result;
+        }
+    };
+};/**
+ * @fileOverview Community structure detection algorithms
+ * 
+ * @see http://en.wikipedia.org/wiki/Community_structure
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/*global Viva*/
+
+Viva.Graph.community = function(T, r) {
+    T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
+    r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
+
+    var getRandomMostPopularWord = function(words, wordHistogram){
+       if (words.length === 1) {
+           return words[0];
+       }
+       
+       // TODO: Is there more efficient way to created sorted dictionary in JS?
+       words.sort(function(x, y) { return wordHistogram[y] - wordHistogram[x]; });
+       var maxCount = 0;
+
+       for(var i = 1; i < words.length; ++i) {
+           if (wordHistogram[words[i - 1]] !== wordHistogram[words[i]]) {
+               break; // other words are less popular... not interested.
+           } else {
+               maxCount += 1;
+           }
+       }
+       
+       return words[Viva.random(maxCount)];
+    },
+    
+    calculateCommunities = function(nodeMemory, threshold) {
+        var histogram = {};
+        for(var i = 0; i < nodeMemory.length; ++i) {
+            var communityName = nodeMemory[i];
+            
+            if (histogram.hasOwnProperty(communityName)) {
+                histogram[communityName] += 1;
+            } else {
+                histogram[communityName] = 1;
+            }
+        }
+        
+        var communities = [];
+
+        for(var name in histogram) {
+            if (histogram.hasOwnProperty(name) && histogram[name] > threshold){
+                communities.push({name : name, probability : histogram[name]});
+            }
+        }
+        
+        return communities.sort(function(x, y) { return y.probability - x.probability;});
+    },
+    
+    init = function(graph) {
+        var algoNodes = [];
+        graph.forEachNode(function(node) {
+            node.slpa = {mem : [node.id]};
+            algoNodes.push(node.id);
+        });
+        
+        return algoNodes;
+    },
+    
+    evaluate = function(graph, nodes) {
+        var shuffle = Viva.randomIterator(nodes),
+        
+       /**
+        * One iteration of SLPA.
+        */
+        processNode = function(nodeId){
+            var listner = graph.getNode(nodeId),
+                saidWordsFrequency = {},
+                saidWords = [];
+            
+            graph.forEachLinkedNode(nodeId, function(speakerNode){
+                // selecting a random label from node's memory with probability proportional
+                // to the occurrence frequency of this label in the memory:
+                var word = speakerNode.slpa.mem[Viva.random(speakerNode.slpa.mem.length - 1)];
+                if (saidWordsFrequency.hasOwnProperty(word)) {
+                    saidWordsFrequency[word] += 1;
+                } else {
+                    saidWordsFrequency[word] = 1;
+                    saidWords.push(word);
+                }
+            });
+            
+            // selecting the most popular label from what it observed in the current step
+            var heard = getRandomMostPopularWord(saidWords, saidWordsFrequency);
+            listner.slpa.mem.push(heard); 
+        };
+        
+        for (var t = 0; t < T; ++t) {
+            shuffle.forEach(processNode);
+        }
+    },
+    
+    postProcess = function(graph) {
+        var communities = {};
+            
+        graph.forEachNode(function(node){
+            var nodeCommunities = calculateCommunities(node.slpa.mem, r * T);
+            
+            for (var i = 0; i < nodeCommunities.length; ++i) {
+                var communityName = nodeCommunities[i].name;
+                if (communities.hasOwnProperty(communityName)){
+                    communities[communityName].push(node.id);
+                } else {
+                    communities[communityName] = [node.id];
+                }
+            }
+            
+            if (nodeCommunities.length > 1) {
+                node.community = nodeCommunities[1].name;
+            }
+            else if (nodeCommunities.length) {
+                node.community = nodeCommunities[0].name;
+            }
+            
+            node.slpa = null;
+            delete node.slpa;
+        });
+        
+        return communities;
+    };
+
+    return {
+        /**
+         * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
+         * Jierui Xie and Boleslaw K. Szymanski. 
+         * 
+         * @see http://arxiv.org/pdf/1109.5720v3.pdf
+         * @see https://sites.google.com/site/communitydetectionslpa/ 
+         */
+        slpa : function(graph) {
+            var nodes = init(graph);
+            
+            evaluate(graph, nodes);
+            
+            return postProcess(graph);
         }
     };
 };/*global Viva*/

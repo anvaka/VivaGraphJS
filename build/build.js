@@ -15,6 +15,7 @@
 		COMPLETE_BUILD = [
             "vivagraph.js",
             "version.js",
+            "../packages/Random/alea.js",
             "Utils/etc.js",
             "Utils/browserInfo.js",
             "Utils/indexOf.js",
@@ -27,6 +28,7 @@
             "Core/generator.js",
             "Core/operations.js",
             "Algorithms/centrality.js",
+            "Algorithms/community.js",
             "Physics/primitives.js",
             "Physics/rungeKuttaIntegrator.js",
             "Physics/eulerIntegrator.js",
