@@ -6,9 +6,9 @@
 var Viva = Viva || {};
 
 Viva.Graph = Viva.Graph || {};
-Viva.Graph.version = '1.0.0.42';// From http://baagoe.com/en/RandomMusings/javascript/
-function Alea() {
-  function Mash() {
+Viva.Graph.version = '1.0.0.42';
+// From http://baagoe.com/en/RandomMusings/javascript/
+function Mash() {
     var n = 0xefc8249d;
  
     var mash = function(data) {
@@ -28,60 +28,79 @@ function Alea() {
  
     mash.version = 'Mash 0.9';
     return mash;
-  }
-  
-  return (function(args) {
-    // Johannes BaagÃ¸e <baagoe@baagoe.com>, 2010
-    var s0 = 0;
-    var s1 = 0;
-    var s2 = 0;
-    var c = 1;
+}
 
+function LFIB4() {
+  return(function(args) {
+    // George Marsaglia's LFIB4,
+    //http://groups.google.com/group/sci.crypt/msg/eb4ddde782b17051
+    var k0 = 0,
+        k1 = 58,
+        k2 = 119,
+        k3 = 178;
+ 
+    var s = [];
+ 
+    var mash = Mash();
     if (args.length === 0) {
       args = [+new Date()];
     }
-    var mash = Mash();
-    s0 = mash(' ');
-    s1 = mash(' ');
-    s2 = mash(' ');
-
+    for (var j = 0; j < 256; j++) {
+      s[j] = mash(' ');
+      s[j] -= mash(' ') * 4.76837158203125e-7; // 2^-21
+      if (s[j] < 0) {
+        s[j] += 1;
+      }
+    }
     for (var i = 0; i < args.length; i++) {
-      s0 -= mash(args[i]);
-      if (s0 < 0) {
-        s0 += 1;
-      }
-      s1 -= mash(args[i]);
-      if (s1 < 0) {
-        s1 += 1;
-      }
-      s2 -= mash(args[i]);
-      if (s2 < 0) {
-        s2 += 1;
+      for (var j = 0; j < 256; j++) {
+        s[j] -= mash(args[i]);
+        s[j] -= mash(args[i]) * 4.76837158203125e-7; // 2^-21
+        if (s[j] < 0) {
+          s[j] += 1;
+        }
       }
     }
     mash = null;
-
+ 
     var random = function() {
-      var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-      s0 = s1;
-      s1 = s2;
-      return (s2 = t - (c = t | 0));
-    };
+      var x;
+ 
+      k0 = (k0 + 1) & 255;
+      k1 = (k1 + 1) & 255;
+      k2 = (k2 + 1) & 255;
+      k3 = (k3 + 1) & 255;
+ 
+      x = s[k0] - s[k1];
+      if (x < 0) {
+        x += 1;
+      }
+      x -= s[k2];
+      if (x < 0) {
+        x += 1;
+      }
+      x -= s[k3];
+      if (x < 0) {
+        x += 1;
+      }
+ 
+      return s[k0] = x;
+    }
+ 
     random.uint32 = function() {
-      return random() * 0x100000000; // 2^32
+      return random() * 0x100000000 >>> 0; // 2^32
     };
-    random.fract53 = function() {
-      return random() + 
-        (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-    };
-    random.version = 'Alea 0.9';
+    random.fract53 = random;
+    random.version = 'LFIB4 0.9';
     random.args = args;
+ 
     return random;
-
   } (Array.prototype.slice.call(arguments)));
-}/*global Viva, Alea*/
+}/*global Viva, LFIB4*/
 
-var aleaRandom = new Alea("Let seed ", 31337, "be");
+var randomFunc = new LFIB4(313371, "Hm...");
+
+// Math.random; //new MersenneTwister19937(31337).genrand_real2; //Math.random; //new Alea("Let seed ", 31337, "be"); //new KISS07("Let seed ", 31337, "be");
 /**
  * Returns a random integer number between 0 and maxValue inclusive.
  * 
@@ -90,7 +109,7 @@ var aleaRandom = new Alea("Let seed ", 31337, "be");
  * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function (maxValue) {
-    return Math.floor(aleaRandom() * maxValue);
+    return Math.floor(randomFunc() * maxValue);
 };
 
 /**
@@ -1482,17 +1501,17 @@ Viva.Graph.centrality = function() {
             return result;
         }
     };
-};/**
- * @fileOverview Community structure detection algorithms
+};/*global Viva*/
+Viva.Graph._community = {};
+
+/**
+ * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
+ * Jierui Xie and Boleslaw K. Szymanski. 
  * 
- * @see http://en.wikipedia.org/wiki/Community_structure
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @see http://arxiv.org/pdf/1109.5720v3.pdf
+ * @see https://sites.google.com/site/communitydetectionslpa/ 
  */
-
-/*global Viva*/
-
-Viva.Graph.community = function(T, r) {
+Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
     r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
 
@@ -1610,7 +1629,27 @@ Viva.Graph.community = function(T, r) {
         
         return communities;
     };
+    return {
+        run : function() {
+            var nodes = init(graph);
+            
+            evaluate(graph, nodes);
+            
+            return postProcess(graph);
+        }
+    };
+};
+/**
+ * @fileOverview Community structure detection algorithms
+ * 
+ * @see http://en.wikipedia.org/wiki/Community_structure
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
 
+/*global Viva*/
+
+Viva.Graph.community = function() {
     return {
         /**
          * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
@@ -1619,12 +1658,9 @@ Viva.Graph.community = function(T, r) {
          * @see http://arxiv.org/pdf/1109.5720v3.pdf
          * @see https://sites.google.com/site/communitydetectionslpa/ 
          */
-        slpa : function(graph) {
-            var nodes = init(graph);
-            
-            evaluate(graph, nodes);
-            
-            return postProcess(graph);
+        slpa : function(graph, T, r) {
+            var algorithm = Viva.Graph._community.slpaAlgorithm(graph, T, r);
+            return algorithm.run();
         }
     };
 };/*global Viva*/

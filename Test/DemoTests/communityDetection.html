@@ -42,7 +42,7 @@
 
                  var example = function() {
                     var graph = d3Sample(),
-                        communities = Viva.Graph.community(100, 0.3).slpa(graph);
+                        communities = Viva.Graph.community().slpa(graph, 100, 0.3);
                     
                     var layout = Viva.Graph.Layout.forceDirected(graph, {
                         springLength : 35,

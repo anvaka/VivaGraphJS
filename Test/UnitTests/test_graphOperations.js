@@ -53,6 +53,13 @@ var test_GraphOperations = function(test){
            cd = Viva.Graph.centrality().degreeCentrality(graph);
            
            test.assertEqual(cd[0].value, 5, 'Unexpected complete graph node centrality');
+       },
+       
+       comunity : function() {
+           var graph = Viva.Graph.generator().lollipop(10, 20),
+               community = Viva.Graph.community();
+           debugger;    
+           community.slpa(graph);
        }
   };             
 };

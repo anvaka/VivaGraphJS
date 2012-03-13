@@ -1,6 +1,8 @@
-/*global Viva, Alea*/
+/*global Viva, LFIB4*/
 
-var aleaRandom = new Alea("Let seed ", 31337, "be");
+var randomFunc = new LFIB4(313371, "Hm...");
+
+// Math.random; //new MersenneTwister19937(31337).genrand_real2; //Math.random; //new Alea("Let seed ", 31337, "be"); //new KISS07("Let seed ", 31337, "be");
 /**
  * Returns a random integer number between 0 and maxValue inclusive.
  * 
@@ -9,7 +11,7 @@ var aleaRandom = new Alea("Let seed ", 31337, "be");
  * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function (maxValue) {
-    return Math.floor(aleaRandom() * maxValue);
+    return Math.floor(randomFunc() * maxValue);
 };
 
 /**

@@ -1,14 +1,14 @@
-/**
- * @fileOverview Community structure detection algorithms
- * 
- * @see http://en.wikipedia.org/wiki/Community_structure
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
 /*global Viva*/
+Viva.Graph._community = {};
 
-Viva.Graph.community = function(T, r) {
+/**
+ * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
+ * Jierui Xie and Boleslaw K. Szymanski. 
+ * 
+ * @see http://arxiv.org/pdf/1109.5720v3.pdf
+ * @see https://sites.google.com/site/communitydetectionslpa/ 
+ */
+Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
     r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
 
@@ -126,16 +126,8 @@ Viva.Graph.community = function(T, r) {
         
         return communities;
     };
-
     return {
-        /**
-         * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
-         * Jierui Xie and Boleslaw K. Szymanski. 
-         * 
-         * @see http://arxiv.org/pdf/1109.5720v3.pdf
-         * @see https://sites.google.com/site/communitydetectionslpa/ 
-         */
-        slpa : function(graph) {
+        run : function() {
             var nodes = init(graph);
             
             evaluate(graph, nodes);
