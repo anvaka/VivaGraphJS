@@ -6,110 +6,122 @@
 var Viva = Viva || {};
 
 Viva.Graph = Viva.Graph || {};
-Viva.Graph.version = '1.0.0.42';
-// From http://baagoe.com/en/RandomMusings/javascript/
-function Mash() {
-    var n = 0xefc8249d;
- 
-    var mash = function(data) {
-      data = data.toString();
-      for (var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-      return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    };
- 
-    mash.version = 'Mash 0.9';
-    return mash;
-}
+Viva.Graph.version = '1.0.0.42';/*global Viva */
 
-function LFIB4() {
-  return(function(args) {
-    // George Marsaglia's LFIB4,
-    //http://groups.google.com/group/sci.crypt/msg/eb4ddde782b17051
-    var k0 = 0,
-        k1 = 58,
-        k2 = 119,
-        k3 = 178;
- 
-    var s = [];
- 
-    var mash = Mash();
-    if (args.length === 0) {
-      args = [+new Date()];
-    }
-    for (var j = 0; j < 256; j++) {
-      s[j] = mash(' ');
-      s[j] -= mash(' ') * 4.76837158203125e-7; // 2^-21
-      if (s[j] < 0) {
-        s[j] += 1;
-      }
-    }
-    for (var i = 0; i < args.length; i++) {
-      for (var j = 0; j < 256; j++) {
-        s[j] -= mash(args[i]);
-        s[j] -= mash(args[i]) * 4.76837158203125e-7; // 2^-21
-        if (s[j] < 0) {
-          s[j] += 1;
-        }
-      }
-    }
-    mash = null;
- 
-    var random = function() {
-      var x;
- 
-      k0 = (k0 + 1) & 255;
-      k1 = (k1 + 1) & 255;
-      k2 = (k2 + 1) & 255;
-      k3 = (k3 + 1) & 255;
- 
-      x = s[k0] - s[k1];
-      if (x < 0) {
-        x += 1;
-      }
-      x -= s[k2];
-      if (x < 0) {
-        x += 1;
-      }
-      x -= s[k3];
-      if (x < 0) {
-        x += 1;
-      }
- 
-      return s[k0] = x;
-    }
- 
-    random.uint32 = function() {
-      return random() * 0x100000000 >>> 0; // 2^32
-    };
-    random.fract53 = random;
-    random.version = 'LFIB4 0.9';
-    random.args = args;
- 
-    return random;
-  } (Array.prototype.slice.call(arguments)));
-}/*global Viva, LFIB4*/
-
-var randomFunc = new LFIB4(313371, "Hm...");
-
-// Math.random; //new MersenneTwister19937(31337).genrand_real2; //Math.random; //new Alea("Let seed ", 31337, "be"); //new KISS07("Let seed ", 31337, "be");
 /**
- * Returns a random integer number between 0 and maxValue inclusive.
+ * Implenetation of seeded pseudo random number generator, based on LFIB4 algorithm.
  * 
- * @param maxValue is required parameter. 
+ * Usage example: 
+ *  var random = Viva.random('random seed', 'can', 'be', 'multiple strings'),
+ *      i = random.next(100); // returns random number from [0 .. 100) range.
  * 
  * TODO: remove usage of Math.random() from other places.
  */
-Viva.random = function (maxValue) {
-    return Math.floor(randomFunc() * maxValue);
+Viva.random = function() {
+    // From http://baagoe.com/en/RandomMusings/javascript/
+    function Mash() {
+        var n = 0xefc8249d;
+     
+        var mash = function(data) {
+          data = data.toString();
+          for (var i = 0; i < data.length; i++) {
+            n += data.charCodeAt(i);
+            var h = 0.02519603282416938 * n;
+            n = h >>> 0;
+            h -= n;
+            h *= n;
+            n = h >>> 0;
+            h -= n;
+            n += h * 0x100000000; // 2^32
+          }
+          return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+        };
+     
+        mash.version = 'Mash 0.9';
+        return mash;
+    }
+
+    function LFIB4(args) {
+      return(function(args) {
+        // George Marsaglia's LFIB4,
+        //http://groups.google.com/group/sci.crypt/msg/eb4ddde782b17051
+        var k0 = 0,
+            k1 = 58,
+            k2 = 119,
+            k3 = 178,
+            j;
+     
+        var s = [];
+     
+        var mash = Mash();
+        if (args.length === 0) {
+          args = [+new Date()];
+        }
+        for (j = 0; j < 256; j++) {
+          s[j] = mash(' ');
+          s[j] -= mash(' ') * 4.76837158203125e-7; // 2^-21
+          if (s[j] < 0) {
+            s[j] += 1;
+          }
+        }
+        for (var i = 0; i < args.length; i++) {
+          for (j = 0; j < 256; j++) {
+            s[j] -= mash(args[i]);
+            s[j] -= mash(args[i]) * 4.76837158203125e-7; // 2^-21
+            if (s[j] < 0) {
+              s[j] += 1;
+            }
+          }
+        }
+        mash = null;
+     
+        var random = function() {
+          var x;
+     
+          k0 = (k0 + 1) & 255;
+          k1 = (k1 + 1) & 255;
+          k2 = (k2 + 1) & 255;
+          k3 = (k3 + 1) & 255;
+     
+          x = s[k0] - s[k1];
+          if (x < 0) {
+            x += 1;
+          }
+          x -= s[k2];
+          if (x < 0) {
+            x += 1;
+          }
+          x -= s[k3];
+          if (x < 0) {
+            x += 1;
+          }
+     
+          return (s[k0] = x);
+        };
+     
+        random.uint32 = function() {
+          return random() * 0x100000000 >>> 0; // 2^32
+        };
+        random.fract53 = random;
+        random.version = 'LFIB4 0.9';
+        random.args = args;
+     
+        return random;
+      } (args));
+    }
+    
+    var randomFunc = new LFIB4(Array.prototype.slice.call(arguments));
+    
+    return {
+        /**
+         * Generates next random number in the range from 0 (inclusive) to maxValue (exclusive)
+         * 
+         * @param maxValue is REQUIRED. Ommitit this numbe will result in NaN values from PRNG. 
+         */
+        next : function (maxValue) {
+            return Math.floor(randomFunc() * maxValue);
+        }
+    };
 };
 
 /**
@@ -117,12 +129,18 @@ Viva.random = function (maxValue) {
  * It's based on modern version of Fisher–Yates shuffle algorithm.  
  * 
  * @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
+ * 
+ * @param array to be shuffled
+ * @param random - a [seeded] random number generator to produce same sequences. This parameter
+ * is optional. If you don't need determenistic randomness keep it blank.
  */
-Viva.randomIterator = function(array) {
+Viva.randomIterator = function(array, random) {
+    random = random || Viva.random();
+    
     return {
         forEach : function(callback) {
             for (var i = array.length - 1; i > 0; --i) {
-               var j = Viva.random(i);
+               var j = random.next(i);
                var t = array[j];
                array[j] = array[i];
                array[i] = t;
@@ -1514,7 +1532,9 @@ Viva.Graph._community = {};
 Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
     r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
-
+    var random = Viva.random('Saying hi to my friends from', 31337),
+        shuffleRandom = Viva.random('Greeting goes to you, ', 'dear reader');
+    
     var getRandomMostPopularWord = function(words, wordHistogram){
        if (words.length === 1) {
            return words[0];
@@ -1532,7 +1552,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
            }
        }
        
-       return words[Viva.random(maxCount)];
+       return words[random.next(maxCount)];
     },
     
     calculateCommunities = function(nodeMemory, threshold) {
@@ -1569,7 +1589,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     },
     
     evaluate = function(graph, nodes) {
-        var shuffle = Viva.randomIterator(nodes),
+        var shuffle = Viva.randomIterator(nodes, shuffleRandom),
         
        /**
         * One iteration of SLPA.
@@ -1582,7 +1602,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
             graph.forEachLinkedNode(nodeId, function(speakerNode){
                 // selecting a random label from node's memory with probability proportional
                 // to the occurrence frequency of this label in the memory:
-                var word = speakerNode.slpa.mem[Viva.random(speakerNode.slpa.mem.length - 1)];
+                var word = speakerNode.slpa.mem[random.next(speakerNode.slpa.mem.length - 1)];
                 if (saidWordsFrequency.hasOwnProperty(word)) {
                     saidWordsFrequency[word] += 1;
                 } else {
@@ -1616,10 +1636,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
                 }
             }
             
-            if (nodeCommunities.length > 1) {
-                node.community = nodeCommunities[1].name;
-            }
-            else if (nodeCommunities.length) {
+            if (nodeCommunities.length) {
                 node.community = nodeCommunities[0].name;
             }
             

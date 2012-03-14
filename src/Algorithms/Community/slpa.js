@@ -11,7 +11,9 @@ Viva.Graph._community = {};
 Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
     r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
-
+    var random = Viva.random('Saying hi to my friends from', 31337),
+        shuffleRandom = Viva.random('Greeting goes to you, ', 'dear reader');
+    
     var getRandomMostPopularWord = function(words, wordHistogram){
        if (words.length === 1) {
            return words[0];
@@ -29,7 +31,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
            }
        }
        
-       return words[Viva.random(maxCount)];
+       return words[random.next(maxCount)];
     },
     
     calculateCommunities = function(nodeMemory, threshold) {
@@ -66,7 +68,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
     },
     
     evaluate = function(graph, nodes) {
-        var shuffle = Viva.randomIterator(nodes),
+        var shuffle = Viva.randomIterator(nodes, shuffleRandom),
         
        /**
         * One iteration of SLPA.
@@ -79,7 +81,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
             graph.forEachLinkedNode(nodeId, function(speakerNode){
                 // selecting a random label from node's memory with probability proportional
                 // to the occurrence frequency of this label in the memory:
-                var word = speakerNode.slpa.mem[Viva.random(speakerNode.slpa.mem.length - 1)];
+                var word = speakerNode.slpa.mem[random.next(speakerNode.slpa.mem.length - 1)];
                 if (saidWordsFrequency.hasOwnProperty(word)) {
                     saidWordsFrequency[word] += 1;
                 } else {
@@ -113,10 +115,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
                 }
             }
             
-            if (nodeCommunities.length > 1) {
-                node.community = nodeCommunities[1].name;
-            }
-            else if (nodeCommunities.length) {
+            if (nodeCommunities.length) {
                 node.community = nodeCommunities[0].name;
             }
             
