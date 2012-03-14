@@ -14,8 +14,6 @@ Viva.Graph.version = '1.0.0.42';/*global Viva */
  * Usage example: 
  *  var random = Viva.random('random seed', 'can', 'be', 'multiple strings'),
  *      i = random.next(100); // returns random number from [0 .. 100) range.
- * 
- * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function() {
     // From http://baagoe.com/en/RandomMusings/javascript/
@@ -114,12 +112,20 @@ Viva.random = function() {
     
     return {
         /**
-         * Generates next random number in the range from 0 (inclusive) to maxValue (exclusive)
+         * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
          * 
          * @param maxValue is REQUIRED. Ommitit this numbe will result in NaN values from PRNG. 
          */
         next : function (maxValue) {
             return Math.floor(randomFunc() * maxValue);
+        },
+
+        /**
+         * Generates random double number in the range from 0 (inclusive) to 1 (exclusive)
+         * This function is the same as Math.random() (except that it could be seeded)
+         */
+        nextDouble : function(){
+            return randomFunc();
         }
     };
 };
@@ -1991,6 +1997,7 @@ Viva.Graph.Physics.nbodyForce = function(options) {
     
     var gravity = typeof options.gravity === 'number' ? options.gravity : -1,
         theta = options.theta || 0.8,
+        random = Viva.random('5f4dcc3b5aa765d61d8327deb882cf99', 75, 20, 63, 0x6c, 65, 76, 65, 72),
         
         Node = function() {
         this.body = null;
@@ -2112,7 +2119,7 @@ Viva.Graph.Physics.nbodyForce = function(options) {
                     // rare, that's why usage of cos()/sin() shouldn't hit performance.
                     var newX, newY;
                     do {
-                        var angle = 2 * Math.random() * Math.PI;
+                        var angle = random.nextDouble() * 2 * Math.PI;
                         var dx = (node.right - node.left) * 0.006 * Math.cos(angle);
                         var dy = (node.bottom - node.top) * 0.006 * Math.sin(angle);
 
@@ -2163,8 +2170,8 @@ Viva.Graph.Physics.nbodyForce = function(options) {
                 
                 if (r === 0){
                     // Poor man's protection agains zero distance.
-                    dx = (Math.random() - 0.5) / 50;
-                    dy = (Math.random() - 0.5) / 50;
+                    dx = (random.nextDouble() - 0.5) / 50;
+                    dy = (random.nextDouble() - 0.5) / 50;
                     r = Math.sqrt(dx * dx + dy * dy);
                 }
               
@@ -2184,8 +2191,8 @@ Viva.Graph.Physics.nbodyForce = function(options) {
                 if (r === 0){
                     // Sorry about code duplucation. I don't want to create many functions
                     // right away. Just want to see performance first.
-                    dx = (Math.random() - 0.5) / 50;
-                    dy = (Math.random() - 0.5) / 50;
+                    dx = (random.nextDouble() - 0.5) / 50;
+                    dy = (random.nextDouble() - 0.5) / 50;
                     r = Math.sqrt(dx * dx + dy * dy);
                 }
                 // If s / r < θ, treat this internal node as a single body, and calculate the
@@ -2275,7 +2282,8 @@ Viva.Graph.Physics.nbodyForce = function(options) {
 Viva.Graph.Physics.nbodyForceBrute = function(options) {
     options = options || {};
     var gravity = typeof options.gravity === 'number' ? options.gravity : -1;
-    var bodies = [];
+    var bodies = [],
+        random = Viva.random('don\'t use this');
     
     var update = function(sourceBody){
 
@@ -2290,8 +2298,8 @@ Viva.Graph.Physics.nbodyForceBrute = function(options) {
                 
                 if (r === 0){
                     // Poor man's protection agains zero distance.
-                    dx = (Math.random() - 0.5) / 50;
-                    dy = (Math.random() - 0.5) / 50;
+                    dx = (random.nextDouble() - 0.5) / 50;
+                    dy = (random.nextDouble() - 0.5) / 50;
                     r = Math.sqrt(dx * dx + dy * dy);
                 }
               
@@ -2352,7 +2360,9 @@ Viva.Graph.Physics.springForce = function(options){
     var currentOptions = {
         length : options.length || 50,
         coeff : typeof options.coeff === 'number' ? options.coeff : 0.00022
-    };
+    },
+    
+    random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
     
     return {
         init : function(forceSimulator) {},
@@ -2365,8 +2375,8 @@ Viva.Graph.Physics.springForce = function(options){
             var dy = body2.location.y - body1.location.y;
             var r = Math.sqrt(dx * dx + dy * dy);
             if (r === 0){
-                dx = (Math.random() - 0.5) / 50;
-                dy = (Math.random() - 0.5) / 50;
+                dx = (random.nextDouble() - 0.5) / 50;
+                dy = (random.nextDouble() - 0.5) / 50;
                 r = Math.sqrt(dx * dx + dy * dy);
             } 
             
@@ -2610,9 +2620,7 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
         
         graphRect = {x1: 0, y1 : 0, x2 : 0, y2 : 0},
         
-        rndNext = function rndNext(maxValue) {
-            return Math.floor(Math.random() * (maxValue || 0xffffffff));
-        },
+        random = Viva.random('ted.com', 103, 114, 101, 97, 116),
         
         getBestNodePosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into 
@@ -2632,8 +2640,8 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
             }
             
             return {
-                x : baseX + rndNext(springLength) - springLength/2,
-                y : baseY + rndNext(springLength) - springLength/2
+                x : baseX + random.next(springLength) - springLength/2,
+                y : baseY + random.next(springLength) - springLength/2
             };  
         },
         

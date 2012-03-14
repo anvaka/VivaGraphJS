@@ -5,7 +5,9 @@ Viva.Graph.Physics.springForce = function(options){
     var currentOptions = {
         length : options.length || 50,
         coeff : typeof options.coeff === 'number' ? options.coeff : 0.00022
-    };
+    },
+    
+    random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
     
     return {
         init : function(forceSimulator) {},
@@ -18,8 +20,8 @@ Viva.Graph.Physics.springForce = function(options){
             var dy = body2.location.y - body1.location.y;
             var r = Math.sqrt(dx * dx + dy * dy);
             if (r === 0){
-                dx = (Math.random() - 0.5) / 50;
-                dy = (Math.random() - 0.5) / 50;
+                dx = (random.nextDouble() - 0.5) / 50;
+                dy = (random.nextDouble() - 0.5) / 50;
                 r = Math.sqrt(dx * dx + dy * dy);
             } 
             

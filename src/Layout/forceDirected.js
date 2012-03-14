@@ -56,9 +56,7 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
         
         graphRect = {x1: 0, y1 : 0, x2 : 0, y2 : 0},
         
-        rndNext = function rndNext(maxValue) {
-            return Math.floor(Math.random() * (maxValue || 0xffffffff));
-        },
+        random = Viva.random('ted.com', 103, 114, 101, 97, 116),
         
         getBestNodePosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into 
@@ -78,8 +76,8 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
             }
             
             return {
-                x : baseX + rndNext(springLength) - springLength/2,
-                y : baseY + rndNext(springLength) - springLength/2
+                x : baseX + random.next(springLength) - springLength/2,
+                y : baseY + random.next(springLength) - springLength/2
             };  
         },
         

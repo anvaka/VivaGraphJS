@@ -6,8 +6,6 @@
  * Usage example: 
  *  var random = Viva.random('random seed', 'can', 'be', 'multiple strings'),
  *      i = random.next(100); // returns random number from [0 .. 100) range.
- * 
- * TODO: remove usage of Math.random() from other places.
  */
 Viva.random = function() {
     // From http://baagoe.com/en/RandomMusings/javascript/
@@ -106,12 +104,20 @@ Viva.random = function() {
     
     return {
         /**
-         * Generates next random number in the range from 0 (inclusive) to maxValue (exclusive)
+         * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
          * 
          * @param maxValue is REQUIRED. Ommitit this numbe will result in NaN values from PRNG. 
          */
         next : function (maxValue) {
             return Math.floor(randomFunc() * maxValue);
+        },
+
+        /**
+         * Generates random double number in the range from 0 (inclusive) to 1 (exclusive)
+         * This function is the same as Math.random() (except that it could be seeded)
+         */
+        nextDouble : function(){
+            return randomFunc();
         }
     };
 };
