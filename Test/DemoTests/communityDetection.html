@@ -52,9 +52,11 @@
                     });
                     
                     var svgGraphics = Viva.Graph.View.svgGraphics();
+                    
                     svgGraphics.node(function(node) {
-                        var groupId = node.community % colors.length;
-                        console.log(groupId);
+                        
+                        var groupId = node.communities[0].name % colors.length;
+                        //console.log(groupId);
                         var circle = Viva.Graph.svg('circle')
                             .attr('r', 7)
                             .attr('stroke', '#fff')
@@ -84,6 +86,7 @@
                     });
                     
                     renderer.run(500);
+                    g = graph;
                 }();
             }
         </script>

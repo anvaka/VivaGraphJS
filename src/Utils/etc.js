@@ -7,6 +7,7 @@
  *  var random = Viva.random('random seed', 'can', 'be', 'multiple strings'),
  *      i = random.next(100); // returns random number from [0 .. 100) range.
  */
+
 Viva.random = function() {
     // From http://baagoe.com/en/RandomMusings/javascript/
     function Mash() {
@@ -85,8 +86,9 @@ Viva.random = function() {
           if (x < 0) {
             x += 1;
           }
-     
-          return (s[k0] = x);
+          
+          s[k0] = x;
+          return x;
         };
      
         random.uint32 = function() {
