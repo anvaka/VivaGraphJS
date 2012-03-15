@@ -1590,7 +1590,7 @@ Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
             listner.slpa.memory.add(heard); 
         };
         
-        for (var t = 0; t < T; ++t) {
+        for (var t = 0; t < T - 1; ++t) { // -1 because one 'step' was during init phase
             shuffle.forEach(processNode);
         }
     },
@@ -1681,7 +1681,18 @@ Viva.Graph._community.occuranceMap = function(random){
             }
             
             uniqueWords.sort(function(x, y) {
-                return wordsCount[y] - wordsCount[x];
+                var result = wordsCount[y] - wordsCount[x]; 
+                if (result) {
+                    return result;
+                }
+
+                // Not only number of occurances matters but order of keys also does.
+                // for ... in implementation in different browsers results in different
+                // order, and if we want to have same categories accross all browsers
+                // we should order words by key names too:                
+                if (x < y) { return -1; }
+                if (x > y) { return 1; }
+                else { return 0;}
             });
         },
         
@@ -1698,10 +1709,7 @@ Viva.Graph._community.occuranceMap = function(random){
          * Adds a new word to the collection of words.
          */
         add : function(word) {
-            if (typeof word !== 'string') {
-                word = String(word);
-            }
-            
+            word = String(word);
             if (wordsCount.hasOwnProperty(word)) {
                 wordsCount[word] += 1;
             } else {
