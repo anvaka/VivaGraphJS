@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <title>VivaGraphs test page</title>
+        
+        <script src="../../dist/vivagraph.js"></script>
+        <script type='text/javascript'>
+        
+            /*global Viva, $*/
+            function onLoad() {
+                var pointsCount = 100,
+                    points = [],//[{x : 0, y : 0}, {x : 200, y : 0},{x : 100, y : 100}, {x: 200, y: 200}, {x: 0, y: 200}],
+                    i;
+                for (i = 0; i < pointsCount; ++i) {
+                    points.push({
+                        x : Math.random() * 500 + 10,
+                        y : Math.random() * 500 + 10
+                    });
+                }
+                
+                var scene = document.getElementById('scene');
+                for (i = 0; i < pointsCount; ++i) {
+                    var pt = Viva.Graph.svg('rect')
+                                .attr('x', points[i].x - 5)
+                                .attr('y', points[i].y - 5)
+                                .attr('width', 10)
+                                .attr('fill', 'orange')
+                                .attr('height', 10);
+                    scene.appendChild(pt);
+                }
+                
+                var hull = Viva.Graph.geom().convexHull(points),
+                    hullPath = 'M' + hull[0].x + ' ' + hull[0].y;
+
+                for (i = 1; i < hull.length; ++i) {
+                    hullPath += 'L' + hull[i].x + ' ' + hull[i].y;
+                }
+                hullPath += 'z';
+                var hullUi = Viva.Graph.svg('path')
+                                .attr('stroke', 'red')
+                                .attr('fill', 'transparent')
+                                .attr('d', hullPath);
+                scene.appendChild(hullUi);
+            }
+        </script>
+    </head>
+    <body onload='onLoad()' style='width:100%; height: 100%; position : absolute'>
+        <div style='width:100%; height:100%; position:absolute;'>
+            <svg style="width: 100%; height: 100%">
+                <g id='scene'>
+                </g>
+            </svg>
+        </div>
+        <a href='javascript:location.reload(true)' style='position: absolute;'>Refresh</a>
+    </body>
+</html>
