@@ -44,6 +44,7 @@
             "Svg/svg.js",
             "View/svgGraphics.js",
             "View/svgNodeFactory.js",
+            "View/webglGraphics.js",
             "View/renderer.js",
             "Core/serializer.js"];
             

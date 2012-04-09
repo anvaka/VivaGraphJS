@@ -261,6 +261,7 @@ Viva.Graph.View.svgGraphics = function() {
         * Returns root svg element. 
         * 
         * Note: This is internal method specific to this renderer
+        * TODO: Renoame this to getGraphicsRoot() to be uniform accross graphics classes
         */
        getSvgRoot : function() {
            return svgRoot;

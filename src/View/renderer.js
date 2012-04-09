@@ -204,10 +204,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        createLinkUi = function(link) {
            var linkUI = graphics.link(link);
-           if (!linkUI) {
-               return;
-           }
-           
            link.ui = linkUI;
            graphics.initLink(linkUI);
 
