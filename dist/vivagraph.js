@@ -578,6 +578,33 @@ Viva.Graph.Utils.dragndrop = function(element) {
 /*global Viva, window*/
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = 
+          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+ 
+    if (!window.requestAnimationFrame){
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+    }
+    
+    if (!window.cancelAnimationFrame){
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+    }
+}());
+
 /**
  * Timer that fires callback with given interval (in ms) until
  * callback returns true;
@@ -587,18 +614,15 @@ Viva.Graph.Utils.timer = function(callback, interval){
  // requestAnimationFrame easier: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
  var intervalId,
      stopTimer = function(){
-        clearInterval(intervalId);
+        window.cancelAnimationFrame(intervalId);
         intervalId = 0;  
      },
 
      startTimer = function(){
-        intervalId = setInterval(
-            function() {
-                if (!callback()) {
-                    stopTimer(); 
-                }
-            }, 
-            interval); 
+         intervalId = window.requestAnimationFrame(startTimer);
+         if (!callback()) {
+            stopTimer(); 
+         }
      };
      
      
@@ -3815,7 +3839,12 @@ Viva.Graph.svg = function(element) {
      */
     svgElement.attr = function(name, value) {
         if (arguments.length === 2) {
-            svgElement.setAttributeNS(null, name, value);
+            if (value !== null) {
+                svgElement.setAttributeNS(null, name, value);
+            } else {
+                svgElement.removeAttributeNS(null, name);
+            }
+            
             return svgElement;
         } else {
             return svgElement.getAttributeNS(null, name);
