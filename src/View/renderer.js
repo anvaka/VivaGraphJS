@@ -116,11 +116,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
         },
         
         renderGraph = function(){
+            graphics.beginRender();
             if(settings.renderLinks && !graphics.omitLinksRendering) {
                 graph.forEachLink(renderLink);
             }
 
             graph.forEachNode(renderNode);
+            graphics.endRender();
         },
         
         onRenderFrame = function() {
@@ -153,12 +155,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
            isStable = false;
            animationTimer.restart();
        },
-       
-       // increaseTotalIterations = function(increaseBy){
-           // if (totalIterationsCount > 0){
-               // renderIterations(increaseBy);
-           // }
-       // },
        
        prerender = function() {
            // To get good initial positions for the graph
@@ -241,12 +237,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     node.position.x += offset.x / transform.scale;
                     node.position.y += offset.y / transform.scale;
                     userInteraction = true;
-                    //resetStable();
                 })
                 .onStop(function(){
                     node.isPinned = wasPinned;
                     userInteraction = false;
-                    //resetStable();
                 });
         },
         

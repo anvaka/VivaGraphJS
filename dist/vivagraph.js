@@ -3719,6 +3719,15 @@ Viva.Graph.View.cssGraphics = function() {
         },
 
         /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function() {},
+        
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function() {},
+        /**
          * Allows to override default position setter for the node with a new
          * function. newPlaceCallback(node, position) is function which
          * is used by updateNode().
@@ -3991,6 +4000,16 @@ Viva.Graph.View.svgGraphics = function() {
             linkPositionCallback = newPlaceLinkCallback;
             return this;
         },
+        
+        /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function() {},
+        
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function() {},
         
         /**
          * Sets translate operation that should be applied to all nodes and links.
@@ -4369,11 +4388,13 @@ Viva.Graph.View.renderer = function(graph, settings) {
         },
         
         renderGraph = function(){
+            graphics.beginRender();
             if(settings.renderLinks && !graphics.omitLinksRendering) {
                 graph.forEachLink(renderLink);
             }
 
             graph.forEachNode(renderNode);
+            graphics.endRender();
         },
         
         onRenderFrame = function() {
@@ -4406,12 +4427,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
            isStable = false;
            animationTimer.restart();
        },
-       
-       // increaseTotalIterations = function(increaseBy){
-           // if (totalIterationsCount > 0){
-               // renderIterations(increaseBy);
-           // }
-       // },
        
        prerender = function() {
            // To get good initial positions for the graph
@@ -4494,12 +4509,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
                     node.position.x += offset.x / transform.scale;
                     node.position.y += offset.y / transform.scale;
                     userInteraction = true;
-                    //resetStable();
                 })
                 .onStop(function(){
                     node.isPinned = wasPinned;
                     userInteraction = false;
-                    //resetStable();
                 });
         },
         

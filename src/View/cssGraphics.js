@@ -217,6 +217,15 @@ Viva.Graph.View.cssGraphics = function() {
         },
 
         /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function() {},
+        
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function() {},
+        /**
          * Allows to override default position setter for the node with a new
          * function. newPlaceCallback(node, position) is function which
          * is used by updateNode().

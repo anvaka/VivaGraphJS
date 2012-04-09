@@ -113,6 +113,16 @@ Viva.Graph.View.svgGraphics = function() {
         },
         
         /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function() {},
+        
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function() {},
+        
+        /**
          * Sets translate operation that should be applied to all nodes and links.
          */
         setInitialOffset : function(x, y) {
