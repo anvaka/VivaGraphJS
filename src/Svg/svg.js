@@ -34,7 +34,12 @@ Viva.Graph.svg = function(element) {
      */
     svgElement.attr = function(name, value) {
         if (arguments.length === 2) {
-            svgElement.setAttributeNS(null, name, value);
+            if (value !== null) {
+                svgElement.setAttributeNS(null, name, value);
+            } else {
+                svgElement.removeAttributeNS(null, name);
+            }
+            
             return svgElement;
         } else {
             return svgElement.getAttributeNS(null, name);
