@@ -4289,12 +4289,11 @@ Viva.Graph.View.webglGraphics = function() {
         width, height,
         linksBuffer,
         nodesBuffer,
-        actualScale = 1,
         nodesCount = 0,
         linksCount = 0,
         transform,
         nodes = new Float32Array(100000),
-        links = new Float32Array(100000),
+        links = new Float32Array(500000),
         
         linksFS = [
         'precision mediump float;',
@@ -4370,8 +4369,8 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         updateSize = function() {
-            width = graphicsRoot.width = container.offsetWidth;
-            height = graphicsRoot.height = container.offsetHeight;
+            width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
+            height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
         },
         
         nodeBuilder = function(node){
@@ -4581,11 +4580,6 @@ Viva.Graph.View.webglGraphics = function() {
         * @param linkUI visual representation of the link created by link() execution.
         */
        initLink : function(linkUI) {
-           // if(svgContainer.childElementCount > 0) {
-               // svgContainer.insertBefore(linkUI, svgContainer.firstChild);
-           // } else {
-               // svgContainer.appendChild(linkUI);
-           // }
        },
 
       /**
@@ -4595,7 +4589,19 @@ Viva.Graph.View.webglGraphics = function() {
        * @param linkUI visual representation of the link created by link() execution.
        **/
        releaseLink : function(linkUI) {
-           svgContainer.removeChild(linkUI);
+           if (linkUI < linksCount && linksCount > 0){
+               linksCount -= 1;
+               if (linksCount === 0 || linksCount === linkUI) {
+                   return; // no more links or removed link is the last one.
+               }
+               
+               // swap removed link with the last link. This will give us O(1)
+               // performance for links removal:
+               links[linkUI * 4 + 0] = links[linksCount * 4 + 0];
+               links[linkUI * 4 + 1] = links[linksCount * 4 + 1];
+               links[linkUI * 4 + 2] = links[linksCount * 4 + 2];
+               links[linkUI * 4 + 3] = links[linksCount * 4 + 3];
+           }
        },
 
       /**
@@ -4604,9 +4610,7 @@ Viva.Graph.View.webglGraphics = function() {
        * 
        * @param nodeUI visual representation of the node created by node() execution.
        **/
-       initNode : function(nodeUI) {
-           //svgContainer.appendChild(nodeUI);
-       },
+       initNode : function(nodeUI) { },
 
       /**
        * Called by Viva.Graph.View.renderer to let concrete graphic output
@@ -4615,7 +4619,16 @@ Viva.Graph.View.webglGraphics = function() {
        * @param nodeUI visual representation of the node created by node() execution.
        **/
        releaseNode : function(nodeUI) {
-           svgContainer.removeChild(nodeUI);
+           // TODO: Check this stuff. It doesn't seem it works for dynamic.html test, leavin artifact when cleared.
+           if (nodeUI < nodesCount && nodesCount > 0) {
+               nodesCount -= 1;
+               if (nodesCount === 0 || nodesCount === nodeUI) {
+                   return ; // no more nodes or removed node is the last in the list.
+               }
+               
+               nodes[nodeUI * 2 + 0] = nodes[nodesCount * 2 + 0];
+               nodes[nodeUI * 2 + 1] = nodes[nodesCount * 2 + 1];
+           }
        },
 
       /**
@@ -4970,6 +4983,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
             containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
                 var scaleFactor = Math.pow(1 + 0.4, scaleOffset < 0 ? -0.2 : 0.2);
                 transform.scale = graphics.scale(scaleFactor, scrollPoint);
+                
+                renderGraph();
             });
             
             graph.forEachNode(listenNodeEvents);

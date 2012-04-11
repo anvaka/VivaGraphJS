@@ -321,6 +321,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
             containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
                 var scaleFactor = Math.pow(1 + 0.4, scaleOffset < 0 ? -0.2 : 0.2);
                 transform.scale = graphics.scale(scaleFactor, scrollPoint);
+                
+                renderGraph();
             });
             
             graph.forEachNode(listenNodeEvents);
