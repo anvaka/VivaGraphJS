@@ -151,9 +151,6 @@ Viva.Graph.View.svgGraphics = function() {
         },
         
         scale : function(scaleFactor, scrollPoint) {
-            // scaleX = x;
-            // scaleY = y;
-            
             var p = svgRoot.createSVGPoint();
             p.x = scrollPoint.x;
             p.y = scrollPoint.y;

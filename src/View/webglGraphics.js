@@ -11,18 +11,18 @@ Viva.Graph.View = Viva.Graph.View || {};
  * layout, but only visualizes nodes and edeges of the graph.
  */
 Viva.Graph.View.webglGraphics = function() {
-    var svgContainer,
+    var container,
         graphicsRoot,
         gl,
         linksProgram,
         nodesProgram,
-        offsetX,
-        offsetY, width, height,
+        width, height,
         linksBuffer,
         nodesBuffer,
         actualScale = 1,
         nodesCount = 0,
         linksCount = 0,
+        transform,
         nodes = new Float32Array(100000),
         links = new Float32Array(100000),
         
@@ -32,9 +32,13 @@ Viva.Graph.View.webglGraphics = function() {
         '   gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);',
         '}'].join('\n'),
         linksVS = [
-        'attribute vec2 pos;',
+        'attribute vec2 aVertexPos;',
+        
+        'uniform vec2 uScreenSize;',
+        'uniform mat4 uTransform;',
+        
         'void main(void) {',
-        '   gl_Position = vec4(pos*0.2, 0.0, 1.0);',
+        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0.0, 1.0);',
         '}'].join('\n'),
         
         nodesFS = [
@@ -43,10 +47,13 @@ Viva.Graph.View.webglGraphics = function() {
         '   gl_FragColor = vec4(0.0, 0.62, 0.91, 1.0);',
         '}'].join('\n'),
         nodesVS = [
-        'attribute vec2 pos;',
+        'attribute vec2 aVertexPos;',
+        'uniform vec2 uScreenSize;',
+        'uniform mat4 uTransform;',
+        
         'void main(void) {',
-        '   gl_Position = vec4(pos*0.2, 0, 1);',
-        '   gl_PointSize = 10.0*0.2;',
+        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
+        '   gl_PointSize = 10.0 * uTransform[0][0];',
         '}'].join('\n'),
  
         createProgram = function(vertexShader, fragmentShader) {
@@ -77,6 +84,26 @@ Viva.Graph.View.webglGraphics = function() {
             return shader;
         },
         
+        updateTransformUniform = function() {
+            gl.useProgram(linksProgram);
+            gl.uniformMatrix4fv(linksProgram.transform, false, transform);
+            
+            gl.useProgram(nodesProgram);
+            gl.uniformMatrix4fv(nodesProgram.transform, false, transform);
+        },
+        
+        resetScaleInternal = function() {
+            transform = [1, 0, 0, 0,
+                        0, 1, 0, 0, 
+                        0, 0, 1, 0,
+                        0, 0, 0, 1];
+        },
+        
+        updateSize = function() {
+            width = graphicsRoot.width = container.offsetWidth;
+            height = graphicsRoot.height = container.offsetHeight;
+        },
+        
         nodeBuilder = function(node){
             if (nodesCount + 1 > nodes.length) {
                 // todo: rebuild array.
@@ -86,8 +113,8 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         nodePositionCallback = function(nodeUI, pos){
-            nodes[nodeUI * 2] = pos.x / width;
-            nodes[nodeUI * 2 + 1] = pos.y  / height;
+            nodes[nodeUI * 2] = pos.x;
+            nodes[nodeUI * 2 + 1] = pos.y;
         },
 
         linkBuilder = function(link){
@@ -98,22 +125,15 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         linkPositionCallback = function(linkUI, fromPos, toPos){
-            links[linkUI * 4 + 0] = fromPos.x / width;
-            links[linkUI * 4 + 1] = fromPos.y / height;
-            links[linkUI * 4 + 2] = toPos.x / width;
-            links[linkUI * 4 + 3] = toPos.y / height;
+            links[linkUI * 4 + 0] = fromPos.x;
+            links[linkUI * 4 + 1] = fromPos.y;
+            links[linkUI * 4 + 2] = toPos.x;
+            links[linkUI * 4 + 3] = toPos.y;
         },
         
         fireRescaled = function(graphics){
             // TODO: maybe we shall copy changes? 
             graphics.fire('rescaled');
-        },
-        
-        updateTransform = function() {
-            // if (svgContainer) {
-                // var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
-                // svgContainer.attr('transform', transform);
-            // }
         };
     
     var graphics = {
@@ -183,7 +203,7 @@ Viva.Graph.View.webglGraphics = function() {
          * Called every time when renderer finishes one step of rendering.
          */
         endRender : function () {
-            gl.useProgram(linksProgram);
+           gl.useProgram(linksProgram);
            gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
            gl.bufferData(gl.ARRAY_BUFFER, links, gl.STATIC_DRAW);
            
@@ -198,68 +218,46 @@ Viva.Graph.View.webglGraphics = function() {
            gl.enableVertexAttribArray(nodesProgram.postionAttrib);
            gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
            gl.drawArrays(gl.POINTS, 0, nodesCount);
-           
-           
-           //gl.drawArrays(gl.POINTS, 0, 12);​
         },
         
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
         setInitialOffset : function(x, y) {
-            offsetX = x;
-            offsetY = y;
-            updateTransform();
+            // todo: do I need this?
         },
         
         translateRel : function(dx, dy) {
-            // var p = svgRoot.createSVGPoint(),
-                // t = svgContainer.getCTM(),
-                // origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
-//                 
-            // p.x = dx;
-            // p.y = dy;
-//             
-            // p = p.matrixTransform(t.inverse());
-            // p.x = (p.x - origin.x) * t.a;
-            // p.y = (p.y - origin.y) * t.d;
-//             
-            // t.e += p.x;
-            // t.f += p.y;
-//             
-            // var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            // svgContainer.attr('transform', transform);
+            transform[12] += (2*transform[0] * dx/width) / transform[0];
+            transform[13] -= (2*transform[5] * dy/height) / transform[5];
+            updateTransformUniform();
         },
         
         scale : function(scaleFactor, scrollPoint) {
-            // scaleX = x;
-            // scaleY = y;
-//             
-            // var p = svgRoot.createSVGPoint();
-            // p.x = scrollPoint.x;
-            // p.y = scrollPoint.y;
-//             
-            // p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
-//             
-            // // Compute new scale matrix in current mouse position
-            // var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
-                // t = svgContainer.getCTM().multiply(k);
-// 
-            // actualScale = t.a;
-            // offsetX = t.e;
-            // offsetY = t.f;
-            // var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            // svgContainer.attr('transform', transform);
-//             
-            // fireRescaled(this);
-            return actualScale;
+            // Transform scroll point to clip-space coordinates: 
+            var cx = 2 * scrollPoint.x/width - 1,
+                cy = 1 - (2*scrollPoint.y) / height;
+
+            cx -= transform[12]; 
+            cy -= transform[13]; 
+
+            transform[12] += cx * (1 - scaleFactor); 
+            transform[13] += cy * (1 - scaleFactor);
+            
+            transform[0] *= scaleFactor;
+            transform[5] *= scaleFactor;
+            
+            updateTransformUniform();
+            fireRescaled(this);
+            
+            return transform[0];
         },
         
         resetScale : function(){
-            // actualScale = 1;
-            // var transform = 'matrix(1, 0, 0, 1, 0, 0)';
-            // svgContainer.attr('transform', transform);
-            // fireRescaled(this);
+            resetScaleInternal();
+            if (gl) {
+                updateTransformUniform();
+            }
             return this;
         },
 
@@ -267,18 +265,23 @@ Viva.Graph.View.webglGraphics = function() {
         * Called by Viva.Graph.View.renderer to let concrete graphic output 
         * provider prepare to render.
         */
-       init : function(container) {
-           graphicsRoot = document.createElement("canvas");
-           width = graphicsRoot.width = container.offsetWidth;
-           height = graphicsRoot.height = container.offsetHeight;
+       init : function(c) {
+           container = c;
            
+           graphicsRoot = document.createElement("canvas");
+           updateSize(); // todo: monitor container size change.
+           resetScaleInternal();
            container.appendChild(graphicsRoot);
            gl = graphicsRoot.getContext('experimental-webgl');
            
            linksProgram = createProgram(createShader(linksVS, gl.VERTEX_SHADER), createShader(linksFS, gl.FRAGMENT_SHADER));
            gl.useProgram(linksProgram);
            linksBuffer = gl.createBuffer();
-           linksProgram.postionAttrib = gl.getAttribLocation(linksProgram, 'pos');
+           linksProgram.postionAttrib = gl.getAttribLocation(linksProgram, 'aVertexPos');
+           linksProgram.screenSize = gl.getUniformLocation(linksProgram, 'uScreenSize');
+           linksProgram.transform = gl.getUniformLocation(linksProgram, 'uTransform');
+           
+           gl.uniform2f(linksProgram.screenSize, width, height);
            gl.enableVertexAttribArray(linksProgram.postionAttrib);
            
            gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
@@ -286,15 +289,19 @@ Viva.Graph.View.webglGraphics = function() {
            
            nodesProgram = createProgram(createShader(nodesVS, gl.VERTEX_SHADER), createShader(nodesFS, gl.FRAGMENT_SHADER));
            gl.useProgram(nodesProgram);
-           nodesProgram.postionAttrib = gl.getAttribLocation(nodesProgram, 'pos');
+           nodesProgram.postionAttrib = gl.getAttribLocation(nodesProgram, 'aVertexPos');
+           nodesProgram.screenSize = gl.getUniformLocation(nodesProgram, 'uScreenSize');
+           
+           nodesProgram.transform = gl.getUniformLocation(nodesProgram, 'uTransform');
+           gl.uniform2f(nodesProgram.screenSize, width, height);
+           
+           updateTransformUniform();
+
            gl.enableVertexAttribArray(nodesProgram.postionAttrib);
            
            nodesBuffer = gl.createBuffer();
            gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
            gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.STATIC_DRAW);
-
-           // TODO: throw error if webgl is not supported.
-           updateTransform();
        },
        
        /**

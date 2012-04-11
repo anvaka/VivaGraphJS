@@ -222,6 +222,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        listenNodeEvents = function(node) {
             var wasPinned = false;
+            // TODO: this should come from graphics? WebGL will not support this.
             node.events = Viva.Graph.Utils.dragndrop(node.ui)
                 .onStart(function(){
                     wasPinned = node.isPinned;
