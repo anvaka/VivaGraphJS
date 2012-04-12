@@ -11,6 +11,9 @@ Viva.Graph.View = Viva.Graph.View || {};
  * layout, but only visualizes nodes and edeges of the graph.
  */
 Viva.Graph.View.webglGraphics = function() {
+    var NODE_ATTRIBUTES_COUNT = 2,
+        LINK_ATTRIBUTES_COUNT = 4;
+    
     var container,
         graphicsRoot,
         gl,
@@ -22,8 +25,8 @@ Viva.Graph.View.webglGraphics = function() {
         nodesCount = 0,
         linksCount = 0,
         transform,
-        nodes = new Float32Array(100000),
-        links = new Float32Array(500000),
+        nodeIds = new Float32Array(64), linkIds = new Float32Array(64),
+        nodes = [], links = [],
         
         linksFS = [
         'precision mediump float;',
@@ -104,30 +107,42 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         nodeBuilder = function(node){
-            if (nodesCount + 1 > nodes.length) {
-                // todo: rebuild array.
-                throw 'TODO: Rebuild array!';
+            if (nodesCount * NODE_ATTRIBUTES_COUNT + 1 > nodeIds.length) {
+                // Every time we run out of space create new array twice bigger.
+                var extendedArray = new Float32Array(nodeIds.length * NODE_ATTRIBUTES_COUNT * 2);
+                extendedArray.set(nodeIds);
+                
+                nodeIds = extendedArray;
             }
-            return nodesCount++;
+            
+            var nodeId = nodesCount++;
+            nodes[nodeId] = node;
+            return nodeId;
         },
         
         nodePositionCallback = function(nodeUI, pos){
-            nodes[nodeUI * 2] = pos.x;
-            nodes[nodeUI * 2 + 1] = pos.y;
+            nodeIds[nodeUI * NODE_ATTRIBUTES_COUNT] = pos.x;
+            nodeIds[nodeUI * NODE_ATTRIBUTES_COUNT + 1] = pos.y;
         },
 
         linkBuilder = function(link){
-            if (linksCount + 1 > links.length) {
-                throw 'TODO: Rebuild array!';
+            if (linksCount * LINK_ATTRIBUTES_COUNT + 1 > linkIds.length) {
+                var extendedArray = new Float32Array(linkIds.length * LINK_ATTRIBUTES_COUNT * 2);
+                extendedArray.set(linkIds);
+                linkIds = extendedArray;
             }
-            return linksCount++;
+            var linkId = linksCount++;
+            
+            links[linkId] = link;
+            return linkId;
         },
         
         linkPositionCallback = function(linkUI, fromPos, toPos){
-            links[linkUI * 4 + 0] = fromPos.x;
-            links[linkUI * 4 + 1] = fromPos.y;
-            links[linkUI * 4 + 2] = toPos.x;
-            links[linkUI * 4 + 3] = toPos.y;
+            var offset = linkUI * LINK_ATTRIBUTES_COUNT; 
+            linkIds[offset + 0] = fromPos.x;
+            linkIds[offset + 1] = fromPos.y;
+            linkIds[offset + 2] = toPos.x;
+            linkIds[offset + 3] = toPos.y;
         },
         
         fireRescaled = function(graphics){
@@ -202,21 +217,28 @@ Viva.Graph.View.webglGraphics = function() {
          * Called every time when renderer finishes one step of rendering.
          */
         endRender : function () {
-           gl.useProgram(linksProgram);
-           gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, links, gl.STATIC_DRAW);
-           
-           gl.enableVertexAttribArray(linksProgram.postionAttrib);
-           gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
-           gl.drawArrays(gl.LINES, 0, linksCount*2);
-           
-           gl.useProgram(nodesProgram);
-           gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.STATIC_DRAW);
-           
-           gl.enableVertexAttribArray(nodesProgram.postionAttrib);
-           gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
-           gl.drawArrays(gl.POINTS, 0, nodesCount);
+            if (linksCount > 0) {
+               gl.useProgram(linksProgram);
+               gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
+               gl.bufferData(gl.ARRAY_BUFFER, linkIds, gl.DYNAMIC_DRAW);
+               
+               gl.enableVertexAttribArray(linksProgram.postionAttrib);
+               gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
+               gl.drawArrays(gl.LINES, 0, linksCount*2);
+           }
+           if (nodesCount > 0){
+               gl.useProgram(nodesProgram);
+               gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
+               gl.bufferData(gl.ARRAY_BUFFER, nodeIds, gl.DYNAMIC_DRAW);
+               
+               gl.enableVertexAttribArray(nodesProgram.postionAttrib);
+               gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
+               gl.drawArrays(gl.POINTS, 0, nodesCount);
+               var err = gl.getError();
+               if (err !== 0) {
+                   debugger;
+               }
+           }
         },
         
         /**
@@ -254,7 +276,11 @@ Viva.Graph.View.webglGraphics = function() {
         
         resetScale : function(){
             resetScaleInternal();
+            
             if (gl) {
+                updateSize();
+                gl.useProgram(linksProgram);
+                gl.uniform2f(linksProgram.screenSize, width, height);
                 updateTransformUniform();
             }
             return this;
@@ -271,6 +297,7 @@ Viva.Graph.View.webglGraphics = function() {
            updateSize(); // todo: monitor container size change.
            resetScaleInternal();
            container.appendChild(graphicsRoot);
+           
            gl = graphicsRoot.getContext('experimental-webgl');
            
            linksProgram = createProgram(createShader(linksVS, gl.VERTEX_SHADER), createShader(linksFS, gl.FRAGMENT_SHADER));
@@ -284,7 +311,7 @@ Viva.Graph.View.webglGraphics = function() {
            gl.enableVertexAttribArray(linksProgram.postionAttrib);
            
            gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, links, gl.STATIC_DRAW);
+           gl.bufferData(gl.ARRAY_BUFFER, linkIds, gl.DYNAMIC_DRAW);
            
            nodesProgram = createProgram(createShader(nodesVS, gl.VERTEX_SHADER), createShader(nodesFS, gl.FRAGMENT_SHADER));
            gl.useProgram(nodesProgram);
@@ -300,7 +327,7 @@ Viva.Graph.View.webglGraphics = function() {
            
            nodesBuffer = gl.createBuffer();
            gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.STATIC_DRAW);
+           gl.bufferData(gl.ARRAY_BUFFER, nodeIds, gl.DYNAMIC_DRAW);
        },
        
        /**
@@ -319,18 +346,22 @@ Viva.Graph.View.webglGraphics = function() {
        * @param linkUI visual representation of the link created by link() execution.
        **/
        releaseLink : function(linkUI) {
-           if (linkUI < linksCount && linksCount > 0){
-               linksCount -= 1;
+           if (linksCount > 0) { linksCount -= 1; }
+
+           if (linkUI < linksCount){
                if (linksCount === 0 || linksCount === linkUI) {
                    return; // no more links or removed link is the last one.
                }
                
                // swap removed link with the last link. This will give us O(1)
                // performance for links removal:
-               links[linkUI * 4 + 0] = links[linksCount * 4 + 0];
-               links[linkUI * 4 + 1] = links[linksCount * 4 + 1];
-               links[linkUI * 4 + 2] = links[linksCount * 4 + 2];
-               links[linkUI * 4 + 3] = links[linksCount * 4 + 3];
+               linkIds[linkUI * 4 + 0] = linkIds[linksCount * 4 + 0];
+               linkIds[linkUI * 4 + 1] = linkIds[linksCount * 4 + 1];
+               linkIds[linkUI * 4 + 2] = linkIds[linksCount * 4 + 2];
+               linkIds[linkUI * 4 + 3] = linkIds[linksCount * 4 + 3];
+
+               links[linkUI] = links[linksCount];
+               links[linkUI].ui = linkUI;
            }
        },
 
@@ -350,14 +381,18 @@ Viva.Graph.View.webglGraphics = function() {
        **/
        releaseNode : function(nodeUI) {
            // TODO: Check this stuff. It doesn't seem it works for dynamic.html test, leavin artifact when cleared.
-           if (nodeUI < nodesCount && nodesCount > 0) {
-               nodesCount -= 1;
+           if (nodesCount > 0) { nodesCount -= 1; }
+
+           if (nodeUI < nodesCount) {
                if (nodesCount === 0 || nodesCount === nodeUI) {
                    return ; // no more nodes or removed node is the last in the list.
                }
                
-               nodes[nodeUI * 2 + 0] = nodes[nodesCount * 2 + 0];
-               nodes[nodeUI * 2 + 1] = nodes[nodesCount * 2 + 1];
+               nodeIds[nodeUI * 2 + 0] = nodeIds[nodesCount * 2 + 0];
+               nodeIds[nodeUI * 2 + 1] = nodeIds[nodesCount * 2 + 1];
+               
+               nodes[nodeUI] = nodes[nodesCount];
+               nodes[nodeUI].ui = nodeUI;
            }
        },
 

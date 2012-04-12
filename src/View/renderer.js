@@ -192,7 +192,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
        },
        
        removeNodeUi = function (node) {
-           if (node.ui){
+           if (typeof node.ui !== 'undefined'){
               graphics.releaseNode(node.ui);
               
               node.ui = null;
@@ -213,7 +213,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
        },
        
        removeLinkUi = function(link) {
-           if (link.ui) { 
+           if (typeof link.ui !== 'undefined') { 
                graphics.releaseLink(link.ui);
                link.ui = null;
                delete link.ui; 
