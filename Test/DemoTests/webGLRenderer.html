@@ -39,78 +39,7 @@
                     });
                     
                 renderer.run();
-                
-            w = webGLTransform();    
             }
-            
-            function webGLTransform() {
-                var width = window.innerWidth,
-                    height = window.innerHeight,
-                    transform = 
-           [1, 0, 0, 0,
-            0, 1, 0, 0, 
-            0, 0, 1, 0,
-            0, 0, 0, 1
-           ],
-                    screenToClipSpaceInternal = function(x, y) {
-                        var pX = 2 * x/width - 1,
-                            pY = 1 - (2*y) / height;
-                        
-                        return {x: pX, y: pY};
-                    },
-                    
-                    printTransform = function() {
-                        for(var i = 0; i < 4; ++i) {
-                            console.log(transform[i*4 + 0] + '\t' +transform[i*4 + 1] + '\t' +transform[i*4 + 2] + '\t' +transform[i*4 + 3] + '\r\n');
-                        }
-                    },
-                    
-                    print = function(pt) {
-                        return '(' + pt.x + '; ' + pt.y + ')';
-                    };
-                    
-                return {
-                    screenToClipSpaceS : function(x, y) {
-                        var o = screenToClipSpaceInternal(x, y);
-                            
-                        return print(o);
-                    },
-                    
-                    scale : function(scaleFactor, cx, cy) {
-                        if (!cx) { cx = 0; }
-                        if (!cy) { cy = 0; }
-                        
-                        
-                        // transform cx to current world coordinates
-                        cx = cx * transform[0] + transform[12];
-                        cy = cy * transform[5] + transform[13];
-                        
-                        // and get the actual point
-                        cx = cx / transform[0] - transform[12] / transform[0];
-                        cy = cy / transform[5] + transform[13] / transform[5];
-
-                        transform[0] *= scaleFactor;
-                        transform[5] *= scaleFactor;
-                        
-                        transform[12] = cx * transform[0] - cx;
-                        transform[13] = cy * transform[5] - cy;
-                        printTransform();
-                    },
-                    
-                    transform: function(x, y) {
-                        x = x * transform[0] + transform[12];
-                        y = y * transform[5] + transform[13];
-                        return print({x: x, y: y});
-                    },
-                    
-                    pt : function() {
-                        printTransform();
-                    }
-                     
-                };
-            }
-            
-            
         </script>
         <style type='text/css'>
             .node {
