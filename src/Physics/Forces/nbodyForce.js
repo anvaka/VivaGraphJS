@@ -11,6 +11,7 @@ Viva.Graph.Physics.nbodyForce = function(options) {
     options = options || {};
     
     var gravity = typeof options.gravity === 'number' ? options.gravity : -1,
+        updateQueue = [],
         theta = options.theta || 0.8,
         random = Viva.random('5f4dcc3b5aa765d61d8327deb882cf99', 75, 20, 63, 0x6c, 65, 76, 65, 72),
         
@@ -165,15 +166,23 @@ Viva.Graph.Physics.nbodyForce = function(options) {
     }, 
     
     update = function(sourceBody){
-        var queue = [root],
-            v, dx, dy, r;
+        var queue = updateQueue,
+            v, dx, dy, r,
+            queueLength = 1,
+            shiftIdx = 0,
+            pushIdx = 1;
+            
+        queue[0] = root;
         
         // TODO: looks like in rare cases this guy has infinite loop bug. To reproduce
         // render K1000 (complete(1000)) with the settings: {springLength : 3, springCoeff : 0.0005, 
         // dragCoeff : 0.02, gravity : -1.2 }
-        while(queue.length){
-            var node = queue.shift(),
+        while(queueLength){
+            var node = queue[shiftIdx],
                 body = node.body;
+            
+            queueLength -= 1;
+            shiftIdx += 1;
             
             if (body && body !== sourceBody){
                 // If the current node is an external node (and it is not source body), 
@@ -223,10 +232,10 @@ Viva.Graph.Physics.nbodyForce = function(options) {
                     // Otherwise, run the procedure recursively on each of the current node's children.
                     
                     // I intentionally unfolded this loop, to save several CPU cycles. 
-                    if (node.quads[0]) { queue.push(node.quads[0]); }
-                    if (node.quads[1]) { queue.push(node.quads[1]); }
-                    if (node.quads[2]) { queue.push(node.quads[2]); }
-                    if (node.quads[3]) { queue.push(node.quads[3]); }
+                    if (node.quads[0]) { queue[pushIdx] = node.quads[0]; queueLength += 1; pushIdx += 1; }
+                    if (node.quads[1]) { queue[pushIdx] = node.quads[1]; queueLength += 1; pushIdx += 1; }
+                    if (node.quads[2]) { queue[pushIdx] = node.quads[2]; queueLength += 1; pushIdx += 1; }
+                    if (node.quads[3]) { queue[pushIdx] = node.quads[3]; queueLength += 1; pushIdx += 1; }
                 }
             }
         }
