@@ -146,7 +146,6 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         fireRescaled = function(graphics){
-            // TODO: maybe we shall copy changes? 
             graphics.fire('rescaled');
         };
     
@@ -380,7 +379,6 @@ Viva.Graph.View.webglGraphics = function() {
        * @param nodeUI visual representation of the node created by node() execution.
        **/
        releaseNode : function(nodeUI) {
-           // TODO: Check this stuff. It doesn't seem it works for dynamic.html test, leavin artifact when cleared.
            if (nodesCount > 0) { nodesCount -= 1; }
 
            if (nodeUI < nodesCount) {
