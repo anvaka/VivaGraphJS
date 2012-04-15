@@ -140,7 +140,7 @@ Viva.randomIterator = function(array, random) {
     return {
         forEach : function(callback) {
             for (var i = array.length - 1; i > 0; --i) {
-               var j = random.next(i);
+               var j = random.next(i + 1); // i inclusive
                var t = array[j];
                array[j] = array[i];
                array[i] = t;
@@ -151,6 +151,20 @@ Viva.randomIterator = function(array, random) {
             if (array.length) {
                 callback(array[0]);
             }
+        },
+        
+        /**
+         * Shuffles array randomly.
+         */
+        shuffle : function() {
+            for (var i = array.length - 1; i > 0; --i) {
+               var j = random.next(i + 1); // i inclusive
+               var t = array[j];
+               array[j] = array[i];
+               array[i] = t;
+            }
+            
+            return array;
         }
     };
 };
