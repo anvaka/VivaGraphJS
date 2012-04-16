@@ -40,6 +40,8 @@
             "Physics/forceSimulator.js",
             "Layout/forceDirected.js",
             "Layout/gem.js",
+            "Layout/ace.js",
+            
             "View/cssGraphics.js",
             "Svg/svg.js",
             "View/svgGraphics.js",
