@@ -152,7 +152,7 @@ var test_aceLayout = function(test){
                 -4, -7, -2, 19, -6,
                  0, -3,  0, -6,  9],
               weights = [1, 1, 1, 1, 1],
-              indices = [0, 1, 2, 2, 3, 4], // this interpolation matrix is taken from the article
+              indices = [0, 1, 2, 2, 3, 4], // this interpolation matrix is taken from the article [1]
               expectedCoarseLaplasian = [16, -2, -14, 
                                          -2,  4, -2,
                                          -14, -2, 16],
@@ -165,6 +165,64 @@ var test_aceLayout = function(test){
            for(var i = 0 ; i < 9; ++i) {
                test.assertEqual(coarcedLaplacian[i], expectedCoarseLaplasian[i], "Unexpected result for predefined indices");
            }
+       },
+       
+       powerIterationEtalon : function() {
+           var laplacian = [16, -2, -14, 
+                            -2,  4, -2,
+                            -14, -2, 16],
+               initial = [],
+               weights = [2, 1, 2],
+               aceInternal = Viva.Graph.Layout._ace,
+               requestedDimensions = 2,
+               random = Viva.random(123),
+               dim = Math.sqrt(laplacian.length);
+               
+           for (var i = 0; i < requestedDimensions; ++i) {
+               for (var j = 0; j < dim; ++j) {
+                   initial[i * dim + j] = random.nextDouble(); // first guess is always random.
+                }
+           }
+           
+           var result = aceInternal.powerIteration(initial, laplacian, weights, 10e-7);
+           // according to the paragraph 3.4.1 of [1] the two vectors should be: 
+           var expected_u2 = [0.2236, -0.8944, 0.2236],
+               expected_u3 = [-0.5, 0, 0.5];
+               
+           for(i = 0; i < 3; ++i) {
+               // the procession is not 10e-7, since article seem to have these numbers rounded
+               test.assert(Math.abs(expected_u2[i] - result[i]) < 0.001, "Unexpected generalized eigenvector");
+           }
+           
+           for(i = 0; i < 3; ++i) {
+               // the procession is not 10e-7, since article seem to have these numbers rounded
+               test.assert(Math.abs(expected_u3[i] - result[3 + i]) < 0.001, "Unexpected generalized eigenvector");
+           }
+       },
+       
+       powerIterationFindsGeneralizedEigenvectorsOfCompleteGraph : function() {
+           var requestedDimensions = 2,
+               graph = Viva.Graph.generator().grid(2, 3),
+               laplacian = Viva.Graph.Layout.getLaplacian(graph),
+               random = Viva.random(1253, 'asdf'),
+               weights = [],
+               initial = [],
+               aceInternal = Viva.Graph.Layout._ace,
+               dim = graph.getNodesCount(),
+               i, j;
+           
+           for (i = 0; i < dim; ++i) {
+               weights[i] = 1; // assume all nodes are equal
+           }
+           
+           for (i = 0; i < requestedDimensions; ++i) {
+               for (j = 0; j < dim; ++j) {
+                   initial[i * dim + j] = random.nextDouble(); // first guess is always random.
+                }
+           }
+           
+           debugger;
+           var result = aceInternal.powerIteration(initial, laplacian, weights, 10e-7);
        }
   };
 };

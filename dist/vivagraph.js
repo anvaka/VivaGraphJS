@@ -1662,294 +1662,6 @@ Viva.Graph.centrality = function() {
         }
     };
 };/*global Viva*/
-Viva.Graph._community = {};
-
-/**
- * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
- * Jierui Xie and Boleslaw K. Szymanski. 
- * 
- * @see http://arxiv.org/pdf/1109.5720v3.pdf
- * @see https://sites.google.com/site/communitydetectionslpa/ 
- */
-Viva.Graph._community.slpaAlgorithm = function(graph, T, r) {
-    T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
-    r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
-    
-    var random = Viva.random(1331782216905),
-        shuffleRandom = Viva.random('Greeting goes to you, ', 'dear reader');
-    
-    var calculateCommunities = function(nodeMemory, threshold) {
-        var communities = [];
-        nodeMemory.forEachUniqueWord(function(word, count){
-            if (count > threshold) {
-                communities.push({name : word, probability : count / T });
-            } else {
-                return true; // stop enumeration, nothing more popular after this word.
-            }
-        });
-
-        return communities;
-    },
-    
-    init = function(graph) {
-        var algoNodes = [];
-        graph.forEachNode(function(node) {
-            var memory = Viva.Graph._community.occuranceMap(random);
-            memory.add(node.id);
-            
-            node.slpa = { memory : memory  };
-            algoNodes.push(node.id);
-        });
-        
-        return algoNodes;
-    },
-    
-    evaluate = function(graph, nodes) {
-        var shuffle = Viva.randomIterator(nodes, shuffleRandom),
-        
-       /**
-        * One iteration of SLPA.
-        */
-        processNode = function(nodeId){
-            var listner = graph.getNode(nodeId),
-                saidWords = Viva.Graph._community.occuranceMap(random);
-            
-            graph.forEachLinkedNode(nodeId, function(speakerNode){
-                var word = speakerNode.slpa.memory.getRandomWord();
-                saidWords.add(word);
-            });
-            
-            // selecting the most popular label from what it observed in the current step
-            var heard = saidWords.getMostPopularFair();
-            listner.slpa.memory.add(heard); 
-        };
-        
-        for (var t = 0; t < T - 1; ++t) { // -1 because one 'step' was during init phase
-            shuffle.forEach(processNode);
-        }
-    },
-    
-    postProcess = function(graph) {
-        var communities = {};
-            
-        graph.forEachNode(function(node){
-            var nodeCommunities = calculateCommunities(node.slpa.memory, r * T);
-            
-            for (var i = 0; i < nodeCommunities.length; ++i) {
-                var communityName = nodeCommunities[i].name;
-                if (communities.hasOwnProperty(communityName)){
-                    communities[communityName].push(node.id);
-                } else {
-                    communities[communityName] = [node.id];
-                }
-            }
-            
-            node.communities = nodeCommunities; // TODO: I doesn't look right to augment node's properties. No? 
-            
-            // Speaking of memory. Node memory created by slpa is really expensive. Release it:
-            node.slpa = null;
-            delete node.slpa; 
-        });
-        
-        return communities;
-    };
-    
-    return {
-        
-        /**
-         * Executes SLPA algorithm. The function returns dictionary of discovered communities: 
-         * {
-         *     'communityName1' : [nodeId1, nodeId2, .., nodeIdN],
-         *     'communityName2' : [nodeIdK1, nodeIdK2, .., nodeIdKN],
-         *     ...
-         * };
-         *  
-         * After algorithm is done each node is also augmented with new property 'communities':
-         * 
-         * node.communities = [ 
-         *      {name: 'communityName1', probability: 0.78}, 
-         *      {name: 'communityName2', probability: 0.63},
-         *     ... 
-         * ];
-         * 
-         * 'probability' is always higher than 'r' parameter and denotes level of confidence 
-         * with which we think node belongs to community.
-         * 
-         * Runtime is O(T * m), where m is total number of edges, and T - number of algorithm iterations.
-         *  
-         */
-        run : function() {
-            var nodes = init(graph);
-            
-            evaluate(graph, nodes);
-            
-            return postProcess(graph);
-        }
-    };
-};
-
-/**
- * A data structure which serves as node memory during SLPA execution. The main idea is to
- * simplify operations on memory such as
- *  - add word to memory,
- *  - get random word from memory, with probablity proportional to word occurrence in the memory
- *  - get the most popular word in memory
- * 
- * TODO: currently this structure is extremely inefficient in terms of memory. I think it could be
- * optimized.
- */
-Viva.Graph._community.occuranceMap = function(random){
-    random = random || Viva.random();
-    
-    var wordsCount = {},
-        allWords = [],
-        dirtyPopularity = false,
-        uniqueWords = [],
-        
-        rebuildPopularityArray = function() {
-            uniqueWords.length = 0;
-            for (var key in wordsCount) {
-                if (wordsCount.hasOwnProperty(key)) {
-                    uniqueWords.push(key);
-                }
-            }
-            
-            uniqueWords.sort(function(x, y) {
-                var result = wordsCount[y] - wordsCount[x]; 
-                if (result) {
-                    return result;
-                }
-
-                // Not only number of occurances matters but order of keys also does.
-                // for ... in implementation in different browsers results in different
-                // order, and if we want to have same categories accross all browsers
-                // we should order words by key names too:                
-                if (x < y) { return -1; }
-                if (x > y) { return 1; }
-                else { return 0;}
-            });
-        },
-        
-        ensureUniqueWordsUpdated = function() {
-            if (dirtyPopularity) {
-                rebuildPopularityArray();
-                dirtyPopularity = false;
-            }
-        };
-        
-    return {
-        
-        /**
-         * Adds a new word to the collection of words.
-         */
-        add : function(word) {
-            word = String(word);
-            if (wordsCount.hasOwnProperty(word)) {
-                wordsCount[word] += 1;
-            } else {
-                wordsCount[word] = 1;
-            }
-            
-            allWords.push(word);
-            dirtyPopularity = true;
-        },
-        
-        /**
-         * Gets number of occurances for a given word. If word is not present in the dictionary
-         * zero is returned.
-         */
-        getWordCount : function(word) {
-            return wordsCount[word] || 0;
-        },
-        
-        /**
-         * Gets the most popular word in the map. If multiple words are at the same position
-         * random word among them is choosen.
-         * 
-         */
-        getMostPopularFair : function() {
-            if (allWords.length === 1) {
-                return allWords[0]; // optimizes speed for simple case.
-            }
-            
-            ensureUniqueWordsUpdated();
-                        
-            var maxCount = 0;
-            
-            for(var i = 1; i < uniqueWords.length; ++i) {
-               if (wordsCount[uniqueWords[i - 1]] !== wordsCount[uniqueWords[i]]) {
-                   break; // other words are less popular... not interested.
-               } else {
-                   maxCount += 1;
-               }
-           }
-           
-           maxCount += 1;  // to include upper bound. i.e. random words between [0, maxCount] (not [0, maxCount) ).
-           return uniqueWords[random.next(maxCount)];
-        },
-        
-        /**
-         * Selects a random word from map with probability proportional
-         * to the occurrence frequency of words.
-         */
-        getRandomWord : function() {
-            if (allWords.length === 0) {
-                throw 'The occurance map is empty. Cannot get empty word';
-            }
-            
-            return allWords[random.next(allWords.length)];
-        }, 
-        
-        /**
-         * Enumerates all unique words in the map, and calls
-         *  callback(word, occuranceCount) function on each word. Callback
-         * can return true value to stop enumeration.
-         * 
-         * Note: enumeration is guaranteed in to run in decreasing order.
-         */
-        forEachUniqueWord : function(callback) {
-            if (typeof callback !== 'function') {
-                throw 'Function callback is expected to enumerate all words';
-            }
-            
-            ensureUniqueWordsUpdated();
-            
-            for (var i = 0; i < uniqueWords.length; ++i) {
-                var word = uniqueWords[i],
-                    count = wordsCount[word];
-                
-                var stop = callback(word, count);
-                if (stop) {
-                    break;
-                }
-            }
-        }
-    };
-};/**
- * @fileOverview Community structure detection algorithms
- * 
- * @see http://en.wikipedia.org/wiki/Community_structure
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-
-Viva.Graph.community = function() {
-    return {
-        /**
-         * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
-         * Jierui Xie and Boleslaw K. Szymanski. 
-         * 
-         * @see http://arxiv.org/pdf/1109.5720v3.pdf
-         * @see https://sites.google.com/site/communitydetectionslpa/ 
-         */
-        slpa : function(graph, T, r) {
-            var algorithm = Viva.Graph._community.slpaAlgorithm(graph, T, r);
-            return algorithm.run();
-        }
-    };
-};/*global Viva*/
 
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
@@ -2022,184 +1734,6 @@ Viva.Graph.Physics.QuadTreeNode = function(){
     this.y1 = 0;
     this.x2 = 0;
     this.y2 = 0;
-};
-/*global Viva*/
-
-Viva.Graph.Physics = Viva.Graph.Physics || {};
-
-/**
- * Updates velocity and position data using the 4th order
- * Runge-Kutta method (RK4). It is slower but more accurate
- * than other techniques (such as Euler's method).
- * The method requires reevaluating forces 4 times for a given step.
- *
- * http://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
- */
-Viva.Graph.Physics.rungeKuttaIntegrator = function() {
-    var ensureRk4Initialized = function(forceSimulator) {
-        // Sanity check
-        if(!forceSimulator || !forceSimulator.bodies) {
-            throw {
-                message : 'Simulator does not have defined bodies array'
-            };
-        }
-
-        if(!forceSimulator.rk4) {
-            // Init storage for interm steps of RK4.
-            for(var i = 0; i < forceSimulator.bodies.length; i++) {
-                var body = forceSimulator.bodies[i];
-                body.rgkDataV = [];
-                body.rgkDataF = [];
-            }
-            forceSimulator.rk4 = true;
-        }
-    };
-    return {
-        setSimulator : function(forceSimulator) {
-        },
-        integrate : function(forceSimulator, timeStep) {
-            ensureRk4Initialized(forceSimulator);
-
-            // TODO: if number of bodies changed we might get into troubles here
-            var speedLimit = forceSimulator.speedLimit,
-                ar, vx, vy, v, coeff,
-                body, location,
-                i,
-                max = forceSimulator.bodies.length; 
-
-            for(i = 0; i < max; ++i) {
-                body = forceSimulator.bodies[i];
-                coeff = timeStep / body.mass;
-                
-                body.prevLocation.x = body.location.x;
-                body.prevLocation.y = body.location.y;
-
-                // I would love to have more expressive syntax here
-                // rather than all these operations inlined, but
-                // from performance perspective this should be better.
-                body.rgkDataV[0] = {
-                    x : timeStep * body.velocity.x,
-                    y : timeStep * body.velocity.y
-                };
-                body.rgkDataF[0] = {
-                    x : body.force.x * coeff,
-                    y : body.force.y * coeff
-                };
-                location = body.prevLocation;
-                body.loc({
-                    x : location.x + 0.5 * body.rgkDataV[0].x,
-                    y : location.y + 0.5 * body.rgkDataV[0].y
-                });
-            }
-
-            forceSimulator.accumulate();
-
-            for( i = 0; i < max; i++) {
-                body = forceSimulator.bodies[i];
-                coeff = timeStep / body.mass;
-
-                // Had to expand these operations. I'm really scared about performance here.
-                vx = body.velocity.x + 0.5 * body.rgkDataF[0].x;
-                vy = body.velocity.y + 0.5 * body.rgkDataF[0].y;
-                v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
-                    vx = speedLimit * vx / v;
-                    vy = speedLimit * vy / v;
-                }
-
-                body.rgkDataV[1] = {
-                    x : timeStep * vx,
-                    y : timeStep * vy
-                };
-                body.rgkDataF[1] = {
-                    x : body.force.x * coeff,
-                    y : body.force.y * coeff
-                };
-                location = body.prevLocation;
-                body.loc({
-                    x : location.x + 0.5 * body.rgkDataV[1].x,
-                    y : location.y + 0.5 * body.rgkDataV[1].y
-                });
-            }
-
-            forceSimulator.accumulate();
-
-            for( i = 0; i < max; i++) {
-                body = forceSimulator.bodies[i];
-                coeff = timeStep / body.mass;
-                vx = body.velocity.x + 0.5 * body.rgkDataF[1].x;
-                vy = body.velocity.y + 0.5 * body.rgkDataF[1].y;
-                v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
-                    vx = speedLimit * vx / v;
-                    vy = speedLimit * vy / v;
-                }
-
-                body.rgkDataV[2] = {
-                    x : timeStep * vx,
-                    y : timeStep * vy
-                };
-                body.rgkDataF[2] = {
-                    x : body.force.x * coeff,
-                    y : body.force.y * coeff
-                };
-                location = body.prevLocation;
-                body.loc({
-                    x : location.x + 0.5 * body.rgkDataV[2].x,
-                    y : location.y + 0.5 * body.rgkDataV[2].y
-                });
-            }
-
-            forceSimulator.accumulate();
-
-            var tx = 0, ty = 0;
-            
-            for( i = 0; i < max; i++) {
-                body = forceSimulator.bodies[i];
-                coeff = timeStep / body.mass;
-                vx = body.velocity.x + body.rgkDataF[2].x;
-                vy = body.velocity.y + body.rgkDataF[2].y;
-                v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
-                    vx = speedLimit * vx / v;
-                    vy = speedLimit * vy / v;
-                }
-
-                body.rgkDataV[3] = {
-                    x : timeStep * vx,
-                    y : timeStep * vy
-                };
-                body.rgkDataF[3] = {
-                    x : body.force.x * coeff,
-                    y : body.force.y * coeff
-                };
-                location = body.prevLocation;
-                var rgkDataV = body.rgkDataV;
-
-                body.loc({
-                    x : location.x + (rgkDataV[0].x + rgkDataV[3].x) / 6 + (rgkDataV[1].x + rgkDataV[2].x) / 3,
-                    y : location.y + (rgkDataV[0].y + rgkDataV[3].y) / 6 + (rgkDataV[1].y + rgkDataV[2].y) / 3
-                });
-
-                var rgkDataF = body.rgkDataF;
-                vx = (rgkDataF[0].x + rgkDataF[3].x) / 6 + (rgkDataF[1].x + rgkDataF[2].x) / 3;
-                vy = (rgkDataF[0].y + rgkDataF[3].y) / 6 + (rgkDataF[1].y + rgkDataF[2].y) / 3;
-                v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
-                    vx = speedLimit * vx / v;
-                    vy = speedLimit * vy / v;
-                }
-
-                tx += vx;
-                ty += vy; // not quite right; should be distances, to comply with eulerIntegrator, but not sure whether I need this anyway
-                
-                body.velocity.x += vx;
-                body.velocity.y += vy;
-            }
-            
-            return tx * tx + ty * ty; 
-        }
-    };
 };
 /*global Viva*/
 
@@ -3152,584 +2686,6 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
         }
     };
 };/**
- * @fileOverview Implements GEM graph drawing algorithm.
- *
- * @see The <a href='http://www.springerlink.com/index/Y4H746K55233W685.pdf'>
- * A fast adaptive layout algorithm for undirected graphs (abstract)</a> and
- * <a href='http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.9565&rep=rep1&type=pdf'>
- * [PDF] from psu.edu</a>
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- * 
- * TODO: According to GEM hypothesis random node processing order during one iteration
- * leads to faster GEM convergence. Current implementation does not employ this techinque.
- * 
- */
-/*global Viva*/
-
-Viva.Graph.Layout = Viva.Graph.Layout || {};
-
-/**
- * Implements GEM graph drawing algorithm.
- *
- * @example
- *
- *   var graphGenerator = Viva.Graph.generator();
- *   var graph = graphGenerator.complete(5); // Create complete graph K5
- *
- *   var gemLayout = Viva.Graph.Layout.gem(graph);
- *   gemLayout.run();
- *   // Now every node of the graph has position.x and position.y
- *   // pointing to 'nice' locations.
- */
-Viva.Graph.Layout.gem = function(graph, customSettings) {
-    if(!graph) {
-        throw {
-            message : "Graph structure cannot be undefined"
-        };
-    }
-
-    var settings = (function buildAlgorithmSettings(userSettings) {
-        var finalSettings = {
-            /**
-             * Start temperature of every node.
-             */
-            initialTemperature : userSettings.initialTemperature || 0.3,
-
-            /**
-             * Temperature of the system that we are trying to reach.
-             */
-            stopTemperature : userSettings.stopTemperature || 0.02,
-            maxIterations : userSettings.MaxIterations || 5,
-
-            /**
-             * Desired edge length.
-             */
-            edgeLength : userSettings.springLength || 80,
-
-            /**
-             * Gravitational constant that is used to calculate attraction to center of gravity.
-             * Used during node impulse calculation.
-             */
-            gravitationalConstant : userSettings.gravitationalConstant || 0.05,
-
-            /**
-             * Maximum percentage of @EdgeLength that is allowed for random nodes movement.
-             * Used during node impulse calculation.
-             */
-            shakeDisturbance : userSettings.shakeDisturbance || 0.2,
-
-            /**
-             * Sensitivity towards oscillation.
-             */
-            oscilationSensitivity : userSettings.oscilationSensitivity || 0.4,
-
-            /**
-             * Sensitivity towards rotation.
-             */
-            rotationSensitivity : userSettings.rotationSensitivity || 0.9,
-            minimalRotationTemperature : userSettings.minimalRotationTemperature || 2
-        };
-
-        // Max local temperature.
-        finalSettings.maximalTemperature = userSettings.maximalTemperature || 1.5 * finalSettings.edgeLength;
-        finalSettings.edgeLengthSquared = finalSettings.edgeLength * finalSettings.edgeLength;
-
-        finalSettings.maxShakeOffset = finalSettings.shakeDisturbance * finalSettings.edgeLength;
-
-        return finalSettings;
-    })(customSettings || {}),
-
-        // Sum of all nodes coordinates. Used to simplify barycenter computation.
-        systemCenterX, systemCenterY,
-
-        // Current temperature of the system.
-        systemTemperature,
-
-        graphRect = {x1: 0, y1 : 0, x2 : 0, y2 : 0},
-        
-        initializationRequired = true,
-
-        /**
-         * Helper function to get random positive integer numbers.
-         *
-         * @param maxValue the biggest integer number
-         */
-        rndNext = function (maxValue) {
-            return Math.floor(Math.random() * (maxValue || 0xffffffff));
-        },
-        
-        getBestNodePosition = function(node) {
-            // TODO: Initial position could be picked better, like take into 
-            // account all neighbouring nodes/links, not only one.
-            // TODO: this is the same as in force based layout. consider refactoring.
-            var baseX = (graphRect.x1 + graphRect.x2) / 2,
-                baseY = (graphRect.y1 + graphRect.y2) / 2,
-                springLength = settings.edgeLength;
-                
-            if (node.links && node.links.length > 0){
-                var firstLink= node.links[0],
-                    otherNode = firstLink.fromId != node.id ? graph.getNode(firstLink.fromId) : graph.getNode(firstLink.toId);
-                if (otherNode.position){
-                    baseX = otherNode.position.x;
-                    baseY = otherNode.position.y;
-                }
-            }
-            
-            return {
-                x : baseX + rndNext(springLength) - springLength/2,
-                y : baseY + rndNext(springLength) - springLength/2
-            };  
-        },
-        
-        initGemNode = function(node) {
-            node.position = node.position || getBestNodePosition(node);
-
-            node.gemData = {
-                // Current temperature of this node
-                heat : settings.initialTemperature * settings.edgeLength,
-
-                // Impulse X
-                iX : 0,
-
-                // Impulse Y
-                iY : 0,
-                skewGauge : 0,
-                mass : 1 + graph.getLinks(node.id).length / 3.0
-            };
-            
-            systemTemperature += node.gemData.heat * node.gemData.heat;
-            systemCenterX += node.position.x;
-            systemCenterY += node.position.y;
-        },
-        
-        releaseGemNode = function(node) {
-            if (node.gemData) { 
-                delete node.gemData;
-            }
-        },
-
-       initSimulator = function () {
-           systemTemperature = 0;
-           systemCenterX = 0;
-           systemCenterY = 0;
-    
-           graph.forEachNode(initGemNode);
-       },
-
-    /**
-     * Computes impulse of the given node. Runtime: O(N + m), N - number of graph nodes, m - number of linked nodes.
-     *
-     * @returns object {iX, iY}, with corresponding impulse values.
-     */
-       computeImpulse = function(node) {
-            var position = node.position;
-            if(!position) {
-                return ; // This is a new node. Wait untill renderer requests us to initialize it.
-            }
-    
-            var edgeLengthSquared = settings.edgeLengthSquared;
-            var nodeX = position.x;
-            var nodeY = position.y;
-    
-            var gemNode = node.gemData;
-            var nodesCount = graph.getNodesCount();
-    
-            // Attraction to center of gravity:
-            var impulseX = (systemCenterX / nodesCount - nodeX) * gemNode.mass * settings.gravitationalConstant;
-            var impulseY = (systemCenterY / nodesCount - nodeY) * gemNode.mass * settings.gravitationalConstant;
-    
-            // Random disturbance:
-            impulseX += rndNext() % (2 * settings.maxShakeOffset + 1) - settings.maxShakeOffset;
-            impulseY += rndNext() % (2 * settings.maxShakeOffset + 1) - settings.maxShakeOffset;
-            // +1 to exclude zero.
-    
-            // Repulsive forces
-            graph.forEachNode(function(otherNode) {
-                if(otherNode.id !== node.id) {
-                    var dx = nodeX - otherNode.position.x;
-                    var dy = nodeY - otherNode.position.y;
-                    var lenSqr = dx * dx + dy * dy;
-                    if(lenSqr > 0) {
-                        impulseX += dx * edgeLengthSquared / lenSqr;
-                        impulseY += dy * edgeLengthSquared / lenSqr;
-                    }
-                }
-            });
-            // Attractive forces
-            graph.forEachLinkedNode(node.id, function(adjacentNode) {
-                var dx = nodeX - adjacentNode.position.x;
-                var dy = nodeY - adjacentNode.position.y;
-                var lenSqr = dx * dx + dy * dy;
-                impulseX -= dx * lenSqr / (edgeLengthSquared * node.gemData.mass);
-                impulseY -= dy * lenSqr / (edgeLengthSquared * node.gemData.mass);
-            });
-          
-            return {
-                iX : impulseX,
-                iY : impulseY
-            };
-        },
-        
-       /**
-        * Updates node's position, temperature and impulse.
-        * Also detects possible rotations oscillations. Runtime is O(1).
-        */
-        updatePositionAndTemperature = function(node, impulse) {
-            var impulseX = impulse.iX,
-                impulseY = impulse.iY,
-                nodesCount = graph.getNodesCount();
-    
-            if(impulseX === 0 && impulseY === 0) {
-                return;
-                // Impulse is negligible.
-            }
-            
-            var scale = Math.max(Math.abs(impulseX), Math.abs(impulseY)) / settings.edgeLengthSquared;
-    
-            // Don't let impulse vector be longer than edge:
-            if(scale > 1) {
-                impulseX /= scale;
-                impulseY /= scale;
-            }
-    
-            var gemNode = node.gemData;
-    
-            // scale with current temperature:
-            var impulseLength = Math.sqrt(impulseX * impulseX + impulseY * impulseY);
-            var currentTemperature = gemNode.heat;
-            impulseX = currentTemperature * impulseX / impulseLength;
-            impulseY = currentTemperature * impulseY / impulseLength;
-            node.position.x += impulseX;
-            node.position.y += impulseY;
-    
-            // save the division at this point
-            systemCenterX += impulseX;
-            systemCenterY += impulseY;
-    
-            var nodeImpulse = currentTemperature * Math.sqrt(gemNode.iX * gemNode.iX + gemNode.iY * gemNode.iY);
-            if(nodeImpulse > 0) {
-                systemTemperature -= currentTemperature * currentTemperature;
-                // Oscillation:
-                currentTemperature += currentTemperature * settings.oscilationSensitivity * (impulseX * gemNode.iX + impulseY * gemNode.iY) / nodeImpulse;
-                currentTemperature = Math.min(currentTemperature, settings.maximalTemperature);
-                // Rotation:
-                gemNode.skewGauge += settings.rotationSensitivity * (impulseX * gemNode.iY - impulseY * gemNode.iX) / nodeImpulse;
-                currentTemperature -= currentTemperature * Math.abs(gemNode.skewGauge) / nodesCount;
-                currentTemperature = Math.max(currentTemperature, settings.minimalRotationTemperature);
-                systemTemperature += currentTemperature * currentTemperature;
-                gemNode.heat = currentTemperature;
-            }
-    
-            gemNode.iX = impulseX;
-            gemNode.iY = impulseY;
-        };
-
-    return {
-        /**
-         * Attempts to layout graph within given number of iterations.
-         *
-         * @param {integer} [iterationsCount] number of algorithm's iterations.
-         */
-        run : function(iterationsCount) {
-            iterationsCount = iterationsCount || 50;
-            for(var i = 0; i < iterationsCount; ++i) {
-                this.step();
-            }
-        },
-        /**
-         * Performs one iteration of the layout algorithm. Could be used to visualize the algorithm.
-         *
-         * Note: Gem is not well-suited for animation. It's fast but visualization of the process
-         * is not very appealing.
-         */
-        step : function() {
-            if (initializationRequired){
-                initSimulator();
-                initializationRequired = false;
-            }
-            
-            var nodesCount = graph.getNodesCount(),
-                stopTemperature = settings.stopTemperature * settings.stopTemperature * settings.edgeLengthSquared * nodesCount,
-                maxIteration = settings.maxIterations * nodesCount * nodesCount,
-                x1 = Number.MAX_VALUE,
-                y1 = Number.MAX_VALUE,
-                x2 = Number.MIN_VALUE,
-                y2 = Number.MIN_VALUE,
-                that = this;
-            
-            if(systemTemperature < stopTemperature || nodesCount === 0) {
-                return;
-            }
-            
-            graph.forEachNode(function (node) {
-               if(that.isNodePinned(node) || !node.gemData) {
-                    return;
-                }
-
-                var impulse = computeImpulse(node);
-                updatePositionAndTemperature(node, impulse);
-                
-                if (node.position.x < x1) { x1 = node.position.x; }
-                if (node.position.x > x2) { x2 = node.position.x; }
-                if (node.position.y < y1) { y1 = node.position.y; }
-                if (node.position.y > y2) { y2 = node.position.y; }
-            });
-            
-            graphRect.x1 = x1;
-            graphRect.x2 = x2;
-            graphRect.y1 = y1;
-            graphRect.y2 = y2;
-        },
-        
-        /**
-         * Determines whether or not given node should be considered by layout algorithm.
-         * If node is "pinned" layout algorithm does not move it.
-         *
-         * @param node under question. Note: It is NOT an identifier of the node, but actual
-         *  object returned from graph.addNode() or graph.getNode() methods.
-         */
-        isNodePinned : function(node) {
-            if(!node) {
-                return true;
-            }
-
-            return node.isPinned || (node.data && node.data.isPinned);
-        },
-        
-         /**
-         * Returns rectangle structure {x1, y1, x2, y2}, which represents
-         * current space occupied by graph.
-         */
-        getGraphRect : function() {
-            return graphRect;
-        },
-        
-        
-        addNode : function(node) {
-            initGemNode(node);
-        },
-        
-        removeNode : function(node) {
-            releaseGemNode(node);
-        },
-        
-        addLink : function(link) {
-            // NOP. Just for compliance with renderer; 
-        },
-        
-        removeLink : function(link) {
-            // NOP. Just for compliance with renderer; 
-        }
-    };
-};
-/**
- * @fileOverview Implementation of ACE multiscale graph drawing algorithm.
- * ACE is A Fast Multiscale Eigenvector Computation for Drawing Huge Graphs,
- * developed by Yehuda Koren, Liran Carmel, and David Harel.
- * 
- * References:
- * [1]: http://wortschatz.uni-leipzig.de/~sbordag/semantische/papers/05/ace_journal.pdf 
- * [2]: http://staffweb.cms.gre.ac.uk/~c.walshaw/papers/fulltext/WalshawISGD00.pdf
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-
-Viva.Graph.Layout._ace = {};
-
-Viva.Graph.Layout.ace = function(graph) {
-    
-};
-
-
-/**
- * Calculates laplacian matrix of the graph.
- * (http://en.wikipedia.org/wiki/Laplacian_matrix )
- */
-Viva.Graph.Layout.getLaplacian = function(graph) {
-    var nodesCount = graph.getNodesCount(), 
-        matrix, // store everything in one array, to reduce number of objects (instead of having array of arrays)
-        i = 0,
-        linksCount = 0, // global variable to reduce memory pressure.
-        nodeIds = {},
-        
-        linkCounter = function(node, link) {
-            matrix[i * nodesCount + nodeIds[node.id]] = -1; // Assume laplacian is not weighted.
-            linksCount += 1;
-        },
-        
-        createMatrixArray = function(size) {
-            var result = []; // TODO: could be Float32Array?
-            for (var i = 0; i < size; i++) {
-                result[i] = 0;
-            }
-            
-            return result;
-        };
-    
-    matrix = createMatrixArray(nodesCount * nodesCount);
-
-    // Enumerate and assign number for all nodes in the graph:
-    graph.forEachNode(function(node){
-        nodeIds[node.id] = i;
-        i += 1;
-    });
-    
-    // Second pass reconstructs laplacian:
-    i = 0;
-    graph.forEachNode(function(node){
-        linksCount = 0;  
-        graph.forEachLinkedNode(node.id, linkCounter);
-
-        matrix[i * nodesCount + i] = linksCount;
-        i += 1;
-    });
-    
-    return matrix;
-};
-
-/**
- * This class performs graph coarsening, with 'edge contraction' optimized interpolation
- * matrix. Refer to 3.4.1 paragraph of [1] for details
- * 
- * // TODO: pass random if we need it to be seeded.
- */
-Viva.Graph.Layout._ace.edgeContractionInterpolator = function(laplacian, weights, random) {
-    var count = Math.sqrt(laplacian.length), // laplacian is always square matrix
-    
-    /**
-     * This function calculates "A con" interpolation matrix;
-     * Since this matrix by definition has only one 1 element on each row, we save 
-     * a lot of memory by returning array of indices. We represent each column of A as 
-     * pair of row numbers with non-zero indices. If column has only one such row it's
-     * listed twice.
-     */
-    contractEdges = function() {
-        var indices = [],
-            result = [],
-            i,
-            mixedNodes = {};
-
-        for (i = 0; i < count; ++i) {
-            indices[i] = i;
-        }
-        
-        // Shuffle indices:
-        Viva.randomIterator(indices, random).shuffle();
-        
-        for (i = 0; i < count; ++i) {
-            var node = indices[i];
-            if (mixedNodes.hasOwnProperty(node)) {
-                continue; // process only non-mixed nodes
-            }
-            // Walshaw ([2]) suggested to use neighbouring vertex with the smallest weight. 
-            var row = node * count,
-                minWeight = Number.MAX_VALUE,
-                candidate = node; // Contract with itself, if no neighbouring nodes found.
-            
-            // find neighbouring node with minimum weight:
-            // TODO: this gives us O(n*n) performance, could be imporved if we
-            // use adjacency lists instead of laplacian matrix to find neighbours.
-            for (var j = 0; j < count; ++j) {
-                if (j !== node && !mixedNodes.hasOwnProperty(j) && laplacian[row + j]) {
-                    if (weights[j] < minWeight) {
-                        candidate = j;
-                        minWeight = weights[j];
-                    }
-                }
-            }
-            
-            // mixedNodes[node] = true;
-            if (node !== candidate) {
-                mixedNodes[candidate] = true;
-            }
-            
-            mixedNodes[node]  = true;
-            
-            result.push(node);
-            result.push(candidate);
-        } 
-            
-        return result;
-    },
-    
-    /**
-     * Calculates coarsened weights matrix AT M A. Refer to 3.2.1 of [1] for details.
-     * 
-     * Runtime O(m), where m - lower of A's dimension.
-     */
-    coarseWeights = function(indices) {
-        var result = [];
-        for (var i = 0; i < indices.length; i += 2) {
-            if (indices[i] !== indices[i + 1]) {
-                result[i/2] = weights[indices[i]] + weights[indices[i + 1]]; 
-            } else {
-                result[i/2] = weights[indices[i]];
-            }
-        }
-        
-        return result;
-    },
-    
-    coarseLaplacian = function(indices) {
-        var interimStorage = [], // TODO: this guy could be global to reduce pressure on GC
-            i,
-            row, column,
-            originalMatrixStride = count,
-            originalMatrixSize = count * count,
-            coarsedMatrixStride = indices.length / 2;
-        
-        // contract columns (L' = L*A):
-        for (i = 0; i < indices.length; i += 2) {
-            column = i / 2;
-            if (indices[i] !== indices[i + 1]) {
-                // TODO: optimize this. Result could be stored in shared memory.
-                // sum of two column vectors, i/2-th column of L' =  L[A[i]] + L[A[i + 1]];
-                for(row = 0; row < count; ++row) {
-                    interimStorage[column + row * coarsedMatrixStride] = laplacian[indices[i] + row * originalMatrixStride] + 
-                                                                 laplacian[indices[i + 1] + row * originalMatrixStride];
-                }
-            } else {
-                for(row = 0; row < count; ++row) {
-                    interimStorage[column + row * coarsedMatrixStride] = laplacian[indices[i] + row * originalMatrixStride];
-                }
-            }
-        }
-        // contract rows L'' = AT * L'
-        for(i = 0; i < indices.length; i += 2) {
-            row = i/2;
-            var targetRowOffset = row * coarsedMatrixStride,
-                row1_offset = indices[i] * coarsedMatrixStride,
-                row2_offset = indices[i+1] * coarsedMatrixStride;
-
-            if (indices[i] !== indices[i + 1]) {
-                for(column = 0; column < coarsedMatrixStride; ++column) {
-                    interimStorage[targetRowOffset + column] = interimStorage[row1_offset + column] + interimStorage[row2_offset + column];
-                }
-            } else {
-                for(column = 0; column < coarsedMatrixStride; ++column) {
-                    interimStorage[targetRowOffset + column] = interimStorage[row1_offset + column];
-                }
-            }
-        }
-        
-        return interimStorage.splice(0, coarsedMatrixStride * coarsedMatrixStride);
-    },
-    
-    contractionIndices = contractEdges(),
-    coarsedLaplacian = coarseLaplacian(contractionIndices),
-    coarsedWeights = coarseWeights(contractionIndices);
-    
-    return {
-        indices : contractionIndices,
-        coarseWeights : coarsedWeights,
-        coarseLaplacian : coarsedLaplacian,
-        coarseLaplacianDebug : coarseLaplacian
-    };
-};
-/**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -4498,6 +3454,170 @@ Viva.Graph.View.svgNodeFactory = function(graph){
     };
 };
 /**
+ * @fileOverview Defines a naive form of nodes for webglGraphics class. 
+ * This form allows to change color of node. Shape of nodes is rectangular. 
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/*global Viva Float32Array*/
+
+/**
+ * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
+ */
+Viva.Graph.View.webglNodeShader = function() {
+   var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
+   
+         nodesFS = [
+        'precision mediump float;',
+        'varying vec4 color;',
+        
+        'void main(void) {',
+        '   gl_FragColor = color;',
+        '}'].join('\n'),
+        nodesVS = [
+        'attribute vec2 aVertexPos;',
+        'attribute vec2 aCustomAttributes;', // Pack clor and size into vector. First elemnt is color, second - size.
+        'uniform vec2 uScreenSize;',
+        'uniform mat4 uTransform;',
+        'varying vec4 color;',
+        
+        'void main(void) {',
+        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
+        '   gl_PointSize = aCustomAttributes[1] * uTransform[0][0];',
+        
+        '   color = vec4(0.0, 0.0, 0.0, 1);',
+        '   float c = aCustomAttributes[0]/256.0;',
+        '   color[2] = mod(c,256.0); c /= 256.0;',
+        '   color[1] = mod(c,256.0); c /= 256.0;',
+        '   color[0] = mod(c,256.0);',
+        '   color /= 256.0;',
+        
+        '}'].join('\n'),
+        
+        parseColor = function(color) {
+            var parsedColor = 0x00A3EAFF;
+            
+            if(color) {
+                if(color.length === 9) { // #rrggbbaa
+                    parsedColor = parseInt(color.substring(1, 9), 16);
+                } else if (color.length === 7) {// #rrggbb
+                    parsedColor = parseInt(color.substring(1, 7) + 'ff', 16);
+                } else {
+                    debugger;
+                    throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
+                }
+            } 
+            
+            return parsedColor;
+        };
+        
+        return {
+            /**
+             * Returns fragment shader text which renders this node.
+             */
+            fragmentShader : nodesFS,
+            
+            /**
+             * Returns vertex shader text which renders this node.
+             */
+            vertexShader : nodesVS,
+            
+            /**
+             * Returns number of attributes current shader reserves for webgl primtive
+             * (point, line, triangle and strips)
+             */
+            attributesPerPrimitive : ATTRIBUTES_PER_PRIMITIVE,
+            
+            /**
+             * Called by webglGraphics to let shader initialize its custom attributes.
+             */
+            initCustomAttributes : function(gl, program) {
+                program.customAttributes = gl.getAttribLocation(program, 'aCustomAttributes');
+            },
+            
+            /**
+             * Called by webglGraphics to let this shader render its custom attributes.
+             */
+            renderCustomAttributes : function(gl, program) {
+                gl.enableVertexAttribArray(program.customAttributes);
+                gl.vertexAttribPointer(program.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * 4, 2 * 4);
+            },
+            
+            /**
+             * Updates position of current node in the buffer of nodes. 
+             * 
+             * @param nodes - buffer where all nodes are stored.
+             * @param idx - index of current node.
+             * @param pos - new position of the node.
+             */
+            position : function(nodes, nodeUI, pos) {
+                var idx = nodeUI.id;
+                nodes[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
+                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.color;
+                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
+            },
+            
+            square : function(size, color) {
+                return {
+                    size : typeof size === 'number' ? size : 10,
+                    color : parseColor(color)
+                };
+            }
+        };
+};
+
+/**
+ * Defines UI for links in webgl renderer. 
+ */
+Viva.Graph.View.webglLinkShader = function() {
+     var ATTRIBUTES_PER_PRIMITIVE = 4, // primitive is Line, from/to positions == 4 attributes
+        linksFS = [
+        'precision mediump float;',
+        'void main(void) {',
+        '   gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);',
+        '}'].join('\n'),
+        
+        linksVS = [
+        'attribute vec2 aVertexPos;',
+        
+        'uniform vec2 uScreenSize;',
+        'uniform mat4 uTransform;',
+        
+        'void main(void) {',
+        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0.0, 1.0);',
+        '}'].join('\n');
+        
+        return {
+            fragmentShader : linksFS,
+            vertexShader : linksVS,
+
+            /**
+             * Returns number of attributes current shader reserves for webgl primtive
+             * (point, line, triangle and strips)
+             */
+            attributesPerPrimitive : ATTRIBUTES_PER_PRIMITIVE,
+            
+            /**
+             * Called by webglGraphics to let shader initialize its custom attributes.
+             */
+            initCustomAttributes : function(gl, program) { },
+            
+            /**
+             * Called by webglGraphics to let this shader render its custom attributes.
+             */
+            renderCustomAttributes : function(gl, program) { },
+            
+            position: function(links, linkIdx, fromPos, toPos) {
+                var offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
+                links[offset + 0] = fromPos.x;
+                links[offset + 1] = fromPos.y;
+                links[offset + 2] = toPos.x;
+                links[offset + 3] = toPos.y;
+            }
+        };
+};/**
  * @fileOverview Defines a graph renderer that uses WebGL based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -4510,52 +3630,29 @@ Viva.Graph.View = Viva.Graph.View || {};
  * layout, but only visualizes nodes and edeges of the graph.
  */
 Viva.Graph.View.webglGraphics = function() {
-    var NODE_ATTRIBUTES_COUNT = 2,
-        LINK_ATTRIBUTES_COUNT = 4;
-    
     var container,
         graphicsRoot,
         gl,
         linksProgram,
         nodesProgram,
         width, height,
-        linksBuffer,
-        nodesBuffer,
         nodesCount = 0,
         linksCount = 0,
         transform,
-        nodeIds = new Float32Array(64), linkIds = new Float32Array(64),
-        nodes = [], links = [],
+        nodesAttributes = new Float32Array(64), 
+        linksAttributes = new Float32Array(64),
+        nodes = [], 
+        links = [],
         
-        linksFS = [
-        'precision mediump float;',
-        'void main(void) {',
-        '   gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);',
-        '}'].join('\n'),
-        linksVS = [
-        'attribute vec2 aVertexPos;',
+        // TODO: rename these. They are not really shaders, but they define
+        // appearance of nodes and links, providing api to clients to customize ui. 
+        // dunno how to name them.
+        linkShader = Viva.Graph.View.webglLinkShader(),
+        nodeShader = Viva.Graph.View.webglNodeShader(), 
         
-        'uniform vec2 uScreenSize;',
-        'uniform mat4 uTransform;',
-        
-        'void main(void) {',
-        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0.0, 1.0);',
-        '}'].join('\n'),
-        
-        nodesFS = [
-        'precision mediump float;',
-        'void main(void) {',
-        '   gl_FragColor = vec4(0.0, 0.62, 0.91, 1.0);',
-        '}'].join('\n'),
-        nodesVS = [
-        'attribute vec2 aVertexPos;',
-        'uniform vec2 uScreenSize;',
-        'uniform mat4 uTransform;',
-        
-        'void main(void) {',
-        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
-        '   gl_PointSize = 10.0 * uTransform[0][0];',
-        '}'].join('\n'),
+        nodeUIBuilder = function(node, glContext){
+            return glContext.square(); // Just make a square, using provided gl context (a nodeShader);
+        },
  
         createProgram = function(vertexShader, fragmentShader) {
             var program = gl.createProgram();
@@ -4585,6 +3682,48 @@ Viva.Graph.View.webglGraphics = function() {
             return shader;
         },
         
+        assertProgramParameter = function(location, attributeOrUniformName) {
+           if (location === -1) { 
+               throw "Generator didn't provide '" + attributeOrUniformName + "' attribue or uniform in its shader. Make sure it's defined."; 
+           }
+        },
+        
+        initRequiredAttributes = function(program) {
+           program.postionAttrib = gl.getAttribLocation(program, 'aVertexPos');
+           assertProgramParameter(program.postionAttrib, 'aVertexPos');
+           
+           program.screenSize = gl.getUniformLocation(program, 'uScreenSize');
+           assertProgramParameter(program.screenSize, 'uScreenSize');
+           
+           program.transform = gl.getUniformLocation(program, 'uTransform');
+           assertProgramParameter(program.transform, 'uTransform');
+           
+           gl.uniform2f(program.screenSize, width, height);
+           gl.enableVertexAttribArray(program.postionAttrib);
+           program.buffer = gl.createBuffer();
+        },
+        
+        loadBufferData = function(program, data) {
+           gl.bindBuffer(gl.ARRAY_BUFFER, program.buffer);
+           gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+        },
+
+        loadProgram = function(shaderInfo, bufferData){
+           var vs = createShader(shaderInfo.vertexShader, gl.VERTEX_SHADER),
+               fs = createShader(shaderInfo.fragmentShader, gl.FRAGMENT_SHADER),
+               program = createProgram(vs, fs);
+           
+           gl.useProgram(program);
+           
+           initRequiredAttributes(program);
+           
+           shaderInfo.initCustomAttributes(gl, program);
+           
+           loadBufferData(program, bufferData);
+           
+           return program;
+        },
+                
         updateTransformUniform = function() {
             gl.useProgram(linksProgram);
             gl.uniformMatrix4fv(linksProgram.transform, false, transform);
@@ -4605,43 +3744,52 @@ Viva.Graph.View.webglGraphics = function() {
             height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
         },
         
-        nodeBuilder = function(node){
-            if (nodesCount * NODE_ATTRIBUTES_COUNT + 1 > nodeIds.length) {
+        nodeBuilderInternal = function(node){
+            if (nodesCount * nodeShader.attributesPerPrimitive + 1 > nodesAttributes.length) {
                 // Every time we run out of space create new array twice bigger.
-                var extendedArray = new Float32Array(nodeIds.length * NODE_ATTRIBUTES_COUNT * 2);
-                extendedArray.set(nodeIds);
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedArray = new Float32Array(nodesAttributes.length * nodeShader.attributesPerPrimitive * 2);
+                extendedArray.set(nodesAttributes);
                 
-                nodeIds = extendedArray;
+                nodesAttributes = extendedArray;
             }
             
-            var nodeId = nodesCount++;
+            var nodeId = nodesCount++,
+                ui = nodeUIBuilder(node, nodeShader);
+            
+            ui.id = nodeId;
             nodes[nodeId] = node;
-            return nodeId;
+            return ui;
         },
         
-        nodePositionCallback = function(nodeUI, pos){
-            nodeIds[nodeUI * NODE_ATTRIBUTES_COUNT] = pos.x;
-            nodeIds[nodeUI * NODE_ATTRIBUTES_COUNT + 1] = pos.y;
+        nodePositionCallback = function(nodeUI, pos) {
+            nodeShader.position(nodesAttributes, nodeUI, pos);
         },
 
         linkBuilder = function(link){
-            if (linksCount * LINK_ATTRIBUTES_COUNT + 1 > linkIds.length) {
-                var extendedArray = new Float32Array(linkIds.length * LINK_ATTRIBUTES_COUNT * 2);
-                extendedArray.set(linkIds);
-                linkIds = extendedArray;
+            // Check first if we ran out of available buffer size, and increase
+            // it if required. 
+            // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+            if (linksCount * linkShader.attributesPerPrimitive + 1 > linksAttributes.length) {
+                var extendedArray = new Float32Array(linksAttributes.length * linkShader.attributesPerPrimitive * 2);
+                extendedArray.set(linksAttributes);
+                linksAttributes = extendedArray;
             }
+            
             var linkId = linksCount++;
             
             links[linkId] = link;
             return linkId;
         },
         
-        linkPositionCallback = function(linkUI, fromPos, toPos){
-            var offset = linkUI * LINK_ATTRIBUTES_COUNT; 
-            linkIds[offset + 0] = fromPos.x;
-            linkIds[offset + 1] = fromPos.y;
-            linkIds[offset + 2] = toPos.x;
-            linkIds[offset + 3] = toPos.y;
+        linkPositionCallback = function(linkIdx, fromPos, toPos){
+            linkShader.position(linksAttributes, linkIdx, fromPos, toPos);
+        },
+        
+        copyAttributes = function(buffer, from, to, attributesPerIndex) {
+            for(var i = 0; i < attributesPerIndex; ++i) {
+                buffer[from + i] = buffer[to + i];
+            }
         },
         
         fireRescaled = function(graphics){
@@ -4661,12 +3809,11 @@ Viva.Graph.View.webglGraphics = function() {
          * Otherwise a node representation is returned for the passed parameter.
          */
         node : function(builderCallbackOrNode) {
-            
             if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function'){
-                return nodeBuilder(builderCallbackOrNode);
+                return nodeBuilderInternal(builderCallbackOrNode); // create ui for node using current nodeUIBuilder
             }
-            
-            nodeBuilder = builderCallbackOrNode;
+
+            nodeUIBuilder = builderCallbackOrNode; // else replace ui builder with provided function.
             
             return this;
         },
@@ -4683,11 +3830,12 @@ Viva.Graph.View.webglGraphics = function() {
          * Otherwise a link representation is returned for the passed parameter.
          */        
         link : function(builderCallbackOrLink) {
+            
             if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function'){
                 return linkBuilder(builderCallbackOrLink);
             }
-            
-            linkBuilder = builderCallbackOrLink;
+            // TODO: Implement me   
+            // linkBuilder = builderCallbackOrLink;
             return this;
         },
         
@@ -4697,12 +3845,14 @@ Viva.Graph.View.webglGraphics = function() {
          * is used by updateNodePosition().
          */
         placeNode : function(newPlaceCallback) {
-            nodePositionCallback = newPlaceCallback;
+            // TODO: Implement me
+            //nodePositionCallback = newPlaceCallback;
             return this;
         },
 
         placeLink : function(newPlaceLinkCallback) {
-            linkPositionCallback = newPlaceLinkCallback;
+            // TODO: Implement me
+            //linkPositionCallback = newPlaceLinkCallback;
             return this;
         },
         
@@ -4717,8 +3867,7 @@ Viva.Graph.View.webglGraphics = function() {
         endRender : function () {
             if (linksCount > 0) {
                gl.useProgram(linksProgram);
-               gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
-               gl.bufferData(gl.ARRAY_BUFFER, linkIds, gl.DYNAMIC_DRAW);
+               loadBufferData(linksProgram, linksAttributes);
                
                gl.enableVertexAttribArray(linksProgram.postionAttrib);
                gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
@@ -4726,16 +3875,14 @@ Viva.Graph.View.webglGraphics = function() {
            }
            if (nodesCount > 0){
                gl.useProgram(nodesProgram);
-               gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
-               gl.bufferData(gl.ARRAY_BUFFER, nodeIds, gl.DYNAMIC_DRAW);
+               loadBufferData(nodesProgram, nodesAttributes);
                
                gl.enableVertexAttribArray(nodesProgram.postionAttrib);
-               gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
+               gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, nodeShader.attributesPerPrimitive * Float32Array.BYTES_PER_ELEMENT, 0);
+               
+               nodeShader.renderCustomAttributes(gl, nodesProgram);
+               
                gl.drawArrays(gl.POINTS, 0, nodesCount);
-               var err = gl.getError();
-               if (err !== 0) {
-                   debugger;
-               }
            }
         },
         
@@ -4798,34 +3945,10 @@ Viva.Graph.View.webglGraphics = function() {
            
            gl = graphicsRoot.getContext('experimental-webgl');
            
-           linksProgram = createProgram(createShader(linksVS, gl.VERTEX_SHADER), createShader(linksFS, gl.FRAGMENT_SHADER));
-           gl.useProgram(linksProgram);
-           linksBuffer = gl.createBuffer();
-           linksProgram.postionAttrib = gl.getAttribLocation(linksProgram, 'aVertexPos');
-           linksProgram.screenSize = gl.getUniformLocation(linksProgram, 'uScreenSize');
-           linksProgram.transform = gl.getUniformLocation(linksProgram, 'uTransform');
-           
-           gl.uniform2f(linksProgram.screenSize, width, height);
-           gl.enableVertexAttribArray(linksProgram.postionAttrib);
-           
-           gl.bindBuffer(gl.ARRAY_BUFFER, linksBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, linkIds, gl.DYNAMIC_DRAW);
-           
-           nodesProgram = createProgram(createShader(nodesVS, gl.VERTEX_SHADER), createShader(nodesFS, gl.FRAGMENT_SHADER));
-           gl.useProgram(nodesProgram);
-           nodesProgram.postionAttrib = gl.getAttribLocation(nodesProgram, 'aVertexPos');
-           nodesProgram.screenSize = gl.getUniformLocation(nodesProgram, 'uScreenSize');
-           
-           nodesProgram.transform = gl.getUniformLocation(nodesProgram, 'uTransform');
-           gl.uniform2f(nodesProgram.screenSize, width, height);
+           linksProgram = loadProgram(linkShader, linksAttributes);
+           nodesProgram = loadProgram(nodeShader, nodesAttributes);
            
            updateTransformUniform();
-
-           gl.enableVertexAttribArray(nodesProgram.postionAttrib);
-           
-           nodesBuffer = gl.createBuffer();
-           gl.bindBuffer(gl.ARRAY_BUFFER, nodesBuffer);
-           gl.bufferData(gl.ARRAY_BUFFER, nodeIds, gl.DYNAMIC_DRAW);
        },
        
        /**
@@ -4843,23 +3966,22 @@ Viva.Graph.View.webglGraphics = function() {
        * 
        * @param linkUI visual representation of the link created by link() execution.
        **/
-       releaseLink : function(linkUI) {
+       releaseLink : function(linkIdToRemove) {
            if (linksCount > 0) { linksCount -= 1; }
 
-           if (linkUI < linksCount){
-               if (linksCount === 0 || linksCount === linkUI) {
+           if (linkIdToRemove < linksCount){
+               if (linksCount === 0 || linksCount === linkIdToRemove) {
                    return; // no more links or removed link is the last one.
                }
                
-               // swap removed link with the last link. This will give us O(1)
-               // performance for links removal:
-               linkIds[linkUI * 4 + 0] = linkIds[linksCount * 4 + 0];
-               linkIds[linkUI * 4 + 1] = linkIds[linksCount * 4 + 1];
-               linkIds[linkUI * 4 + 2] = linkIds[linksCount * 4 + 2];
-               linkIds[linkUI * 4 + 3] = linkIds[linksCount * 4 + 3];
+               // swap removed link with the last link. This will give us O(1) performance for links removal:
+               var attributesCount = linkShader.attributesPerPrimitive;
+               copyAttributes(linksAttributes, linkIdToRemove*attributesCount, linksCount*attributesCount, attributesCount);
 
-               links[linkUI] = links[linksCount];
-               links[linkUI].ui = linkUI;
+               // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
+               // so that renderer will pass proper id in updateLinkPosition. 
+               links[linkIdToRemove] = links[linksCount]; 
+               links[linkIdToRemove].ui = linkIdToRemove;
            }
        },
 
@@ -4880,16 +4002,17 @@ Viva.Graph.View.webglGraphics = function() {
        releaseNode : function(nodeUI) {
            if (nodesCount > 0) { nodesCount -= 1; }
 
-           if (nodeUI < nodesCount) {
-               if (nodesCount === 0 || nodesCount === nodeUI) {
+           if (nodeUI.id < nodesCount) {
+               var nodeIdToRemove = nodeUI.id;
+               if (nodesCount === 0 || nodesCount === nodeIdToRemove) {
                    return ; // no more nodes or removed node is the last in the list.
                }
                
-               nodeIds[nodeUI * 2 + 0] = nodeIds[nodesCount * 2 + 0];
-               nodeIds[nodeUI * 2 + 1] = nodeIds[nodesCount * 2 + 1];
+               var attributesCount = nodeShader.attributesPerPrimitive;
+               copyAttributes(nodesAttributes, nodeIdToRemove*attributesCount, nodesCount*attributesCount, attributesCount);
                
-               nodes[nodeUI] = nodes[nodesCount];
-               nodes[nodeUI].ui = nodeUI;
+               nodes[nodeIdToRemove] = nodes[nodesCount];
+               nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
            }
        },
 
@@ -4921,8 +4044,7 @@ Viva.Graph.View.webglGraphics = function() {
     Viva.Graph.Utils.events(graphics).extend();
     
     return graphics;
-};
-/**
+};/**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com

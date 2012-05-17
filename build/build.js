@@ -28,24 +28,26 @@
             "Core/operations.js",
             "Algorithms/centrality.js",
             
-            "Algorithms/Community/slpa.js",
-            "Algorithms/Community/community.js",
+            //"Algorithms/Community/slpa.js",
+            //"Algorithms/Community/community.js",
             
             "Physics/primitives.js",
-            "Physics/rungeKuttaIntegrator.js",
+            //"Physics/rungeKuttaIntegrator.js",
             "Physics/eulerIntegrator.js",
             "Physics/Forces/nbodyForce.js",
             "Physics/Forces/dragForce.js",
             "Physics/Forces/springForce.js",
             "Physics/forceSimulator.js",
             "Layout/forceDirected.js",
-            "Layout/gem.js",
-            "Layout/ace.js",
+            //"Layout/gem.js",
+            //"Layout/ace.js",
             
             "View/cssGraphics.js",
             "Svg/svg.js",
             "View/svgGraphics.js",
             "View/svgNodeFactory.js",
+            
+            "View/webglUIElements.js",
             "View/webglGraphics.js",
             "View/renderer.js",
             "Core/serializer.js"];
