@@ -1,4 +1,8 @@
 /**
+ * @note: this algorithm is not used in the library due to rounding errors in the 
+ * power iteration. Still I think it's wroth to keep it in case someone would want
+ * to look into its implementation 
+ * 
  * @fileOverview Implementation of ACE multiscale graph drawing algorithm.
  * ACE is A Fast Multiscale Eigenvector Computation for Drawing Huge Graphs,
  * developed by Yehuda Koren, Liran Carmel, and David Harel.
