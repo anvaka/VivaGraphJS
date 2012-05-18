@@ -22,7 +22,10 @@ Viva.Graph.View.webglNodeShader = function() {
         '}'].join('\n'),
         nodesVS = [
         'attribute vec2 aVertexPos;',
-        'attribute vec2 aCustomAttributes;', // Pack clor and size into vector. First elemnt is color, second - size.
+        // Pack clor and size into vector. First elemnt is color, second - size.
+        // note: since it's floatin point we can only use 24 bit to pack colors...
+        // thus alpha channel is dropped, and is always assumed to be 1.
+        'attribute vec2 aCustomAttributes;', 
         'uniform vec2 uScreenSize;',
         'uniform mat4 uTransform;',
         'varying vec4 color;',
@@ -30,26 +33,23 @@ Viva.Graph.View.webglNodeShader = function() {
         'void main(void) {',
         '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
         '   gl_PointSize = aCustomAttributes[1] * uTransform[0][0];',
-        
-        '   color = vec4(0.0, 0.0, 0.0, 1);',
-        '   float c = aCustomAttributes[0]/256.0;',
-        '   color[2] = mod(c,256.0); c /= 256.0;',
-        '   color[1] = mod(c,256.0); c /= 256.0;',
-        '   color[0] = mod(c,256.0);',
-        '   color /= 256.0;',
-        
+        '   float c = aCustomAttributes[0];',
+        '   color = vec4(0.0, 0.0, 0.0, 255.0);',
+        '   color.b = mod(c, 256.0); c = floor(c/256.0);',
+        '   color.g = mod(c, 256.0); c = floor(c/256.0);',
+        '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
         '}'].join('\n'),
         
         parseColor = function(color) {
             var parsedColor = 0x00A3EAFF;
             
-            if(color) {
-                if(color.length === 9) { // #rrggbbaa
-                    parsedColor = parseInt(color.substring(1, 9), 16);
-                } else if (color.length === 7) {// #rrggbb
-                    parsedColor = parseInt(color.substring(1, 7) + 'ff', 16);
+            if (typeof color === 'string' && color) {
+                if (color.length === 4) { // #rgb
+                    color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
+                }
+                if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
+                    parsedColor = parseInt(color.substring(1, 7), 16);
                 } else {
-                    debugger;
                     throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
                 }
             } 
