@@ -28,8 +28,8 @@
             "Core/operations.js",
             "Algorithms/centrality.js",
             
-            //"Algorithms/Community/slpa.js",
-            //"Algorithms/Community/community.js",
+            "Algorithms/Community/slpa.js",
+            "Algorithms/Community/community.js",
             
             "Physics/primitives.js",
             //"Physics/rungeKuttaIntegrator.js",

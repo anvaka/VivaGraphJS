@@ -31,8 +31,12 @@ Viva.Graph.View.webglGraphics = function() {
         linkShader = Viva.Graph.View.webglLinkShader(),
         nodeShader = Viva.Graph.View.webglNodeShader(), 
         
-        nodeUIBuilder = function(node, glContext){
-            return glContext.square(); // Just make a square, using provided gl context (a nodeShader);
+        nodeUIBuilder = function(node, nodeShader){
+            return nodeShader.square(); // Just make a square, using provided gl context (a nodeShader);
+        },
+        
+        linkUIBuilder = function(link, linkShader) {
+            return linkShader.line('#b3b3b3');
         },
  
         createProgram = function(vertexShader, fragmentShader) {
@@ -147,7 +151,7 @@ Viva.Graph.View.webglGraphics = function() {
             nodeShader.position(nodesAttributes, nodeUI, pos);
         },
 
-        linkBuilder = function(link){
+        linkBuilderInternal = function(link){
             // Check first if we ran out of available buffer size, and increase
             // it if required. 
             // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
@@ -157,14 +161,16 @@ Viva.Graph.View.webglGraphics = function() {
                 linksAttributes = extendedArray;
             }
             
-            var linkId = linksCount++;
+            var linkId = linksCount++,
+                ui = linkUIBuilder(link, linkShader);
             
+            ui.id = linkId;
             links[linkId] = link;
-            return linkId;
+            return ui;
         },
         
-        linkPositionCallback = function(linkIdx, fromPos, toPos){
-            linkShader.position(linksAttributes, linkIdx, fromPos, toPos);
+        linkPositionCallback = function(linkUi, fromPos, toPos){
+            linkShader.position(linksAttributes, linkUi, fromPos, toPos);
         },
         
         copyAttributes = function(buffer, from, to, attributesPerIndex) {
@@ -213,10 +219,10 @@ Viva.Graph.View.webglGraphics = function() {
         link : function(builderCallbackOrLink) {
             
             if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function'){
-                return linkBuilder(builderCallbackOrLink);
+                return linkBuilderInternal(builderCallbackOrLink);
             }
-            // TODO: Implement me   
-            // linkBuilder = builderCallbackOrLink;
+            
+            linkUIBuilder = builderCallbackOrLink;
             return this;
         },
         
@@ -251,8 +257,10 @@ Viva.Graph.View.webglGraphics = function() {
                loadBufferData(linksProgram, linksAttributes);
                
                gl.enableVertexAttribArray(linksProgram.postionAttrib);
-               gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 0, 0);
-               gl.drawArrays(gl.LINES, 0, linksCount*2);
+               gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+               linkShader.renderCustomAttributes(gl, linksProgram);
+               
+               gl.drawArrays(gl.LINES, 0, linksCount * 2);
            }
            if (nodesCount > 0){
                gl.useProgram(nodesProgram);
@@ -347,9 +355,10 @@ Viva.Graph.View.webglGraphics = function() {
        * 
        * @param linkUI visual representation of the link created by link() execution.
        **/
-       releaseLink : function(linkIdToRemove) {
+       releaseLink : function(linkToRemove) {
            if (linksCount > 0) { linksCount -= 1; }
 
+           var linkIdToRemove = linkToRemove.id;
            if (linkIdToRemove < linksCount){
                if (linksCount === 0 || linksCount === linkIdToRemove) {
                    return; // no more links or removed link is the last one.
@@ -362,7 +371,7 @@ Viva.Graph.View.webglGraphics = function() {
                // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
                // so that renderer will pass proper id in updateLinkPosition. 
                links[linkIdToRemove] = links[linksCount]; 
-               links[linkIdToRemove].ui = linkIdToRemove;
+               links[linkIdToRemove].ui.id = linkIdToRemove;
            }
        },
 

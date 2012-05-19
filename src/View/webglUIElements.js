@@ -7,12 +7,36 @@
 
 /*global Viva Float32Array*/
 
+
+Viva.Graph.View.WebglUtils = function() {};
+
+/**
+ * Parses various color strings and returns color value used in webgl shaders.
+ */
+
+Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
+        var parsedColor = 0x009ee8;
+        
+        if (typeof color === 'string' && color) {
+            if (color.length === 4) { // #rgb
+                color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
+            }
+            if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
+                parsedColor = parseInt(color.substring(1, 7), 16);
+            } else {
+                throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
+            }
+        } 
+        
+        return parsedColor;
+    };
+
+
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
 Viva.Graph.View.webglNodeShader = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
-   
          nodesFS = [
         'precision mediump float;',
         'varying vec4 color;',
@@ -40,22 +64,7 @@ Viva.Graph.View.webglNodeShader = function() {
         '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
         '}'].join('\n'),
         
-        parseColor = function(color) {
-            var parsedColor = 0x00A3EAFF;
-            
-            if (typeof color === 'string' && color) {
-                if (color.length === 4) { // #rgb
-                    color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
-                }
-                if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
-                    parsedColor = parseInt(color.substring(1, 7), 16);
-                } else {
-                    throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
-                }
-            } 
-            
-            return parsedColor;
-        };
+        utils = new Viva.Graph.View.WebglUtils();
         
         return {
             /**
@@ -104,10 +113,18 @@ Viva.Graph.View.webglNodeShader = function() {
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
             },
             
+            /**
+             * Can be used as a callback in the webglGraphics.node() function, to 
+             * create custom looking node.
+             * 
+             * @param size - size of the node in pixels.
+             * @param color - color of the node in '#rrggbb' or '#rgb' format. 
+             *  You can also pass '#rrggbbaa', but alpha chanel is always ignored in this shader. 
+             */
             square : function(size, color) {
                 return {
                     size : typeof size === 'number' ? size : 10,
-                    color : parseColor(color)
+                    color : utils.parseColor(color)
                 };
             }
         };
@@ -117,22 +134,33 @@ Viva.Graph.View.webglNodeShader = function() {
  * Defines UI for links in webgl renderer. 
  */
 Viva.Graph.View.webglLinkShader = function() {
-     var ATTRIBUTES_PER_PRIMITIVE = 4, // primitive is Line, from/to positions == 4 attributes
+     var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
         linksFS = [
         'precision mediump float;',
+        'varying vec4 color;',
         'void main(void) {',
-        '   gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);',
+        '   gl_FragColor = color;',
         '}'].join('\n'),
         
         linksVS = [
         'attribute vec2 aVertexPos;',
+        'attribute float aColor;', 
         
         'uniform vec2 uScreenSize;',
         'uniform mat4 uTransform;',
         
+        'varying vec4 color;',
+        
         'void main(void) {',
         '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0.0, 1.0);',
-        '}'].join('\n');
+        '   color = vec4(0.0, 0.0, 0.0, 255.0);',
+        '   float c = aColor;',
+        '   color.b = mod(c, 256.0); c = floor(c/256.0);',
+        '   color.g = mod(c, 256.0); c = floor(c/256.0);',
+        '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
+        '}'].join('\n'),
+        
+        utils = new Viva.Graph.View.WebglUtils();
         
         return {
             fragmentShader : linksFS,
@@ -147,19 +175,35 @@ Viva.Graph.View.webglLinkShader = function() {
             /**
              * Called by webglGraphics to let shader initialize its custom attributes.
              */
-            initCustomAttributes : function(gl, program) { },
+            initCustomAttributes : function(gl, program) {
+                program.colorAttribute = gl.getAttribLocation(program, 'aColor');
+                console.log(program.colorAttribute);
+            },
             
             /**
              * Called by webglGraphics to let this shader render its custom attributes.
              */
-            renderCustomAttributes : function(gl, program) { },
+            renderCustomAttributes : function(gl, program) { 
+                gl.enableVertexAttribArray(program.colorAttribute);
+                gl.vertexAttribPointer(program.colorAttribute, 1, gl.FLOAT, false, 3 * 4, 2 * 4);
+            },
             
-            position: function(links, linkIdx, fromPos, toPos) {
-                var offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
+            position: function(links, linkUi, fromPos, toPos) {
+                var linkIdx = linkUi.id,
+                    offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
                 links[offset + 0] = fromPos.x;
                 links[offset + 1] = fromPos.y;
-                links[offset + 2] = toPos.x;
-                links[offset + 3] = toPos.y;
+                links[offset + 2] = linkUi.color;
+                
+                links[offset + 3] = toPos.x;
+                links[offset + 4] = toPos.y;
+                links[offset + 5] = linkUi.color;
+            },
+            
+            line : function(color) {
+                return {
+                    color : utils.parseColor(color) 
+                };
             }
         };
 };
