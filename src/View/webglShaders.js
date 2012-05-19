@@ -6,32 +6,6 @@
  */
 
 /*global Viva Float32Array*/
-
-
-Viva.Graph.View.WebglUtils = function() {};
-
-/**
- * Parses various color strings and returns color value used in webgl shaders.
- */
-
-Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
-        var parsedColor = 0x009ee8;
-        
-        if (typeof color === 'string' && color) {
-            if (color.length === 4) { // #rgb
-                color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
-            }
-            if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
-                parsedColor = parseInt(color.substring(1, 7), 16);
-            } else {
-                throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
-            }
-        } 
-        
-        return parsedColor;
-    };
-
-
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
@@ -47,7 +21,7 @@ Viva.Graph.View.webglNodeShader = function() {
         nodesVS = [
         'attribute vec2 aVertexPos;',
         // Pack clor and size into vector. First elemnt is color, second - size.
-        // note: since it's floatin point we can only use 24 bit to pack colors...
+        // note: since it's floating point we can only use 24 bit to pack colors...
         // thus alpha channel is dropped, and is always assumed to be 1.
         'attribute vec2 aCustomAttributes;', 
         'uniform vec2 uScreenSize;',
@@ -114,19 +88,10 @@ Viva.Graph.View.webglNodeShader = function() {
             },
             
             /**
-             * Can be used as a callback in the webglGraphics.node() function, to 
-             * create custom looking node.
-             * 
-             * @param size - size of the node in pixels.
-             * @param color - color of the node in '#rrggbb' or '#rgb' format. 
-             *  You can also pass '#rrggbbaa', but alpha chanel is always ignored in this shader. 
+             * Called by webglGraphics to let this shader init additional properties of the
+             * given model of a node.
              */
-            square : function(size, color) {
-                return {
-                    size : typeof size === 'number' ? size : 10,
-                    color : utils.parseColor(color)
-                };
-            }
+            buildUI : function(ui) { }
         };
 };
 
@@ -177,7 +142,6 @@ Viva.Graph.View.webglLinkShader = function() {
              */
             initCustomAttributes : function(gl, program) {
                 program.colorAttribute = gl.getAttribLocation(program, 'aColor');
-                console.log(program.colorAttribute);
             },
             
             /**
@@ -200,10 +164,10 @@ Viva.Graph.View.webglLinkShader = function() {
                 links[offset + 5] = linkUi.color;
             },
             
-            line : function(color) {
-                return {
-                    color : utils.parseColor(color) 
-                };
-            }
+            /**
+             * Called by webglGraphics to let this shader init additional properties of the
+             * given model of a node.
+             */
+            buildUI : function(ui) { }
         };
 };

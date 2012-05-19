@@ -8,16 +8,16 @@
         <script type='text/javascript'>
             /*global Viva*/
            var colors = [
-                        "#1f77b4", "#aec7e8",
-                        "#ff7f0e", "#ffbb78",
-                        "#2ca02c", "#98df8a",
-                        "#d62728", "#ff9896",
-                        "#9467bd", "#c5b0d5",
-                        "#8c564b", "#c49c94",
-                        "#e377c2", "#f7b6d2",
-                        "#7f7f7f", "#c7c7c7",
-                        "#bcbd22", "#dbdb8d",
-                        "#17becf", "#9edae5"
+0x1f77b4, 0xaec7e8,
+0xff7f0e, 0xffbb78,
+0x2ca02c, 0x98df8a,
+0xd62728, 0xff9896,
+0x9467bd, 0xc5b0d5,
+0x8c564b, 0xc49c94,
+0xe377c2, 0xf7b6d2,
+0x7f7f7f, 0xc7c7c7,
+0xbcbd22, 0xdbdb8d,
+0x17becf, 0x9edae5
                         ];
                         
            function beginRemoveNodesLoop(graph){
@@ -79,13 +79,13 @@
                 
                var graphics = Viva.Graph.View.webglGraphics();
                graphics
-                   .node(function(node, gl){
-                       return gl.square(1 + Math.random() * 10, colors[(Math.random() * colors.length) << 0]);
+                   .node(function(node){
+                       return Viva.Graph.View.webglSquare(1 + Math.random() * 10, colors[(Math.random() * colors.length) << 0]);
                    })
-                   .link(function(link, gl) {
-                       return gl.line(colors[(Math.random() * colors.length) << 0]);
+                   .link(function(link) {
+                       return Viva.Graph.View.webglLine(colors[(Math.random() * colors.length) << 0]);
                    });
-                   
+               
                var renderer = Viva.Graph.View.renderer(graph,
                    {
                        layout     : layout,

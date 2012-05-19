@@ -3742,14 +3742,13 @@ Viva.Graph.View.svgNodeFactory = function(graph){
     };
 };
 /**
- * @fileOverview Defines a naive form of nodes for webglGraphics class. 
- * This form allows to change color of node. Shape of nodes is rectangular. 
+ * @fileOverview Defines a model objects to represents graph rendering 
+ * primitives in webglGraphics. 
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
 /*global Viva Float32Array*/
-
 
 Viva.Graph.View.WebglUtils = function() {};
 
@@ -3769,12 +3768,61 @@ Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
             } else {
                 throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
             }
-        } 
+        } else if (typeof color === 'number') {
+            parsedColor = color;
+        }
         
         return parsedColor;
+};
+
+Viva.Graph.View._webglUtil = new Viva.Graph.View.WebglUtils(); 
+
+/**
+ * Defines a webgl line. This class has no rendering logic at all,
+ * it's just passed to corresponding shader and the shader should
+ * figure out how to render it. 
+ * 
+ * @see Viva.Graph.View.webglLinkShader.position
+ */
+Viva.Graph.View.webglLine = function(color){
+    return {
+        /**
+         * Gets or sets color of the line. If you set this property externally
+         * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
+         */
+        color : Viva.Graph.View._webglUtil.parseColor(color)
     };
+};
 
+/**
+ * Can be used as a callback in the webglGraphics.node() function, to 
+ * create custom looking node.
+ * 
+ * @param size - size of the node in pixels.
+ * @param color - color of the node in '#rrggbb' or '#rgb' format. 
+ *  You can also pass '#rrggbbaa', but alpha chanel is always ignored in this shader. 
+ */
+Viva.Graph.View.webglSquare = function(size, color){
+    return {
+        /**
+         * Gets or sets size of the sqare side. 
+         */
+        size : typeof size === 'number' ? size : 10,
+        
+        /**
+         * Gets or sets color of the square. If you set this property externally
+         * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
+         */
+        color : Viva.Graph.View._webglUtil.parseColor(color)
+    };
+};/**
+ * @fileOverview Defines a naive form of nodes for webglGraphics class. 
+ * This form allows to change color of node. Shape of nodes is rectangular. 
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
 
+/*global Viva Float32Array*/
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
@@ -3790,7 +3838,7 @@ Viva.Graph.View.webglNodeShader = function() {
         nodesVS = [
         'attribute vec2 aVertexPos;',
         // Pack clor and size into vector. First elemnt is color, second - size.
-        // note: since it's floatin point we can only use 24 bit to pack colors...
+        // note: since it's floating point we can only use 24 bit to pack colors...
         // thus alpha channel is dropped, and is always assumed to be 1.
         'attribute vec2 aCustomAttributes;', 
         'uniform vec2 uScreenSize;',
@@ -3857,19 +3905,10 @@ Viva.Graph.View.webglNodeShader = function() {
             },
             
             /**
-             * Can be used as a callback in the webglGraphics.node() function, to 
-             * create custom looking node.
-             * 
-             * @param size - size of the node in pixels.
-             * @param color - color of the node in '#rrggbb' or '#rgb' format. 
-             *  You can also pass '#rrggbbaa', but alpha chanel is always ignored in this shader. 
+             * Called by webglGraphics to let this shader init additional properties of the
+             * given model of a node.
              */
-            square : function(size, color) {
-                return {
-                    size : typeof size === 'number' ? size : 10,
-                    color : utils.parseColor(color)
-                };
-            }
+            buildUI : function(ui) { }
         };
 };
 
@@ -3920,7 +3959,6 @@ Viva.Graph.View.webglLinkShader = function() {
              */
             initCustomAttributes : function(gl, program) {
                 program.colorAttribute = gl.getAttribLocation(program, 'aColor');
-                console.log(program.colorAttribute);
             },
             
             /**
@@ -3943,13 +3981,14 @@ Viva.Graph.View.webglLinkShader = function() {
                 links[offset + 5] = linkUi.color;
             },
             
-            line : function(color) {
-                return {
-                    color : utils.parseColor(color) 
-                };
-            }
+            /**
+             * Called by webglGraphics to let this shader init additional properties of the
+             * given model of a node.
+             */
+            buildUI : function(ui) { }
         };
-};/**
+};
+/**
  * @fileOverview Defines a graph renderer that uses WebGL based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -3971,6 +4010,8 @@ Viva.Graph.View.webglGraphics = function() {
         nodesCount = 0,
         linksCount = 0,
         transform,
+        userPlaceNodeCallback, 
+        userPlaceLinkCallback,
         nodesAttributes = new Float32Array(64), 
         linksAttributes = new Float32Array(64),
         nodes = [], 
@@ -3982,12 +4023,12 @@ Viva.Graph.View.webglGraphics = function() {
         linkShader = Viva.Graph.View.webglLinkShader(),
         nodeShader = Viva.Graph.View.webglNodeShader(), 
         
-        nodeUIBuilder = function(node, nodeShader){
-            return nodeShader.square(); // Just make a square, using provided gl context (a nodeShader);
+        nodeUIBuilder = function(node){
+            return Viva.Graph.View.webglSquare.square(); // Just make a square, using provided gl context (a nodeShader);
         },
         
-        linkUIBuilder = function(link, linkShader) {
-            return linkShader.line('#b3b3b3');
+        linkUIBuilder = function(link) {
+            return Viva.Graph.View.webglLine('#b3b3b3');
         },
  
         createProgram = function(vertexShader, fragmentShader) {
@@ -4091,14 +4132,19 @@ Viva.Graph.View.webglGraphics = function() {
             }
             
             var nodeId = nodesCount++,
-                ui = nodeUIBuilder(node, nodeShader);
-            
+                ui = nodeUIBuilder(node);
             ui.id = nodeId;
+            nodeShader.buildUI(ui);
+            
             nodes[nodeId] = node;
             return ui;
         },
         
         nodePositionCallback = function(nodeUI, pos) {
+            if(userPlaceNodeCallback) {
+                userPlaceNodeCallback(nodeUI, pos); 
+            }
+            
             nodeShader.position(nodesAttributes, nodeUI, pos);
         },
 
@@ -4113,14 +4159,19 @@ Viva.Graph.View.webglGraphics = function() {
             }
             
             var linkId = linksCount++,
-                ui = linkUIBuilder(link, linkShader);
-            
+                ui = linkUIBuilder(link);
             ui.id = linkId;
+            linkShader.buildUI(ui);
+            
             links[linkId] = link;
             return ui;
         },
         
         linkPositionCallback = function(linkUi, fromPos, toPos){
+            if(userPlaceLinkCallback) {
+                userPlaceLinkCallback(linkUi, fromPos, toPos); 
+            }
+
             linkShader.position(linksAttributes, linkUi, fromPos, toPos);
         },
         
@@ -4183,14 +4234,12 @@ Viva.Graph.View.webglGraphics = function() {
          * is used by updateNodePosition().
          */
         placeNode : function(newPlaceCallback) {
-            // TODO: Implement me
-            //nodePositionCallback = newPlaceCallback;
+            userPlaceNodeCallback = newPlaceCallback;
             return this;
         },
 
         placeLink : function(newPlaceLinkCallback) {
-            // TODO: Implement me
-            //linkPositionCallback = newPlaceLinkCallback;
+            userPlaceLinkCallback = newPlaceLinkCallback;
             return this;
         },
         

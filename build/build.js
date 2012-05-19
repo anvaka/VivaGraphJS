@@ -47,7 +47,8 @@
             "View/svgGraphics.js",
             "View/svgNodeFactory.js",
             
-            "View/webglUIElements.js",
+            "View/webglUIModels.js",
+            "View/webglShaders.js",
             "View/webglGraphics.js",
             "View/renderer.js",
             "Core/serializer.js"];

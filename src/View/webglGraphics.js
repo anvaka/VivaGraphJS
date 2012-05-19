@@ -20,6 +20,8 @@ Viva.Graph.View.webglGraphics = function() {
         nodesCount = 0,
         linksCount = 0,
         transform,
+        userPlaceNodeCallback, 
+        userPlaceLinkCallback,
         nodesAttributes = new Float32Array(64), 
         linksAttributes = new Float32Array(64),
         nodes = [], 
@@ -31,12 +33,12 @@ Viva.Graph.View.webglGraphics = function() {
         linkShader = Viva.Graph.View.webglLinkShader(),
         nodeShader = Viva.Graph.View.webglNodeShader(), 
         
-        nodeUIBuilder = function(node, nodeShader){
-            return nodeShader.square(); // Just make a square, using provided gl context (a nodeShader);
+        nodeUIBuilder = function(node){
+            return Viva.Graph.View.webglSquare.square(); // Just make a square, using provided gl context (a nodeShader);
         },
         
-        linkUIBuilder = function(link, linkShader) {
-            return linkShader.line('#b3b3b3');
+        linkUIBuilder = function(link) {
+            return Viva.Graph.View.webglLine('#b3b3b3');
         },
  
         createProgram = function(vertexShader, fragmentShader) {
@@ -140,14 +142,19 @@ Viva.Graph.View.webglGraphics = function() {
             }
             
             var nodeId = nodesCount++,
-                ui = nodeUIBuilder(node, nodeShader);
-            
+                ui = nodeUIBuilder(node);
             ui.id = nodeId;
+            nodeShader.buildUI(ui);
+            
             nodes[nodeId] = node;
             return ui;
         },
         
         nodePositionCallback = function(nodeUI, pos) {
+            if(userPlaceNodeCallback) {
+                userPlaceNodeCallback(nodeUI, pos); 
+            }
+            
             nodeShader.position(nodesAttributes, nodeUI, pos);
         },
 
@@ -162,14 +169,19 @@ Viva.Graph.View.webglGraphics = function() {
             }
             
             var linkId = linksCount++,
-                ui = linkUIBuilder(link, linkShader);
-            
+                ui = linkUIBuilder(link);
             ui.id = linkId;
+            linkShader.buildUI(ui);
+            
             links[linkId] = link;
             return ui;
         },
         
         linkPositionCallback = function(linkUi, fromPos, toPos){
+            if(userPlaceLinkCallback) {
+                userPlaceLinkCallback(linkUi, fromPos, toPos); 
+            }
+
             linkShader.position(linksAttributes, linkUi, fromPos, toPos);
         },
         
@@ -232,14 +244,12 @@ Viva.Graph.View.webglGraphics = function() {
          * is used by updateNodePosition().
          */
         placeNode : function(newPlaceCallback) {
-            // TODO: Implement me
-            //nodePositionCallback = newPlaceCallback;
+            userPlaceNodeCallback = newPlaceCallback;
             return this;
         },
 
         placeLink : function(newPlaceLinkCallback) {
-            // TODO: Implement me
-            //linkPositionCallback = newPlaceLinkCallback;
+            userPlaceLinkCallback = newPlaceLinkCallback;
             return this;
         },
         
