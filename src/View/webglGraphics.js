@@ -86,6 +86,8 @@ Viva.Graph.View.webglGraphics = function() {
            assertProgramParameter(program.transform, 'uTransform');
            
            gl.uniform2f(program.screenSize, width, height);
+           gl.uniformMatrix4fv(program.transform, false, transform);
+           
            gl.enableVertexAttribArray(program.postionAttrib);
            program.buffer = gl.createBuffer();
         },
@@ -100,6 +102,8 @@ Viva.Graph.View.webglGraphics = function() {
                fs = createShader(shaderInfo.fragmentShader, gl.FRAGMENT_SHADER),
                program = createProgram(vs, fs);
            
+           shaderInfo.program = program;
+           
            gl.useProgram(program);
            
            initRequiredAttributes(program);
@@ -109,6 +113,28 @@ Viva.Graph.View.webglGraphics = function() {
            loadBufferData(program, bufferData);
            
            return program;
+        },
+        
+        unloadProgram = function(shaderInfo) {
+            if (shaderInfo && gl) {
+                if(typeof shaderInfo.release === 'function') {
+                    shaderInfo.release();
+                }
+                
+                if (shaderInfo.program) {
+                    var program = shaderInfo.program;
+                    gl.deleteBuffer(program.buffer);
+                    
+                    var shaders = gl.getAttachedShaders(program);
+                    for(var i = 0; i < shaders.length; ++i) {
+                        gl.detachShader(program, shaders[i]);
+                        gl.deleteShader(shaders[i]);
+                    }
+                    
+                    // TODO: for some reason DELETE_STATUS after this call is false.
+                    gl.deleteProgram(shaderInfo.program); 
+                }
+            }
         },
                 
         updateTransformUniform = function() {
@@ -148,6 +174,12 @@ Viva.Graph.View.webglGraphics = function() {
             
             nodes[nodeId] = node;
             return ui;
+        },
+        
+        reloadNodes = function() {
+            for (var i=0; i < nodes.length; i++) {
+              nodeShader.buildUI(nodes[i].ui);
+            };
         },
         
         nodePositionCallback = function(nodeUI, pos) {
@@ -437,6 +469,20 @@ Viva.Graph.View.webglGraphics = function() {
         */
        getGraphicsRoot : function() {
            return graphicsRoot;
+       },
+       
+       /** 
+        * Updates default shader which renders nodes
+        * 
+        * @param newShader to use for nodes. 
+        */
+       setNodeShader : function(newShader) {
+           if (newShader && gl) {
+               unloadProgram(nodeShader);
+               nodeShader = newShader;
+               nodesProgram = loadProgram(nodeShader, nodesAttributes);
+               reloadNodes();
+           }
        }
     };
     
