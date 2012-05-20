@@ -119,7 +119,7 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
             
             updateNodeMass(from);
             updateNodeMass(to);
-            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0);
+            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
         },
         
         releaseLink = function(link) {

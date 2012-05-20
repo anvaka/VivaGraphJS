@@ -26,7 +26,7 @@ Viva.Graph.Physics.springForce = function(options){
             } 
             
             var d = r - length;
-            var coeff = ( (!spring.coeff || spring.coeff < 0) ? currentOptions.coeff : spring.coeff) * d / r;
+            var coeff = ( (!spring.coeff || spring.coeff < 0) ? currentOptions.coeff : spring.coeff) * d / r * spring.weight;
             
             body1.force.x += coeff * dx;
             body1.force.y += coeff * dy;

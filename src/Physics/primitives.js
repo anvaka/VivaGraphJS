@@ -55,11 +55,12 @@ Viva.Graph.Physics.Body.prototype = {
     }
 };
 
-Viva.Graph.Physics.Spring = function(body1, body2, length, coeff){
+Viva.Graph.Physics.Spring = function(body1, body2, length, coeff, weight){
     this.body1 = body1;
     this.body2 = body2;
     this.length = length;
     this.coeff = coeff;
+    this.weight = weight;
 };
 
 Viva.Graph.Physics.QuadTreeNode = function(){

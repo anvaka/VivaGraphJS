@@ -2006,11 +2006,12 @@ Viva.Graph.Physics.Body.prototype = {
     }
 };
 
-Viva.Graph.Physics.Spring = function(body1, body2, length, coeff){
+Viva.Graph.Physics.Spring = function(body1, body2, length, coeff, weight){
     this.body1 = body1;
     this.body2 = body2;
     this.length = length;
     this.coeff = coeff;
+    this.weight = weight;
 };
 
 Viva.Graph.Physics.QuadTreeNode = function(){
@@ -2475,7 +2476,7 @@ Viva.Graph.Physics.springForce = function(options){
             } 
             
             var d = r - length;
-            var coeff = ( (!spring.coeff || spring.coeff < 0) ? currentOptions.coeff : spring.coeff) * d / r;
+            var coeff = ( (!spring.coeff || spring.coeff < 0) ? currentOptions.coeff : spring.coeff) * d / r * spring.weight;
             
             body1.force.x += coeff * dx;
             body1.force.y += coeff * dy;
@@ -2601,7 +2602,7 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
         /**
          * Adds a spring to this simulation.
          */
-        addSpring: function(body1, body2, springLength, springCoefficient){
+        addSpring: function(body1, body2, springLength, springCoefficient, springWeight){
             if (!body1 || !body2){
                 throw {
                     message : 'Cannot add null spring to force simulator'
@@ -2613,8 +2614,9 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
                     message : 'Spring length should be a number'
                 };
             }
+            springWeight = typeof springWeight === 'number' ? springWeight : 1;
             
-            var spring = new Viva.Graph.Physics.Spring(body1, body2, springLength, springCoefficient >= 0 ? springCoefficient : -1);
+            var spring = new Viva.Graph.Physics.Spring(body1, body2, springLength, springCoefficient >= 0 ? springCoefficient : -1, springWeight);
             springs.push(spring); 
             
             // TODO: could mark simulator as dirty.
@@ -2777,7 +2779,7 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
             
             updateNodeMass(from);
             updateNodeMass(to);
-            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0);
+            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
         },
         
         releaseLink = function(link) {
@@ -4242,7 +4244,7 @@ Viva.Graph.View.webglGraphics = function() {
         nodeShader = Viva.Graph.View.webglNodeShader(), 
         
         nodeUIBuilder = function(node){
-            return Viva.Graph.View.webglSquare.square(); // Just make a square, using provided gl context (a nodeShader);
+            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeShader);
         },
         
         linkUIBuilder = function(link) {
@@ -4691,7 +4693,7 @@ Viva.Graph.View.webglGraphics = function() {
                nodeShader = newShader; 
                return;
            } else if (newShader) {
-               // Otherwise onload old shader and reinit.
+               // Otherwise unload old shader and reinit.
                unloadProgram(nodeShader);
                nodeShader = newShader;
                nodesProgram = loadProgram(nodeShader, nodesAttributes);

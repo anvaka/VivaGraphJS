@@ -106,7 +106,7 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
         /**
          * Adds a spring to this simulation.
          */
-        addSpring: function(body1, body2, springLength, springCoefficient){
+        addSpring: function(body1, body2, springLength, springCoefficient, springWeight){
             if (!body1 || !body2){
                 throw {
                     message : 'Cannot add null spring to force simulator'
@@ -118,8 +118,9 @@ Viva.Graph.Physics.forceSimulator = function(forceIntegrator){
                     message : 'Spring length should be a number'
                 };
             }
+            springWeight = typeof springWeight === 'number' ? springWeight : 1;
             
-            var spring = new Viva.Graph.Physics.Spring(body1, body2, springLength, springCoefficient >= 0 ? springCoefficient : -1);
+            var spring = new Viva.Graph.Physics.Spring(body1, body2, springLength, springCoefficient >= 0 ? springCoefficient : -1, springWeight);
             springs.push(spring); 
             
             // TODO: could mark simulator as dirty.
