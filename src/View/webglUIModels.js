@@ -32,7 +32,7 @@ Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
         return parsedColor;
 };
 
-Viva.Graph.View._webglUtil = new Viva.Graph.View.WebglUtils(); 
+Viva.Graph.View._webglUtil = new Viva.Graph.View.WebglUtils(); // reuse this instance internally.
 
 /**
  * Defines a webgl line. This class has no rendering logic at all,
@@ -53,11 +53,11 @@ Viva.Graph.View.webglLine = function(color){
 
 /**
  * Can be used as a callback in the webglGraphics.node() function, to 
- * create custom looking node.
+ * create a custom looking node.
  * 
  * @param size - size of the node in pixels.
  * @param color - color of the node in '#rrggbb' or '#rgb' format. 
- *  You can also pass '#rrggbbaa', but alpha chanel is always ignored in this shader. 
+ *  You can also pass '#rrggbbaa', but alpha chanel is always ignored. 
  */
 Viva.Graph.View.webglSquare = function(size, color){
     return {
@@ -71,5 +71,34 @@ Viva.Graph.View.webglSquare = function(size, color){
          * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
          */
         color : Viva.Graph.View._webglUtil.parseColor(color)
+    };
+};
+
+/**
+ * Represents a model for image. 
+ */
+Viva.Graph.View.webglImage = function(size, src) {
+    return {
+        /**
+         * Gets texture index where current image is placed.s
+         */
+        _texture : 0,
+        
+        /**
+         * Gets offset in the texture where current image is placed.
+         */
+        _offset : 0,
+        
+        /**
+         * Gets size of the square with the image.
+         */
+        size : typeof size === 'number' ? size : 32,
+        
+        /**
+         * Source of the image. If image is comming not from your domain
+         * certain origin restrictions applies.
+         * See http://www.khronos.org/registry/webgl/specs/latest/#4.2 for more details.
+         */
+        src  : src
     };
 };

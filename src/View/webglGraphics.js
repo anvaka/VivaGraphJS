@@ -477,7 +477,13 @@ Viva.Graph.View.webglGraphics = function() {
         * @param newShader to use for nodes. 
         */
        setNodeShader : function(newShader) {
-           if (newShader && gl) {
+           if (!gl && newShader) {
+               // Nothing created yet. Just set shader to the new one
+               // and let initialization logic take care about rest.
+               nodeShader = newShader; 
+               return;
+           } else if (newShader) {
+               // Otherwise unload old shader and reinit.
                unloadProgram(nodeShader);
                nodeShader = newShader;
                nodesProgram = loadProgram(nodeShader, nodesAttributes);
