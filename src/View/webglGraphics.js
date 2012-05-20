@@ -34,7 +34,7 @@ Viva.Graph.View.webglGraphics = function() {
         nodeShader = Viva.Graph.View.webglNodeShader(), 
         
         nodeUIBuilder = function(node){
-            return Viva.Graph.View.webglSquare.square(); // Just make a square, using provided gl context (a nodeShader);
+            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeShader);
         },
         
         linkUIBuilder = function(link) {
