@@ -294,7 +294,9 @@ Viva.Graph.graph = function() {
             for(var node in nodes) {
                 // For performance reasons you might want to sacrifice this sanity check:
                 if(nodes.hasOwnProperty(node)) {
-                    callback(nodes[node]);
+                    if (callback(nodes[node])) {
+                        return; // client doesn't want to proceed. return.
+                    }
                 }
             }
         },
