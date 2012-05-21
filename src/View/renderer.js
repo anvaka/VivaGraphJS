@@ -382,6 +382,11 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         resume : function() {
             animationTimer.restart();
+        },
+        
+        rerender : function() {
+            renderGraph();
+            return this;
         }
     };
 };
