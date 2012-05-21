@@ -23,6 +23,8 @@
             "Utils/dragndrop.js",
             "Utils/timer.js",
             "Utils/geom.js",
+            "Utils/spatialIndex.js",
+            
             "Core/graph.js",
             "Core/generator.js",
             "Core/operations.js",
@@ -50,6 +52,9 @@
             "View/webglUIModels.js",
             "View/webglShaders.js",
             "View/webglGraphics.js",
+            
+            "WebGL/webglInputEvents.js",
+            
             "View/renderer.js",
             "Core/serializer.js"];
             

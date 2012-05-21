@@ -840,7 +840,61 @@ Viva.Graph.geom = function() {
             return s;
         }  
     };
-};/**
+};/*global Viva */
+
+/**
+ * Allows querying graph nodes position at given point. 
+ * 
+ * @param graph - graph to be queried. 
+ * @param tolerance offest in pixels from any node position to be considered for precise checking.
+ * @param preciseCheckCallback [optional] - callback function(node, x, y). Should return true if point
+ *         (x, y) belongs to given node; false otherwise. If callback is not specified tolerance is used
+ *         for rough check.
+ * 
+ * TODO: currently it performes linear search. Use real spatial index to improve performance.
+ */
+Viva.Graph.spatialIndex = function(graph, tolerance, preciseCheckCallback) {
+    var getNodeFunction;
+    tolerance = typeof tolerance === 'number' ? tolerance : 16;
+    
+    
+    if (typeof preciseCheckCallback === 'function') {
+        getNodeFunction = function(x, y) {
+            var foundNode = null;
+            graph.forEachNode(function(node) {
+                var pos = node.position;
+                if (pos.x - tolerance < x && x < pos.x + tolerance &&
+                    pos.y - tolerance < y && y < pos.y + tolerance) {
+                        if (preciseCheckCallback(node, x, y)){
+                            foundNode = node;
+                            return true;
+                        }
+                    }
+            });
+            return foundNode;
+        };
+    } else {
+        getNodeFunction = function(x, y) {
+            var foundNode = null;
+
+            graph.forEachNode(function(node) {
+                var pos = node.position;
+                if (pos.x - tolerance < x && x < pos.x + tolerance &&
+                    pos.y - tolerance < y && y < pos.y + tolerance) {
+                        foundNode = node;
+                        return true;
+                    }
+            });
+
+            return foundNode;
+        };
+    }
+    
+    return {
+        getNodeAt : getNodeFunction
+    };
+};
+/**
  * @fileOverview Contains definition of the core graph object.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -1136,7 +1190,9 @@ Viva.Graph.graph = function() {
             for(var node in nodes) {
                 // For performance reasons you might want to sacrifice this sanity check:
                 if(nodes.hasOwnProperty(node)) {
-                    callback(nodes[node]);
+                    if (callback(nodes[node])) {
+                        return; // client doesn't want to proceed. return.
+                    }
                 }
             }
         },
@@ -4027,6 +4083,8 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
         tilesPerRow = 32, // TODO: Get based on max texture size
         lastLoadedIdx = 1,
         loadedImages = {},
+        dirtyTimeoutId,
+        skipedDirty = 0,
     
     findNearestPowerOf2 = function (n) {
         // http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
@@ -4073,7 +4131,19 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
                 lastLoadedIdx += 1;
                 img.crossOrigin = "anonymous";
                 img.onload = function () {
-                    that.isDirty = true;
+                    // delay this call, since it results in texture reload
+                    if (dirtyTimeoutId) {
+                        clearTimeout(dirtyTimeoutId);
+                        skipedDirty += 1;
+                        dirtyTimeoutId = null;
+                    }
+                    if (skipedDirty > 10) {
+                        that.isDirty = true;
+                        skipedDirty = 0;
+                    } else {
+                        dirtyTimeoutId = setTimeout(function() { that.isDirty = true; }, 400);
+                    }
+                    
                     drawAt(imgId, img, callback);
                 };
                 
@@ -4084,7 +4154,7 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
 };
 
 /**
- * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
+ * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
  */
 Viva.Graph.View.webglImageNodeShader = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
@@ -4164,10 +4234,6 @@ Viva.Graph.View.webglImageNodeShader = function() {
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  
             
                     gl.generateMipmap(gl.TEXTURE_2D);  
-                    // gl.bindTexture(gl.TEXTURE_2D, null);
-//                     
-                    // gl.activeTexture(gl.TEXTURE0);  
-                    //gl.bindTexture(gl.TEXTURE_2D, getTextureFromImage(canvas));
                     gl.uniform1i(program.sampler, 0);
                 }
                 
@@ -4236,6 +4302,8 @@ Viva.Graph.View.webglGraphics = function() {
         linksAttributes = new Float32Array(64),
         nodes = [], 
         links = [],
+        initCallback,
+        frontLinkId, // used to track z-index of links.
         
         // TODO: rename these. They are not really shaders, but they define
         // appearance of nodes and links, providing api to clients to customize ui. 
@@ -4389,7 +4457,7 @@ Viva.Graph.View.webglGraphics = function() {
         reloadNodes = function() {
             for (var i=0; i < nodes.length; i++) {
               nodeShader.buildUI(nodes[i].ui);
-            };
+            }
         },
         
         nodePositionCallback = function(nodeUI, pos) {
@@ -4416,6 +4484,7 @@ Viva.Graph.View.webglGraphics = function() {
             linkShader.buildUI(ui);
             
             links[linkId] = link;
+            frontLinkId = linkId;
             return ui;
         },
         
@@ -4430,6 +4499,13 @@ Viva.Graph.View.webglGraphics = function() {
         copyAttributes = function(buffer, from, to, attributesPerIndex) {
             for(var i = 0; i < attributesPerIndex; ++i) {
                 buffer[from + i] = buffer[to + i];
+            }
+        },
+        swapAttributes = function(buffer, from, to, attributesPerIndex) {
+            for(var i = 0; i < attributesPerIndex; ++i) {
+                var tmp = buffer[from + i];
+                buffer[from + i] = buffer[to + i];
+                buffer[to + i] = tmp;
             }
         },
         
@@ -4513,6 +4589,7 @@ Viva.Graph.View.webglGraphics = function() {
                linkShader.renderCustomAttributes(gl, linksProgram);
                
                gl.drawArrays(gl.LINES, 0, linksCount * 2);
+               frontLinkId = linksCount - 1;
            }
            if (nodesCount > 0){
                gl.useProgram(nodesProgram);
@@ -4525,6 +4602,24 @@ Viva.Graph.View.webglGraphics = function() {
                
                gl.drawArrays(gl.POINTS, 0, nodesCount);
            }
+        },
+        
+        bringLinkToFront : function(linkUI) {
+            if (frontLinkId > linkUI.id) {
+              // swap removed link with the last link. This will give us O(1) performance for links removal:
+               var attributesCount = linkShader.attributesPerPrimitive,
+                   srcLinkId = linkUI.id;
+               swapAttributes(linksAttributes, srcLinkId * attributesCount, frontLinkId * attributesCount, attributesCount);
+
+               var temp = links[frontLinkId];
+               links[frontLinkId] = links[srcLinkId];
+               links[frontLinkId].ui.id = frontLinkId; 
+               links[srcLinkId] = temp; 
+               links[srcLinkId].ui.id = srcLinkId; 
+            }
+            if (frontLinkId > 0) {
+                frontLinkId -= 1;
+            }
         },
         
         /**
@@ -4590,6 +4685,10 @@ Viva.Graph.View.webglGraphics = function() {
            nodesProgram = loadProgram(nodeShader, nodesAttributes);
            
            updateTransformUniform();
+           
+           if (typeof initCallback === 'function') {
+               initCallback(graphicsRoot);
+           }
        },
        
        /**
@@ -4677,7 +4776,14 @@ Viva.Graph.View.webglGraphics = function() {
        /**
         * Returns root element which hosts graphics. 
         */
-       getGraphicsRoot : function() {
+       getGraphicsRoot : function(callbackWhenReady) {
+           if (typeof callbackWhenReady === 'function') {
+               if (graphicsRoot) {
+                   callbackWhenReady(graphicsRoot);
+               } else {
+                   initCallback = callbackWhenReady;
+               }
+           }
            return graphicsRoot;
        },
        
@@ -4699,6 +4805,21 @@ Viva.Graph.View.webglGraphics = function() {
                nodesProgram = loadProgram(nodeShader, nodesAttributes);
                reloadNodes();
            }
+       },
+       
+       getGraphCoordinates : function(graphicsRootPos) {
+           // to save memory we modify incoming parameter:
+           
+           // point in clipspace coordinates:
+            graphicsRootPos.x = 2 * graphicsRootPos.x/width - 1;
+            graphicsRootPos.y = 1 - (2*graphicsRootPos.y) / height;
+            // apply transform:
+            graphicsRootPos.x = (graphicsRootPos.x - transform[12])/transform[0];
+            graphicsRootPos.y = (graphicsRootPos.y - transform[13])/transform[5]; 
+            // now transform to graph coordinates:
+            graphicsRootPos.x *= width;
+            graphicsRootPos.y *= height;
+            return graphicsRootPos;
        }
     };
     
@@ -4706,7 +4827,103 @@ Viva.Graph.View.webglGraphics = function() {
     Viva.Graph.Utils.events(graphics).extend();
     
     return graphics;
-};/**
+};/*global Viva */
+
+/**
+ * Monitors mouse input in webgl graphics and notifies subscribers. 
+ * 
+ * @param {Object} webglGraphics
+ * @param {Object} graph
+ */
+Viva.Graph.webglInputEvents = function(webglGraphics, graph){
+    var preciseCheck = function(node, x, y) {
+        if (node.ui && node.ui.size) {
+            var pos = node.position,
+                half = node.ui.size;
+            return pos.x - half < x && x < pos.x + half &&
+                   pos.y - half < y && y < pos.y + half;  
+        } else { 
+            return true; 
+        }
+    },
+    spatialIndex = Viva.Graph.spatialIndex(graph, 64, preciseCheck),
+    mouseEnterCallback, 
+    mouseLeaveCallback,
+    clickCallback,
+    dblClickCallback,
+    
+    startListen = function(root) {
+        var pos = {x : 0, y : 0},
+            lastFound = null;
+         
+         root.addEventListener('mousemove',
+            function(e){
+                 pos.x = e.clientX;
+                 pos.y = e.clientY;
+                 webglGraphics.getGraphCoordinates(pos);
+                 var node = spatialIndex.getNodeAt(pos.x, pos.y);
+                    
+                 if (node && lastFound !== node) {
+                     lastFound = node;
+                     if (typeof mouseEnterCallback === 'function') {
+                         mouseEnterCallback(lastFound);
+                     }
+                 } else if (node === null && lastFound !== node){
+                     if (typeof mouseLeaveCallback === 'function') {
+                         mouseLeaveCallback(lastFound);
+                     }
+                     
+                     lastFound = null;
+                 }
+          });
+          
+          var lastClickTime = +new Date();
+          
+          root.addEventListener('mousedown',
+            function(e) {
+                var clickTime = +new Date();
+                 pos.x = e.clientX;
+                 pos.y = e.clientY;
+                 webglGraphics.getGraphCoordinates(pos);
+                 var node = spatialIndex.getNodeAt(pos.x, pos.y);
+                 if (node) {
+                     if (clickTime - lastClickTime < 400 && typeof dblClickCallback === 'function' && node === lastFound) {
+                         dblClickCallback(node, e);
+                     } else if (typeof clickCallback === 'function'){
+                        clickCallback(node, e);
+                     }
+                     lastFound = node;
+                 } else {
+                     lastFound = null;
+                 }
+                 lastClickTime = clickTime;
+          });
+    };
+    
+    // webgl may not be initialized at this point. Pass callback
+    // to start listen after graphics root is ready.
+    webglGraphics.getGraphicsRoot(startListen);
+    
+    return {
+        mouseEnter : function(callback){
+            mouseEnterCallback = callback;
+            return this;
+        },
+        mouseLeave : function(callback) {
+            mouseLeaveCallback = callback;
+            return this;
+        },
+        click : function(callback){
+            clickCallback = callback;
+            return this;
+        },
+        dblClick : function(callback){
+            dblClickCallback = callback;
+            return this;
+        }
+    };
+};
+/**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -5090,6 +5307,11 @@ Viva.Graph.View.renderer = function(graph, settings) {
         
         resume : function() {
             animationTimer.restart();
+        },
+        
+        rerender : function() {
+            renderGraph();
+            return this;
         }
     };
 };
