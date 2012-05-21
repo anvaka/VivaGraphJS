@@ -179,6 +179,8 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
         tilesPerRow = 32, // TODO: Get based on max texture size
         lastLoadedIdx = 1,
         loadedImages = {},
+        dirtyTimeoutId,
+        skipedDirty = 0,
     
     findNearestPowerOf2 = function (n) {
         // http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
@@ -225,7 +227,19 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
                 lastLoadedIdx += 1;
                 img.crossOrigin = "anonymous";
                 img.onload = function () {
-                    that.isDirty = true;
+                    // delay this call, since it results in texture reload
+                    if (dirtyTimeoutId) {
+                        clearTimeout(dirtyTimeoutId);
+                        skipedDirty += 1;
+                        dirtyTimeoutId = null;
+                    }
+                    if (skipedDirty > 10) {
+                        that.isDirty = true;
+                        skipedDirty = 0;
+                    } else {
+                        dirtyTimeoutId = setTimeout(function() { that.isDirty = true; }, 400);
+                    }
+                    
                     drawAt(imgId, img, callback);
                 };
                 
@@ -236,7 +250,7 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
 };
 
 /**
- * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
+ * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
  */
 Viva.Graph.View.webglImageNodeShader = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
@@ -316,10 +330,6 @@ Viva.Graph.View.webglImageNodeShader = function() {
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  
             
                     gl.generateMipmap(gl.TEXTURE_2D);  
-                    // gl.bindTexture(gl.TEXTURE_2D, null);
-//                     
-                    // gl.activeTexture(gl.TEXTURE0);  
-                    //gl.bindTexture(gl.TEXTURE_2D, getTextureFromImage(canvas));
                     gl.uniform1i(program.sampler, 0);
                 }
                 
