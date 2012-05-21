@@ -26,6 +26,8 @@ Viva.Graph.View.webglGraphics = function() {
         linksAttributes = new Float32Array(64),
         nodes = [], 
         links = [],
+        initCallback,
+        frontLinkId, // used to track z-index of links.
         
         // TODO: rename these. They are not really shaders, but they define
         // appearance of nodes and links, providing api to clients to customize ui. 
@@ -179,7 +181,7 @@ Viva.Graph.View.webglGraphics = function() {
         reloadNodes = function() {
             for (var i=0; i < nodes.length; i++) {
               nodeShader.buildUI(nodes[i].ui);
-            };
+            }
         },
         
         nodePositionCallback = function(nodeUI, pos) {
@@ -206,6 +208,7 @@ Viva.Graph.View.webglGraphics = function() {
             linkShader.buildUI(ui);
             
             links[linkId] = link;
+            frontLinkId = linkId;
             return ui;
         },
         
@@ -220,6 +223,13 @@ Viva.Graph.View.webglGraphics = function() {
         copyAttributes = function(buffer, from, to, attributesPerIndex) {
             for(var i = 0; i < attributesPerIndex; ++i) {
                 buffer[from + i] = buffer[to + i];
+            }
+        },
+        swapAttributes = function(buffer, from, to, attributesPerIndex) {
+            for(var i = 0; i < attributesPerIndex; ++i) {
+                var tmp = buffer[from + i];
+                buffer[from + i] = buffer[to + i];
+                buffer[to + i] = tmp;
             }
         },
         
@@ -303,6 +313,7 @@ Viva.Graph.View.webglGraphics = function() {
                linkShader.renderCustomAttributes(gl, linksProgram);
                
                gl.drawArrays(gl.LINES, 0, linksCount * 2);
+               frontLinkId = linksCount - 1;
            }
            if (nodesCount > 0){
                gl.useProgram(nodesProgram);
@@ -315,6 +326,24 @@ Viva.Graph.View.webglGraphics = function() {
                
                gl.drawArrays(gl.POINTS, 0, nodesCount);
            }
+        },
+        
+        bringLinkToFront : function(linkUI) {
+            if (frontLinkId > linkUI.id) {
+              // swap removed link with the last link. This will give us O(1) performance for links removal:
+               var attributesCount = linkShader.attributesPerPrimitive,
+                   srcLinkId = linkUI.id;
+               swapAttributes(linksAttributes, srcLinkId * attributesCount, frontLinkId * attributesCount, attributesCount);
+
+               var temp = links[frontLinkId];
+               links[frontLinkId] = links[srcLinkId];
+               links[frontLinkId].ui.id = frontLinkId; 
+               links[srcLinkId] = temp; 
+               links[srcLinkId].ui.id = srcLinkId; 
+            }
+            if (frontLinkId > 0) {
+                frontLinkId -= 1;
+            }
         },
         
         /**
@@ -380,6 +409,10 @@ Viva.Graph.View.webglGraphics = function() {
            nodesProgram = loadProgram(nodeShader, nodesAttributes);
            
            updateTransformUniform();
+           
+           if (typeof initCallback === 'function') {
+               initCallback(graphicsRoot);
+           }
        },
        
        /**
@@ -467,7 +500,14 @@ Viva.Graph.View.webglGraphics = function() {
        /**
         * Returns root element which hosts graphics. 
         */
-       getGraphicsRoot : function() {
+       getGraphicsRoot : function(callbackWhenReady) {
+           if (typeof callbackWhenReady === 'function') {
+               if (graphicsRoot) {
+                   callbackWhenReady(graphicsRoot);
+               } else {
+                   initCallback = callbackWhenReady;
+               }
+           }
            return graphicsRoot;
        },
        
@@ -489,6 +529,21 @@ Viva.Graph.View.webglGraphics = function() {
                nodesProgram = loadProgram(nodeShader, nodesAttributes);
                reloadNodes();
            }
+       },
+       
+       getGraphCoordinates : function(graphicsRootPos) {
+           // to save memory we modify incoming parameter:
+           
+           // point in clipspace coordinates:
+            graphicsRootPos.x = 2 * graphicsRootPos.x/width - 1;
+            graphicsRootPos.y = 1 - (2*graphicsRootPos.y) / height;
+            // apply transform:
+            graphicsRootPos.x = (graphicsRootPos.x - transform[12])/transform[0];
+            graphicsRootPos.y = (graphicsRootPos.y - transform[13])/transform[5]; 
+            // now transform to graph coordinates:
+            graphicsRootPos.x *= width;
+            graphicsRootPos.y *= height;
+            return graphicsRootPos;
        }
     };
     
