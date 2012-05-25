@@ -25,10 +25,10 @@ Viva.Graph.View.webglGraphics = function() {
         initCallback,
         
         linkProgram = Viva.Graph.View.webglLinkProgram(),
-        nodeShader = Viva.Graph.View.webglNodeProgram(), 
+        nodeProgram = Viva.Graph.View.webglNodeProgram(), 
         
         nodeUIBuilder = function(node){
-            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeShader);
+            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
         },
         
         linkUIBuilder = function(link) {
@@ -37,7 +37,7 @@ Viva.Graph.View.webglGraphics = function() {
  
         updateTransformUniform = function() {
             linkProgram.updateTransform(transform);
-            nodeShader.updateTransform(transform);
+            nodeProgram.updateTransform(transform);
         },
         
         resetScaleInternal = function() {
@@ -57,7 +57,7 @@ Viva.Graph.View.webglGraphics = function() {
                 ui = nodeUIBuilder(node);
             ui.id = nodeId;
             
-            nodeShader.createNode(ui);
+            nodeProgram.createNode(ui);
             
             nodes[nodeId] = node;
             return ui;
@@ -149,7 +149,7 @@ Viva.Graph.View.webglGraphics = function() {
                linkProgram.render();
            }
            if (nodesCount > 0){
-               nodeShader.render();
+               nodeProgram.render();
            }
         },
         
@@ -236,8 +236,8 @@ Viva.Graph.View.webglGraphics = function() {
            linkProgram.load(gl);
            linkProgram.updateSize(width, height);
            
-           nodeShader.load(gl);
-           nodeShader.updateSize(width, height);
+           nodeProgram.load(gl);
+           nodeProgram.updateSize(width, height);
            
            updateTransformUniform();
            
@@ -297,7 +297,7 @@ Viva.Graph.View.webglGraphics = function() {
        releaseNode : function(nodeUI) {
            if (nodesCount > 0) { nodesCount -= 1; }
 
-           nodeShader.removeNode(nodeUI);
+           nodeProgram.removeNode(nodeUI);
             
            if (nodeUI.id < nodesCount) {
                var nodeIdToRemove = nodeUI.id;
@@ -319,7 +319,7 @@ Viva.Graph.View.webglGraphics = function() {
                 userPlaceNodeCallback(nodeUI, pos); 
            }
            
-           nodeShader.position(nodeUI, pos);
+           nodeProgram.position(nodeUI, pos);
        },
        
        /**
@@ -357,7 +357,7 @@ Viva.Graph.View.webglGraphics = function() {
            if (!gl && newProgram) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about rest.
-               nodeShader = newProgram; 
+               nodeProgram = newProgram; 
                return;
            } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";

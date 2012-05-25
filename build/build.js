@@ -50,8 +50,8 @@
             "View/svgNodeFactory.js",
             
             "WebGL/webgl.js",
-            "View/webglUIModels.js",
-            "View/webglShaders.js",
+            "WebGL/webglUIModels.js",
+            "WebGL/webglShaders.js",
             "View/webglGraphics.js",
             
             "WebGL/webglInputEvents.js",
