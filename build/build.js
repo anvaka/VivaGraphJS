@@ -51,7 +51,9 @@
             
             "WebGL/webgl.js",
             "WebGL/webglUIModels.js",
-            "WebGL/webglShaders.js",
+            "WebGL/webglNodeProgram.js",
+            "WebGL/webglLinkProgram.js",
+            "WebGL/webglImageNodeProgram.js",
             "View/webglGraphics.js",
             
             "WebGL/webglInputEvents.js",
