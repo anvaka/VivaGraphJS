@@ -3799,6 +3799,99 @@ Viva.Graph.View.svgNodeFactory = function(graph){
 
     };
 };
+/*global Viva Float32Array*/
+
+Viva.Graph.webgl = function(gl) {
+    var createShader = function(shaderText, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, shaderText);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                var msg = gl.getShaderInfoLog(shader);
+                alert(msg);
+                throw msg;
+            }
+            
+            return shader;
+    };
+    
+    return {
+        createProgram : function(vertexShaderSrc, fragmentShaderSrc) {
+            var program = gl.createProgram(),
+                vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER),
+                fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
+                
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)){
+                var msg = gl.getShaderInfoLog(program);
+                alert(msg);
+                throw msg;
+            }
+            
+            return program;
+        },
+        
+        extendArray : function(buffer, itemsInBuffer, elementsPerItem) {
+            if ((itemsInBuffer  + 1)* elementsPerItem > buffer.length) {
+                // Every time we run out of space create new array twice bigger.
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
+                extendedArray.set(buffer);
+                
+                return extendedArray;
+            }
+            
+            return buffer;
+        },
+        
+        copyArrayPart : function(array, to, from, elementsCount) {
+            for(var i = 0; i < elementsCount; ++i) {
+                array[to + i] = array[from + i];
+            }
+        },
+        
+        swapArrayPart : function(array, from, to, elementsCount) {
+            for(var i = 0; i < elementsCount; ++i) {
+                var tmp = array[from + i];
+                array[from + i] = array[to + i];
+                array[to + i] = tmp;
+            }
+        },
+        
+        getLocations : function(program, uniformOrAttributeNames) {
+            var foundLocations = {};
+            for(var i = 0; i < uniformOrAttributeNames.length; ++i) {
+                var name = uniformOrAttributeNames[i],
+                    location = -1;
+                if (name.indexOf('a_') === 0) {
+                    location = gl.getAttribLocation(program, name);
+                    if(location === -1) {
+                        throw "Program doesn't have required attribute: " + name;
+                    }
+                    
+                    foundLocations[name.slice(2)] = location;
+                } else if (name.indexOf('u_') === 0) {
+                    location = gl.getUniformLocation(program, name);
+                    if(location === -1) {
+                        throw "Program doesn't have required uniform: " + name;
+                    }
+
+                    foundLocations[name.slice(2)] = location;
+                } else {
+                    throw "Couldn't figure out your intent. All uniforms should start with 'u_' prefix, and attributes with 'a_'";
+                }
+            }
+            
+            return foundLocations;
+        },
+        
+        context : gl
+    };
+};
 /**
  * @fileOverview Defines a model objects to represents graph rendering 
  * primitives in webglGraphics. 
@@ -3924,67 +4017,56 @@ Viva.Graph.View.webglNodeShader = function() {
         '   gl_FragColor = color;',
         '}'].join('\n'),
         nodesVS = [
-        'attribute vec2 aVertexPos;',
+        'attribute vec2 a_vertexPos;',
         // Pack clor and size into vector. First elemnt is color, second - size.
         // note: since it's floating point we can only use 24 bit to pack colors...
         // thus alpha channel is dropped, and is always assumed to be 1.
-        'attribute vec2 aCustomAttributes;', 
-        'uniform vec2 uScreenSize;',
-        'uniform mat4 uTransform;',
+        'attribute vec2 a_customAttributes;', 
+        'uniform vec2 u_screenSize;',
+        'uniform mat4 u_transform;',
         'varying vec4 color;',
         
         'void main(void) {',
-        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
-        '   gl_PointSize = aCustomAttributes[1] * uTransform[0][0];',
-        '   float c = aCustomAttributes[0];',
+        '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);',
+        '   gl_PointSize = a_customAttributes[1] * u_transform[0][0];',
+        '   float c = a_customAttributes[0];',
         '   color = vec4(0.0, 0.0, 0.0, 255.0);',
         '   color.b = mod(c, 256.0); c = floor(c/256.0);',
         '   color.g = mod(c, 256.0); c = floor(c/256.0);',
         '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
-        '}'].join('\n'),
+        '}'].join('\n');
         
-        utils = new Viva.Graph.View.WebglUtils();
-        
+        var program,
+            gl,
+            buffer,
+            locations,
+            utils,
+            nodes = new Float32Array(64),
+            nodesCount = 0,
+            width, height, transform, sizeDirty;
+            
         return {
-            /**
-             * Returns fragment shader text which renders this node.
-             */
-            fragmentShader : nodesFS,
-            
-            /**
-             * Returns vertex shader text which renders this node.
-             */
-            vertexShader : nodesVS,
-            
-            /**
-             * Returns number of attributes current shader reserves for webgl primtive
-             * (point, line, triangle and strips)
-             */
-            attributesPerPrimitive : ATTRIBUTES_PER_PRIMITIVE,
-            
-            /**
-             * Called by webglGraphics to let shader initialize its custom attributes.
-             */
-            initCustomAttributes : function(gl, program) {
-                program.customAttributes = gl.getAttribLocation(program, 'aCustomAttributes');
+            load : function(glContext) {
+                gl = glContext;
+                utils = Viva.Graph.webgl(glContext);
+                
+                program = utils.createProgram(nodesVS, nodesFS);
+                gl.useProgram(program);
+                locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform']);
+                
+                gl.enableVertexAttribArray(locations.vertexPos);
+                gl.enableVertexAttribArray(locations.customAttributes);
+                
+                buffer = gl.createBuffer();
             },
             
             /**
-             * Called by webglGraphics to let this shader render its custom attributes.
-             */
-            renderCustomAttributes : function(gl, program) {
-                gl.enableVertexAttribArray(program.customAttributes);
-                gl.vertexAttribPointer(program.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * 4, 2 * 4);
-            },
-            
-            /**
-             * Updates position of current node in the buffer of nodes. 
+             * Updates position of node in the buffer of nodes. 
              * 
-             * @param nodes - buffer where all nodes are stored.
              * @param idx - index of current node.
              * @param pos - new position of the node.
              */
-            position : function(nodes, nodeUI, pos) {
+            position : function(nodeUI, pos) {
                 var idx = nodeUI.id;
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
@@ -3992,11 +4074,46 @@ Viva.Graph.View.webglNodeShader = function() {
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
             },
             
-            /**
-             * Called by webglGraphics to let this shader init additional properties of the
-             * given model of a node.
-             */
-            buildUI : function(ui) { }
+            updateTransform : function(newTransform) {
+                sizeDirty = true;
+                transform = newTransform;
+            },
+            
+            updateSize : function(w, h) {
+                width = w;
+                height = h;
+                sizeDirty = true;
+            },
+            
+            createNode : function(node) {
+                nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
+                nodesCount += 1;
+            },
+            
+            removeNode : function(node) {
+                if (nodesCount > 0) { nodesCount -=1; }
+                
+                if (node.id < nodesCount && nodesCount > 0) {
+                    utils.copyArrayPart(nodes, node.id*ATTRIBUTES_PER_PRIMITIVE, nodesCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                }
+            },
+            
+            render : function() {
+                gl.useProgram(program);
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
+                
+                if (sizeDirty) {
+                    sizeDirty = false;
+                    gl.uniformMatrix4fv(locations.transform, false, transform);
+                    gl.uniform2f(locations.screenSize, width, height);
+                }
+
+                gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
+                gl.vertexAttribPointer(locations.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
+
+                gl.drawArrays(gl.POINTS, 0, nodesCount);
+            }
         };
 };
 
@@ -4013,51 +4130,49 @@ Viva.Graph.View.webglLinkShader = function() {
         '}'].join('\n'),
         
         linksVS = [
-        'attribute vec2 aVertexPos;',
-        'attribute float aColor;', 
+        'attribute vec2 a_vertexPos;',
+        'attribute float a_color;', 
         
-        'uniform vec2 uScreenSize;',
-        'uniform mat4 uTransform;',
+        'uniform vec2 u_screenSize;',
+        'uniform mat4 u_transform;',
         
         'varying vec4 color;',
         
         'void main(void) {',
-        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0.0, 1.0);',
+        '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
         '   color = vec4(0.0, 0.0, 0.0, 255.0);',
-        '   float c = aColor;',
+        '   float c = a_color;',
         '   color.b = mod(c, 256.0); c = floor(c/256.0);',
         '   color.g = mod(c, 256.0); c = floor(c/256.0);',
         '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
-        '}'].join('\n'),
+        '}'].join('\n');
         
-        utils = new Viva.Graph.View.WebglUtils();
+        var program,
+            gl,
+            buffer,
+            utils,
+            locations,
+            linksCount = 0,
+            frontLinkId, // used to track z-index of links.
+            links = new Float32Array(64),
+            width, height, transform, sizeDirty;
         
         return {
-            fragmentShader : linksFS,
-            vertexShader : linksVS,
-
-            /**
-             * Returns number of attributes current shader reserves for webgl primtive
-             * (point, line, triangle and strips)
-             */
-            attributesPerPrimitive : ATTRIBUTES_PER_PRIMITIVE,
-            
-            /**
-             * Called by webglGraphics to let shader initialize its custom attributes.
-             */
-            initCustomAttributes : function(gl, program) {
-                program.colorAttribute = gl.getAttribLocation(program, 'aColor');
+            load : function(glContext) {
+                gl = glContext;
+                utils = Viva.Graph.webgl(glContext);
+                
+                program = utils.createProgram(linksVS, linksFS);
+                gl.useProgram(program);
+                locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
+                
+                gl.enableVertexAttribArray(locations.vertexPos);
+                gl.enableVertexAttribArray(locations.color);
+                
+                buffer = gl.createBuffer();
             },
             
-            /**
-             * Called by webglGraphics to let this shader render its custom attributes.
-             */
-            renderCustomAttributes : function(gl, program) { 
-                gl.enableVertexAttribArray(program.colorAttribute);
-                gl.vertexAttribPointer(program.colorAttribute, 1, gl.FLOAT, false, 3 * 4, 2 * 4);
-            },
-            
-            position: function(links, linkUi, fromPos, toPos) {
+            position: function(linkUi, fromPos, toPos) {
                 var linkIdx = linkUi.id,
                     offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
                 links[offset + 0] = fromPos.x;
@@ -4069,11 +4184,62 @@ Viva.Graph.View.webglLinkShader = function() {
                 links[offset + 5] = linkUi.color;
             },
             
-            /**
-             * Called by webglGraphics to let this shader init additional properties of the
-             * given model of a node.
-             */
-            buildUI : function(ui) { }
+            createLink : function(ui) {
+                 links = utils.extendArray(links, linksCount, ATTRIBUTES_PER_PRIMITIVE);
+                 linksCount += 1;
+                 frontLinkId = ui.id;
+            },
+            
+            removeLink : function(ui) {
+               if (linksCount > 0) { linksCount -= 1;}
+               // swap removed link with the last link. This will give us O(1) performance for links removal:
+               if (ui.id < linksCount && linksCount > 0) {
+                   utils.copyArrayPart(links, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE); 
+               }
+            },
+            
+            updateTransform : function(newTransform) {
+                sizeDirty = true;
+                transform = newTransform;
+            },
+            
+            updateSize : function(w, h) {
+                width = w;
+                height = h;
+                sizeDirty = true;
+            },
+            
+            render : function() {
+               gl.useProgram(program);
+               gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+               gl.bufferData(gl.ARRAY_BUFFER, links, gl.DYNAMIC_DRAW);
+
+                if (sizeDirty) {
+                    sizeDirty = false;
+                    gl.uniformMatrix4fv(locations.transform, false, transform);
+                    gl.uniform2f(locations.screenSize, width, height);
+                }
+
+               gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+               gl.vertexAttribPointer(locations.color, 1, gl.FLOAT, false, 3 * 4, 2 * 4);
+
+               gl.drawArrays(gl.LINES, 0, linksCount * 2);
+               
+               frontLinkId = linksCount - 1;
+            },
+            
+            bringToFront : function(link) {
+                if (frontLinkId > link.id) {
+                    utils.swapArrayPart(links, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                }
+                if (frontLinkId > 0) {
+                    frontLinkId -= 1;
+                }
+            },
+            
+            getFrontLinkId : function() {
+                return frontLinkId;
+            }
         };
 };
 
@@ -4162,93 +4328,86 @@ Viva.Graph.View.webglImageNodeShader = function() {
         'precision mediump float;',
         'varying vec4 color;',
         'varying vec3 vTextureCoord;',
-        'uniform sampler2D uSampler;',
+        'uniform sampler2D u_sampler;',
         
         'void main(void) {',
-        '   gl_FragColor = texture2D(uSampler, ',
+        '   gl_FragColor = texture2D(u_sampler, ',
         '                            vec2(vTextureCoord.x * gl_PointCoord.x + vTextureCoord.y, vTextureCoord.x*(1.-gl_PointCoord.y) + vTextureCoord.z));', 
         '}'].join('\n'),
         nodesVS = [
-        'attribute vec2 aVertexPos;',
+        'attribute vec2 a_vertexPos;',
 
-        'attribute vec2 aCustomAttributes;', 
-        'uniform vec2 uScreenSize;',
-        'uniform mat4 uTransform;',
+        'attribute vec2 a_customAttributes;', 
+        'uniform vec2 u_screenSize;',
+        'uniform mat4 u_transform;',
         'varying vec3 vTextureCoord;',
         
         'void main(void) {',
-        '   gl_Position = uTransform * vec4(aVertexPos/uScreenSize, 0, 1);',
-        '   gl_PointSize = aCustomAttributes[1] * uTransform[0][0];',
+        '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);',
+        '   gl_PointSize = a_customAttributes[1] * u_transform[0][0];',
+      
       'float dim = 32.0;',
-      'float idx = aCustomAttributes[0];',
+      'float idx = a_customAttributes[0];',
       
       'float col = floor(idx/dim);',
       'float row = mod(idx, dim);',
       'vTextureCoord = vec3(1.0/dim, row/dim, col/dim);',
         '}'].join('\n'),
         
-        utils = new Viva.Graph.View.WebglUtils(),
+        atlas = new Viva.Graph.View.webglAtlas(),
+        customPrimitiveType;
         
-        atlas = new Viva.Graph.View.webglAtlas();
+    var program,
+        gl,
+        buffer,
+        utils,
+        locations,
+        nodesCount = 0,
+        texture,
+        nodes = new Float32Array(64),
+        width, height, transform, sizeDirty,
         
-        return {
-            /**
-             * Returns fragment shader text which renders this node.
-             */
-            fragmentShader : nodesFS,
-            
-            /**
-             * Returns vertex shader text which renders this node.
-             */
-            vertexShader : nodesVS,
-            
-            /**
-             * Returns number of attributes current shader reserves for webgl primtive
-             * (point, line, triangle and strips)
-             */
-            attributesPerPrimitive : ATTRIBUTES_PER_PRIMITIVE,
-            
-            /**
-             * Called by webglGraphics to let shader initialize its custom attributes.
-             */
-            initCustomAttributes : function(gl, program) {
-                program.customAttributes = gl.getAttribLocation(program, 'aCustomAttributes');
-                program.sampler = gl.getUniformLocation(program, 'uSampler');
-            },
-            
-            /**
-             * Called by webglGraphics to let this shader render its custom attributes.
-             */
-            renderCustomAttributes : function(gl, program) {
-                if (atlas.isDirty) {
-                    atlas.isDirty = false;
+        ensureAtlasTextureUpdated = function(){
+            if (atlas.isDirty) {
+                atlas.isDirty = false;
                     
-                    if(program.texture) {
-                        gl.deleteTexture(program.texture);
-                    }
-                    
-                    program.texture = gl.createTexture();
-                    gl.bindTexture(gl.TEXTURE_2D, program.texture);  
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas.image);  
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  
-            
-                    gl.generateMipmap(gl.TEXTURE_2D);  
-                    gl.uniform1i(program.sampler, 0);
+                if(texture) {
+                    gl.deleteTexture(texture);
                 }
                 
-                gl.enableVertexAttribArray(program.customAttributes);
-                gl.vertexAttribPointer(program.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * 4, 2 * 4);
+                texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);  
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas.image);  
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  
+        
+                gl.generateMipmap(gl.TEXTURE_2D);  
+                gl.uniform1i(locations.sampler, 0);
+            }
+        };
+        
+        return {
+            load : function(glContext) {
+                gl = glContext;
+                utils = Viva.Graph.webgl(glContext);
+                
+                program = utils.createProgram(nodesVS, nodesFS);
+                gl.useProgram(program);
+                locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform', 'u_sampler']);
+                
+                gl.enableVertexAttribArray(locations.vertexPos);
+                gl.enableVertexAttribArray(locations.customAttributes);
+                
+                buffer = gl.createBuffer();
             },
             
             /**
              * Updates position of current node in the buffer of nodes. 
              * 
-             * @param nodes - buffer where all nodes are stored.
              * @param idx - index of current node.
              * @param pos - new position of the node.
              */
-            position : function(nodes, nodeUI, pos) {
+            position : function(nodeUI, pos) {
                 var idx = nodeUI.id;
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
@@ -4256,11 +4415,10 @@ Viva.Graph.View.webglImageNodeShader = function() {
                 nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
             },
             
-            /**
-             * Called by webglGraphics to let this shader init additional properties of the
-             * given model of a node.
-             */
-            buildUI : function(ui) {
+            createNode : function(ui) {
+                nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
+                nodesCount += 1;
+
                 var coordinates = atlas.getCoordinates(ui.src);
                 if (coordinates) {
                     ui._offset = coordinates.offset;
@@ -4272,6 +4430,44 @@ Viva.Graph.View.webglImageNodeShader = function() {
                         ui._offset = coordinates.offset;
                     });
                 }
+            },
+            
+            removeNode : function(node) {
+                if (nodesCount > 0) { nodesCount -=1; }
+                
+                if (node.id < nodesCount && nodesCount > 0) {
+                    utils.copyArrayPart(nodes, node.id*ATTRIBUTES_PER_PRIMITIVE, nodesCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                }
+            },
+            
+            updateTransform : function(newTransform) {
+                sizeDirty = true;
+                transform = newTransform;
+            },
+            
+            updateSize : function(w, h) {
+                width = w;
+                height = h;
+                sizeDirty = true;
+            },
+                        
+            render : function() {
+                gl.useProgram(program);
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
+
+                if (sizeDirty) {
+                    sizeDirty = false;
+                    gl.uniformMatrix4fv(locations.transform, false, transform);
+                    gl.uniform2f(locations.screenSize, width, height);
+                }
+
+                gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
+                gl.vertexAttribPointer(locations.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * 4, 2 * 4);
+
+                ensureAtlasTextureUpdated();
+
+                gl.drawArrays(gl.POINTS, 0, nodesCount);
             }
         };
 };/**
@@ -4298,12 +4494,9 @@ Viva.Graph.View.webglGraphics = function() {
         transform,
         userPlaceNodeCallback, 
         userPlaceLinkCallback,
-        nodesAttributes = new Float32Array(64), 
-        linksAttributes = new Float32Array(64),
         nodes = [], 
         links = [],
         initCallback,
-        frontLinkId, // used to track z-index of links.
         
         // TODO: rename these. They are not really shaders, but they define
         // appearance of nodes and links, providing api to clients to customize ui. 
@@ -4416,11 +4609,8 @@ Viva.Graph.View.webglGraphics = function() {
         },
                 
         updateTransformUniform = function() {
-            gl.useProgram(linksProgram);
-            gl.uniformMatrix4fv(linksProgram.transform, false, transform);
-            
-            gl.useProgram(nodesProgram);
-            gl.uniformMatrix4fv(nodesProgram.transform, false, transform);
+            linkShader.updateTransform(transform);
+            nodeShader.updateTransform(transform);
         },
         
         resetScaleInternal = function() {
@@ -4436,28 +4626,14 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         nodeBuilderInternal = function(node){
-            if (nodesCount * nodeShader.attributesPerPrimitive + 1 > nodesAttributes.length) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedArray = new Float32Array(nodesAttributes.length * nodeShader.attributesPerPrimitive * 2);
-                extendedArray.set(nodesAttributes);
-                
-                nodesAttributes = extendedArray;
-            }
-            
             var nodeId = nodesCount++,
                 ui = nodeUIBuilder(node);
             ui.id = nodeId;
-            nodeShader.buildUI(ui);
+            
+            nodeShader.createNode(ui);
             
             nodes[nodeId] = node;
             return ui;
-        },
-        
-        reloadNodes = function() {
-            for (var i=0; i < nodes.length; i++) {
-              nodeShader.buildUI(nodes[i].ui);
-            }
         },
         
         nodePositionCallback = function(nodeUI, pos) {
@@ -4465,26 +4641,17 @@ Viva.Graph.View.webglGraphics = function() {
                 userPlaceNodeCallback(nodeUI, pos); 
             }
             
-            nodeShader.position(nodesAttributes, nodeUI, pos);
+            nodeShader.position(nodeUI, pos);
         },
 
         linkBuilderInternal = function(link){
-            // Check first if we ran out of available buffer size, and increase
-            // it if required. 
-            // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-            if (linksCount * linkShader.attributesPerPrimitive + 1 > linksAttributes.length) {
-                var extendedArray = new Float32Array(linksAttributes.length * linkShader.attributesPerPrimitive * 2);
-                extendedArray.set(linksAttributes);
-                linksAttributes = extendedArray;
-            }
-            
             var linkId = linksCount++,
                 ui = linkUIBuilder(link);
             ui.id = linkId;
-            linkShader.buildUI(ui);
+
+            linkShader.createLink(ui);
             
             links[linkId] = link;
-            frontLinkId = linkId;
             return ui;
         },
         
@@ -4493,20 +4660,7 @@ Viva.Graph.View.webglGraphics = function() {
                 userPlaceLinkCallback(linkUi, fromPos, toPos); 
             }
 
-            linkShader.position(linksAttributes, linkUi, fromPos, toPos);
-        },
-        
-        copyAttributes = function(buffer, from, to, attributesPerIndex) {
-            for(var i = 0; i < attributesPerIndex; ++i) {
-                buffer[from + i] = buffer[to + i];
-            }
-        },
-        swapAttributes = function(buffer, from, to, attributesPerIndex) {
-            for(var i = 0; i < attributesPerIndex; ++i) {
-                var tmp = buffer[from + i];
-                buffer[from + i] = buffer[to + i];
-                buffer[to + i] = tmp;
-            }
+            linkShader.position(linkUi, fromPos, toPos);
         },
         
         fireRescaled = function(graphics){
@@ -4580,45 +4734,26 @@ Viva.Graph.View.webglGraphics = function() {
          * Called every time when renderer finishes one step of rendering.
          */
         endRender : function () {
-            if (linksCount > 0) {
-               gl.useProgram(linksProgram);
-               loadBufferData(linksProgram, linksAttributes);
-               
-               gl.enableVertexAttribArray(linksProgram.postionAttrib);
-               gl.vertexAttribPointer(linksProgram.postionAttrib, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-               linkShader.renderCustomAttributes(gl, linksProgram);
-               
-               gl.drawArrays(gl.LINES, 0, linksCount * 2);
-               frontLinkId = linksCount - 1;
+           if (linksCount > 0) {
+               linkShader.render();
            }
            if (nodesCount > 0){
-               gl.useProgram(nodesProgram);
-               loadBufferData(nodesProgram, nodesAttributes);
-               
-               gl.enableVertexAttribArray(nodesProgram.postionAttrib);
-               gl.vertexAttribPointer(nodesProgram.postionAttrib, 2, gl.FLOAT, false, nodeShader.attributesPerPrimitive * Float32Array.BYTES_PER_ELEMENT, 0);
-               
-               nodeShader.renderCustomAttributes(gl, nodesProgram);
-               
-               gl.drawArrays(gl.POINTS, 0, nodesCount);
+               nodeShader.render();
            }
         },
         
         bringLinkToFront : function(linkUI) {
+            var frontLinkId = linkShader.getFrontLinkId();
+            linkShader.bringToFront(linkUI);
+            
             if (frontLinkId > linkUI.id) {
-              // swap removed link with the last link. This will give us O(1) performance for links removal:
-               var attributesCount = linkShader.attributesPerPrimitive,
-                   srcLinkId = linkUI.id;
-               swapAttributes(linksAttributes, srcLinkId * attributesCount, frontLinkId * attributesCount, attributesCount);
+               var srcLinkId = linkUI.id;
 
                var temp = links[frontLinkId];
                links[frontLinkId] = links[srcLinkId];
                links[frontLinkId].ui.id = frontLinkId; 
                links[srcLinkId] = temp; 
                links[srcLinkId].ui.id = srcLinkId; 
-            }
-            if (frontLinkId > 0) {
-                frontLinkId -= 1;
             }
         },
         
@@ -4660,8 +4795,9 @@ Viva.Graph.View.webglGraphics = function() {
             
             if (gl) {
                 updateSize();
-                gl.useProgram(linksProgram);
-                gl.uniform2f(linksProgram.screenSize, width, height);
+                // TODO: what is this?
+                // gl.useProgram(linksProgram);
+                // gl.uniform2f(linksProgram.screenSize, width, height);
                 updateTransformUniform();
             }
             return this;
@@ -4680,12 +4816,21 @@ Viva.Graph.View.webglGraphics = function() {
            container.appendChild(graphicsRoot);
            
            gl = graphicsRoot.getContext('experimental-webgl');
+           if (!gl) {
+               var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
+               alert(msg);
+               throw msg; 
+           }
            
-           linksProgram = loadProgram(linkShader, linksAttributes);
-           nodesProgram = loadProgram(nodeShader, nodesAttributes);
+           linkShader.load(gl);
+           linkShader.updateSize(width, height);
+           
+           nodeShader.load(gl);
+           nodeShader.updateSize(width, height);
            
            updateTransformUniform();
            
+           // Notify the world if someoen waited for update.
            if (typeof initCallback === 'function') {
                initCallback(graphicsRoot);
            }
@@ -4709,15 +4854,13 @@ Viva.Graph.View.webglGraphics = function() {
        releaseLink : function(linkToRemove) {
            if (linksCount > 0) { linksCount -= 1; }
 
+           linkShader.removeLink(linkToRemove);
+           
            var linkIdToRemove = linkToRemove.id;
            if (linkIdToRemove < linksCount){
                if (linksCount === 0 || linksCount === linkIdToRemove) {
                    return; // no more links or removed link is the last one.
                }
-               
-               // swap removed link with the last link. This will give us O(1) performance for links removal:
-               var attributesCount = linkShader.attributesPerPrimitive;
-               copyAttributes(linksAttributes, linkIdToRemove*attributesCount, linksCount*attributesCount, attributesCount);
 
                // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
                // so that renderer will pass proper id in updateLinkPosition. 
@@ -4743,14 +4886,13 @@ Viva.Graph.View.webglGraphics = function() {
        releaseNode : function(nodeUI) {
            if (nodesCount > 0) { nodesCount -= 1; }
 
+           nodeShader.removeNode(nodeUI);
+            
            if (nodeUI.id < nodesCount) {
                var nodeIdToRemove = nodeUI.id;
                if (nodesCount === 0 || nodesCount === nodeIdToRemove) {
                    return ; // no more nodes or removed node is the last in the list.
                }
-               
-               var attributesCount = nodeShader.attributesPerPrimitive;
-               copyAttributes(nodesAttributes, nodeIdToRemove*attributesCount, nodesCount*attributesCount, attributesCount);
                
                nodes[nodeIdToRemove] = nodes[nodesCount];
                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
@@ -4799,17 +4941,13 @@ Viva.Graph.View.webglGraphics = function() {
                nodeShader = newShader; 
                return;
            } else if (newShader) {
-               // Otherwise unload old shader and reinit.
-               unloadProgram(nodeShader);
-               nodeShader = newShader;
-               nodesProgram = loadProgram(nodeShader, nodesAttributes);
-               reloadNodes();
+               throw "Not implemented. Cannot swap shader on the fly... yet.";
+               // TODO: unload old shader and reinit.
            }
        },
        
        getGraphCoordinates : function(graphicsRootPos) {
            // to save memory we modify incoming parameter:
-           
            // point in clipspace coordinates:
             graphicsRootPos.x = 2 * graphicsRootPos.x/width - 1;
             graphicsRootPos.y = 1 - (2*graphicsRootPos.y) / height;

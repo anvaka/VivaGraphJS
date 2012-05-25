@@ -49,6 +49,7 @@
             "View/svgGraphics.js",
             "View/svgNodeFactory.js",
             
+            "WebGL/webgl.js",
             "View/webglUIModels.js",
             "View/webglShaders.js",
             "View/webglGraphics.js",
