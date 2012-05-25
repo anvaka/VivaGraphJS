@@ -10,7 +10,7 @@
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
-Viva.Graph.View.webglNodeShader = function() {
+Viva.Graph.View.webglNodeProgram = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
          nodesFS = [
         'precision mediump float;',
@@ -123,7 +123,7 @@ Viva.Graph.View.webglNodeShader = function() {
 /**
  * Defines UI for links in webgl renderer. 
  */
-Viva.Graph.View.webglLinkShader = function() {
+Viva.Graph.View.webglLinkProgram = function() {
      var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
         linksFS = [
         'precision mediump float;',
@@ -325,7 +325,7 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
  */
-Viva.Graph.View.webglImageNodeShader = function() {
+Viva.Graph.View.webglImageNodeProgram = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
          nodesFS = [
         'precision mediump float;',

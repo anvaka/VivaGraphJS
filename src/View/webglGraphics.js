@@ -24,11 +24,8 @@ Viva.Graph.View.webglGraphics = function() {
         links = [],
         initCallback,
         
-        // TODO: rename these. They are not really shaders, but they define
-        // appearance of nodes and links, providing api to clients to customize ui. 
-        // dunno how to name them.
-        linkShader = Viva.Graph.View.webglLinkShader(),
-        nodeShader = Viva.Graph.View.webglNodeShader(), 
+        linkProgram = Viva.Graph.View.webglLinkProgram(),
+        nodeShader = Viva.Graph.View.webglNodeProgram(), 
         
         nodeUIBuilder = function(node){
             return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeShader);
@@ -39,7 +36,7 @@ Viva.Graph.View.webglGraphics = function() {
         },
  
         updateTransformUniform = function() {
-            linkShader.updateTransform(transform);
+            linkProgram.updateTransform(transform);
             nodeShader.updateTransform(transform);
         },
         
@@ -71,7 +68,7 @@ Viva.Graph.View.webglGraphics = function() {
                 ui = linkUIBuilder(link);
             ui.id = linkId;
 
-            linkShader.createLink(ui);
+            linkProgram.createLink(ui);
             
             links[linkId] = link;
             return ui;
@@ -149,7 +146,7 @@ Viva.Graph.View.webglGraphics = function() {
          */
         endRender : function () {
            if (linksCount > 0) {
-               linkShader.render();
+               linkProgram.render();
            }
            if (nodesCount > 0){
                nodeShader.render();
@@ -157,8 +154,8 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         bringLinkToFront : function(linkUI) {
-            var frontLinkId = linkShader.getFrontLinkId();
-            linkShader.bringToFront(linkUI);
+            var frontLinkId = linkProgram.getFrontLinkId();
+            linkProgram.bringToFront(linkUI);
             
             if (frontLinkId > linkUI.id) {
                var srcLinkId = linkUI.id;
@@ -236,8 +233,8 @@ Viva.Graph.View.webglGraphics = function() {
                throw msg; 
            }
            
-           linkShader.load(gl);
-           linkShader.updateSize(width, height);
+           linkProgram.load(gl);
+           linkProgram.updateSize(width, height);
            
            nodeShader.load(gl);
            nodeShader.updateSize(width, height);
@@ -268,7 +265,7 @@ Viva.Graph.View.webglGraphics = function() {
        releaseLink : function(linkToRemove) {
            if (linksCount > 0) { linksCount -= 1; }
 
-           linkShader.removeLink(linkToRemove);
+           linkProgram.removeLink(linkToRemove);
            
            var linkIdToRemove = linkToRemove.id;
            if (linkIdToRemove < linksCount){
@@ -334,7 +331,7 @@ Viva.Graph.View.webglGraphics = function() {
                userPlaceLinkCallback(link, fromPos, toPos); 
            }
 
-           linkShader.position(link, fromPos, toPos);
+           linkProgram.position(link, fromPos, toPos);
        },
        
        /**
@@ -354,15 +351,15 @@ Viva.Graph.View.webglGraphics = function() {
        /** 
         * Updates default shader which renders nodes
         * 
-        * @param newShader to use for nodes. 
+        * @param newProgram to use for nodes. 
         */
-       setNodeShader : function(newShader) {
-           if (!gl && newShader) {
+       setNodeProgram : function(newProgram) {
+           if (!gl && newProgram) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about rest.
-               nodeShader = newShader; 
+               nodeShader = newProgram; 
                return;
-           } else if (newShader) {
+           } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
            }

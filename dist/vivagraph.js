@@ -4007,7 +4007,7 @@ Viva.Graph.View.webglImage = function(size, src) {
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
-Viva.Graph.View.webglNodeShader = function() {
+Viva.Graph.View.webglNodeProgram = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
          nodesFS = [
         'precision mediump float;',
@@ -4120,7 +4120,7 @@ Viva.Graph.View.webglNodeShader = function() {
 /**
  * Defines UI for links in webgl renderer. 
  */
-Viva.Graph.View.webglLinkShader = function() {
+Viva.Graph.View.webglLinkProgram = function() {
      var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
         linksFS = [
         'precision mediump float;',
@@ -4322,7 +4322,7 @@ Viva.Graph.View.webglAtlas = function(tileSize) {
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
  */
-Viva.Graph.View.webglImageNodeShader = function() {
+Viva.Graph.View.webglImageNodeProgram = function() {
    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
          nodesFS = [
         'precision mediump float;',
@@ -4486,8 +4486,6 @@ Viva.Graph.View.webglGraphics = function() {
     var container,
         graphicsRoot,
         gl,
-        linksProgram,
-        nodesProgram,
         width, height,
         nodesCount = 0,
         linksCount = 0,
@@ -4498,11 +4496,8 @@ Viva.Graph.View.webglGraphics = function() {
         links = [],
         initCallback,
         
-        // TODO: rename these. They are not really shaders, but they define
-        // appearance of nodes and links, providing api to clients to customize ui. 
-        // dunno how to name them.
-        linkShader = Viva.Graph.View.webglLinkShader(),
-        nodeShader = Viva.Graph.View.webglNodeShader(), 
+        linkProgram = Viva.Graph.View.webglLinkProgram(),
+        nodeShader = Viva.Graph.View.webglNodeProgram(), 
         
         nodeUIBuilder = function(node){
             return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeShader);
@@ -4512,104 +4507,8 @@ Viva.Graph.View.webglGraphics = function() {
             return Viva.Graph.View.webglLine('#b3b3b3');
         },
  
-        createProgram = function(vertexShader, fragmentShader) {
-            var program = gl.createProgram();
-            gl.attachShader(program, vertexShader);
-            gl.attachShader(program, fragmentShader);
-            gl.linkProgram(program);
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)){
-                var msg = gl.getShaderInfoLog(program);
-                alert(msg);
-                throw msg;
-            }
-            
-            return program;
-        },
-        
-        createShader = function(shaderText, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, shaderText);
-            gl.compileShader(shader);
-            
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                var msg = gl.getShaderInfoLog(shader);
-                alert(msg);
-                throw msg;
-            }
-            
-            return shader;
-        },
-        
-        assertProgramParameter = function(location, attributeOrUniformName) {
-           if (location === -1) { 
-               throw "Generator didn't provide '" + attributeOrUniformName + "' attribue or uniform in its shader. Make sure it's defined."; 
-           }
-        },
-        
-        initRequiredAttributes = function(program) {
-           program.postionAttrib = gl.getAttribLocation(program, 'aVertexPos');
-           assertProgramParameter(program.postionAttrib, 'aVertexPos');
-           
-           program.screenSize = gl.getUniformLocation(program, 'uScreenSize');
-           assertProgramParameter(program.screenSize, 'uScreenSize');
-           
-           program.transform = gl.getUniformLocation(program, 'uTransform');
-           assertProgramParameter(program.transform, 'uTransform');
-           
-           gl.uniform2f(program.screenSize, width, height);
-           gl.uniformMatrix4fv(program.transform, false, transform);
-           
-           gl.enableVertexAttribArray(program.postionAttrib);
-           program.buffer = gl.createBuffer();
-        },
-        
-        loadBufferData = function(program, data) {
-           gl.bindBuffer(gl.ARRAY_BUFFER, program.buffer);
-           gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
-        },
-
-        loadProgram = function(shaderInfo, bufferData){
-           var vs = createShader(shaderInfo.vertexShader, gl.VERTEX_SHADER),
-               fs = createShader(shaderInfo.fragmentShader, gl.FRAGMENT_SHADER),
-               program = createProgram(vs, fs);
-           
-           shaderInfo.program = program;
-           
-           gl.useProgram(program);
-           
-           initRequiredAttributes(program);
-           
-           shaderInfo.initCustomAttributes(gl, program);
-           
-           loadBufferData(program, bufferData);
-           
-           return program;
-        },
-        
-        unloadProgram = function(shaderInfo) {
-            if (shaderInfo && gl) {
-                if(typeof shaderInfo.release === 'function') {
-                    shaderInfo.release();
-                }
-                
-                if (shaderInfo.program) {
-                    var program = shaderInfo.program;
-                    gl.deleteBuffer(program.buffer);
-                    
-                    var shaders = gl.getAttachedShaders(program);
-                    for(var i = 0; i < shaders.length; ++i) {
-                        gl.detachShader(program, shaders[i]);
-                        gl.deleteShader(shaders[i]);
-                    }
-                    
-                    // TODO: for some reason DELETE_STATUS after this call is false.
-                    gl.deleteProgram(shaderInfo.program); 
-                }
-            }
-        },
-                
         updateTransformUniform = function() {
-            linkShader.updateTransform(transform);
+            linkProgram.updateTransform(transform);
             nodeShader.updateTransform(transform);
         },
         
@@ -4636,31 +4535,15 @@ Viva.Graph.View.webglGraphics = function() {
             return ui;
         },
         
-        nodePositionCallback = function(nodeUI, pos) {
-            if(userPlaceNodeCallback) {
-                userPlaceNodeCallback(nodeUI, pos); 
-            }
-            
-            nodeShader.position(nodeUI, pos);
-        },
-
         linkBuilderInternal = function(link){
             var linkId = linksCount++,
                 ui = linkUIBuilder(link);
             ui.id = linkId;
 
-            linkShader.createLink(ui);
+            linkProgram.createLink(ui);
             
             links[linkId] = link;
             return ui;
-        },
-        
-        linkPositionCallback = function(linkUi, fromPos, toPos){
-            if(userPlaceLinkCallback) {
-                userPlaceLinkCallback(linkUi, fromPos, toPos); 
-            }
-
-            linkShader.position(linkUi, fromPos, toPos);
         },
         
         fireRescaled = function(graphics){
@@ -4735,7 +4618,7 @@ Viva.Graph.View.webglGraphics = function() {
          */
         endRender : function () {
            if (linksCount > 0) {
-               linkShader.render();
+               linkProgram.render();
            }
            if (nodesCount > 0){
                nodeShader.render();
@@ -4743,8 +4626,8 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         bringLinkToFront : function(linkUI) {
-            var frontLinkId = linkShader.getFrontLinkId();
-            linkShader.bringToFront(linkUI);
+            var frontLinkId = linkProgram.getFrontLinkId();
+            linkProgram.bringToFront(linkUI);
             
             if (frontLinkId > linkUI.id) {
                var srcLinkId = linkUI.id;
@@ -4822,8 +4705,8 @@ Viva.Graph.View.webglGraphics = function() {
                throw msg; 
            }
            
-           linkShader.load(gl);
-           linkShader.updateSize(width, height);
+           linkProgram.load(gl);
+           linkProgram.updateSize(width, height);
            
            nodeShader.load(gl);
            nodeShader.updateSize(width, height);
@@ -4854,7 +4737,7 @@ Viva.Graph.View.webglGraphics = function() {
        releaseLink : function(linkToRemove) {
            if (linksCount > 0) { linksCount -= 1; }
 
-           linkShader.removeLink(linkToRemove);
+           linkProgram.removeLink(linkToRemove);
            
            var linkIdToRemove = linkToRemove.id;
            if (linkIdToRemove < linksCount){
@@ -4904,7 +4787,11 @@ Viva.Graph.View.webglGraphics = function() {
        * provider place given node UI to recommended position pos {x, y};
        */ 
        updateNodePosition : function(nodeUI, pos) {
-           nodePositionCallback(nodeUI, pos);
+           if(userPlaceNodeCallback) {
+                userPlaceNodeCallback(nodeUI, pos); 
+           }
+           
+           nodeShader.position(nodeUI, pos);
        },
        
        /**
@@ -4912,7 +4799,11 @@ Viva.Graph.View.webglGraphics = function() {
        * provider place given link of the graph. Pos objects are {x, y};
        */  
        updateLinkPosition : function(link, fromPos, toPos) {
-           linkPositionCallback(link, fromPos, toPos);
+           if(userPlaceLinkCallback) {
+               userPlaceLinkCallback(link, fromPos, toPos); 
+           }
+
+           linkProgram.position(link, fromPos, toPos);
        },
        
        /**
@@ -4932,15 +4823,15 @@ Viva.Graph.View.webglGraphics = function() {
        /** 
         * Updates default shader which renders nodes
         * 
-        * @param newShader to use for nodes. 
+        * @param newProgram to use for nodes. 
         */
-       setNodeShader : function(newShader) {
-           if (!gl && newShader) {
+       setNodeProgram : function(newProgram) {
+           if (!gl && newProgram) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about rest.
-               nodeShader = newShader; 
+               nodeShader = newProgram; 
                return;
-           } else if (newShader) {
+           } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
            }
