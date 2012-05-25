@@ -248,6 +248,15 @@ Viva.Graph.View.webglGraphics = function() {
        },
        
        /**
+        * Checks whether webgl is supported by this browser. 
+        */
+       isSupported : function() {
+           var c = document.createElement("canvas"),
+               gl = c && c.getContext && c.getContext('experimental-webgl');
+           return gl;
+       },
+       
+       /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider prepare to render given link of the graph
         * 
