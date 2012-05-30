@@ -846,34 +846,33 @@ Viva.Graph.geom = function() {
  * Allows querying graph nodes position at given point. 
  * 
  * @param graph - graph to be queried. 
- * @param tolerance offest in pixels from any node position to be considered for precise checking.
- * @param preciseCheckCallback [optional] - callback function(node, x, y). Should return true if point
- *         (x, y) belongs to given node; false otherwise. If callback is not specified tolerance is used
- *         for rough check.
+ * @param toleranceOrCheckCallback - if it's a number then it represents offest 
+ *          in pixels from any node position to be considered a part of the node.
+ *          if it's a function then it's called for every node to check intersection
  * 
  * TODO: currently it performes linear search. Use real spatial index to improve performance.
  */
-Viva.Graph.spatialIndex = function(graph, tolerance, preciseCheckCallback) {
-    var getNodeFunction;
-    tolerance = typeof tolerance === 'number' ? tolerance : 16;
-    
-    
-    if (typeof preciseCheckCallback === 'function') {
+Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
+    var getNodeFunction,
+        preciseCheckCallback,
+        tolerance = 16;
+   
+    if (typeof toleranceOrCheckCallback === 'function') {
+        preciseCheckCallback = toleranceOrCheckCallback;
         getNodeFunction = function(x, y) {
             var foundNode = null;
             graph.forEachNode(function(node) {
                 var pos = node.position;
-                if (pos.x - tolerance < x && x < pos.x + tolerance &&
-                    pos.y - tolerance < y && y < pos.y + tolerance) {
-                        if (preciseCheckCallback(node, x, y)){
-                            foundNode = node;
-                            return true;
-                        }
-                    }
+                if (preciseCheckCallback(node, x, y)){
+                    foundNode = node;
+                    return true;
+                }
             });
+            
             return foundNode;
         };
-    } else {
+    } else if (typeof toleranceOrCheckCallback === 'number') {
+        tolerance = toleranceOrCheckCallback;
         getNodeFunction = function(x, y) {
             var foundNode = null;
 
@@ -887,8 +886,9 @@ Viva.Graph.spatialIndex = function(graph, tolerance, preciseCheckCallback) {
             });
 
             return foundNode;
-        };
+        };        
     }
+
     
     return {
         getNodeAt : getNodeFunction
@@ -4098,6 +4098,8 @@ Viva.Graph.View.webglNodeProgram = function() {
                 }
             },
             
+            replaceProperties : function(replacedNode, newNode) {},
+            
             render : function() {
                 gl.useProgram(program);
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -4250,22 +4252,32 @@ Viva.Graph.View.webglLinkProgram = function() {
         };
 };
 /**
- * @fileOverview Defines an image-nodes for webglGraphics class. 
- * This form allows to change color of node. Shape of nodes is sqare. 
+ * @fileOverview Defines an image nodes for webglGraphics class. 
+ * Shape of nodes is sqare. 
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
 /*global Viva Float32Array*/
+
+/**
+ * Single texture in the webglAtlas.
+ */
 Viva.Graph.View.Texture = function(size) {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.isDirty = false;
-    
     this.canvas.width = this.canvas.height = size;
 };
 
-
+/**
+ * My naive implementation of textures atlas. It allows clients to load
+ * multimple images into atlas and get canvas representing all of them.
+ * 
+ * @param tilesPerTexture - indicates how many images can be loaded to one 
+ *          texture of the atlas. If number of loaded images exceeds this 
+ *          parameter a new canvas will be created.
+ */
 Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
     var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0, 
         tileSize = tilesPerRow,
@@ -4274,6 +4286,8 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
         dirtyTimeoutId,
         skipedDirty = 0,
         textures = [],
+        trackedUrls = [],
+        that,
     
     findNearestPowerOf2 = function (n) {
         // TODO: probably don't need this anymore
@@ -4290,22 +4304,57 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
         var texture = new Viva.Graph.View.Texture(tilesPerRow * tileSize);
         textures.push(texture);
     },
-    drawAt = function(tileNumber, img, callback) {
-        var textureNumber = (tileNumber / tilesPerTexture) << 0,
-            localTileNumber =  (tileNumber % tilesPerTexture),
+    getTileCoordinates = function(absolutePosition) {
+        var textureNumber = (absolutePosition / tilesPerTexture) << 0,
+            localTileNumber =  (absolutePosition % tilesPerTexture),
             row = (localTileNumber / tilesPerRow) << 0,
-            col = (localTileNumber % tilesPerRow),
-            
-            coordinates = {
-                offset : tileNumber
-            };
+            col = (localTileNumber % tilesPerRow);
         
-        if (textureNumber >= textures.length) {
+        return {textureNumber : textureNumber, row : row, col: col};
+    },
+    markDirtyNow = function() {
+        that.isDirty = true;
+        skipedDirty = 0; 
+        dirtyTimeoutId = null;
+    },
+    markDirty = function() {
+        // delay this call, since it results in texture reload
+        if (dirtyTimeoutId) {
+            clearTimeout(dirtyTimeoutId);
+            skipedDirty += 1;
+            dirtyTimeoutId = null;
+        }
+        
+        if (skipedDirty > 10) {
+            markDirtyNow();
+        } else {
+            dirtyTimeoutId = setTimeout(markDirtyNow, 400);
+        }        
+    },
+    
+    copy = function(from, to) {
+        var fromCanvas = textures[from.textureNumber].canvas,
+            toCtx = textures[to.textureNumber].ctx,
+            x = to.col * tileSize, 
+            y = to.row * tileSize;
+        
+       toCtx.drawImage(fromCanvas, from.col * tileSize, from.row * tileSize, tileSize, tileSize, x, y, tileSize, tileSize);
+       textures[from.textureNumber].isDirty = true;
+       textures[to.textureNumber].isDirty = true;
+    },
+    
+    drawAt = function(tileNumber, img, callback) {
+        var tilePosition = getTileCoordinates(tileNumber),
+            coordinates = { offset : tileNumber };
+        
+        if (tilePosition.textureNumber >= textures.length) {
             createTexture();
         }
-        var currentTexture = textures[textureNumber];
+        var currentTexture = textures[tilePosition.textureNumber];
             
-        currentTexture.ctx.drawImage(img, col * tileSize, row * tileSize, tileSize, tileSize);
+        currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
+        trackedUrls[tileNumber] = img.src;
+        
         loadedImages[img.src] = coordinates;
         currentTexture.isDirty = true;
         
@@ -4316,9 +4365,17 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
         throw 'Tiles per texture should be power of two.';
     }
     
-    return {
+    // this is the return object
+    that = {
+        /**
+         * indicates whether atlas has changed texture in it. If true then
+         * some of the textures has isDirty flag set as well.
+         */
         isDirty : false,
         
+        /**
+         * Clears any signs of atlas changes.
+         */
         clearDirty : function () {
             this.isDirty = false;
             for(var i = 0; i < textures.length; ++i) {
@@ -4326,14 +4383,56 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
             }
         },
         
+        /**
+         * Removes given url from colleciton of tiles in the atlas.
+         */
+        remove : function(imgUrl) {
+            var coordinates = loadedImages[imgUrl];
+            if (!coordinates) { return false; }
+            delete loadedImages[imgUrl];
+            lastLoadedIdx -= 1;
+            
+            
+            if (lastLoadedIdx === coordinates.offset) {
+                return true; // Ignore if it's last image in the whole set.
+            }
+            
+            var tileToRemove = getTileCoordinates(coordinates.offset),
+                lastTileInSet = getTileCoordinates(lastLoadedIdx);
+            
+            copy(lastTileInSet, tileToRemove);
+            
+            var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
+            replacedOffset.offset = coordinates.offset;
+            trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
+            
+            markDirty();
+            return true;
+        },
+        
+        /**
+         * Gets all textures in the atlas.
+         */
         getTextures : function() {
             return textures; // I trust you...
         },
         
+        /**
+         * Gets coordinates of the given image in the atlas. Coordinates is an object:
+         * {offset : int } - where offset is an absolute position of the image in the 
+         * atlas. 
+         * 
+         * Absolute means it can be larger than tilesPerTexture parameter, and in that
+         * case clients should get next texture in getTextures() collection. 
+         */
         getCoordinates : function(imgUrl) {
             return loadedImages[imgUrl];
         },
         
+        /**
+         * Asynchronously Loads the image to the atlas. Cross-domain security 
+         * limitation applies. 
+         */
         load : function(imgUrl, callback) {
             if (loadedImages.hasOwnProperty(imgUrl)) {
                 callback(loadedImages[imgUrl]);
@@ -4345,19 +4444,7 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
                 lastLoadedIdx += 1;
                 img.crossOrigin = "anonymous";
                 img.onload = function () {
-                    // delay this call, since it results in texture reload
-                    if (dirtyTimeoutId) {
-                        clearTimeout(dirtyTimeoutId);
-                        skipedDirty += 1;
-                        dirtyTimeoutId = null;
-                    }
-                    if (skipedDirty > 10) {
-                        that.isDirty = true;
-                        skipedDirty = 0;
-                    } else {
-                        dirtyTimeoutId = setTimeout(function() { that.isDirty = true; }, 400);
-                    }
-                    
+                    markDirty();
                     drawAt(imgId, img, callback);
                 };
                 
@@ -4365,6 +4452,8 @@ Viva.Graph.View.webglAtlas = function(tilesPerTexture) {
             }
         }
     };
+    
+    return that;
 };
 
 /**
@@ -4427,7 +4516,7 @@ Viva.Graph.View.webglImageNodeProgram = function() {
         '}'].join('\n'),
         
         tilesPerTexture = 1024, // TODO: Get based on max texture size
-        atlas = new Viva.Graph.View.webglAtlas(tilesPerTexture),
+        atlas,
         customPrimitiveType;
         
     var program,
@@ -4476,6 +4565,10 @@ Viva.Graph.View.webglImageNodeProgram = function() {
                 gl = glContext;
                 utils = Viva.Graph.webgl(glContext);
                 
+                // todo: get it from parameters 
+                tilesPerTexture = 1024;
+                atlas = new Viva.Graph.View.webglAtlas(tilesPerTexture);
+                
                 program = utils.createProgram(nodesVS, nodesFS);
                 gl.useProgram(program);
                 locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform', 'u_sampler0','u_sampler1','u_sampler2','u_sampler3', 'u_tilesPerTexture']);
@@ -4504,7 +4597,6 @@ Viva.Graph.View.webglImageNodeProgram = function() {
                 nodes[idx + 9] = pos.x - nodeUI.size; nodes[idx + 10] = pos.y + nodeUI.size; nodes[idx + 11] = nodeUI._offset * 4 + 2;
                 nodes[idx + 12] = pos.x + nodeUI.size; nodes[idx + 13] = pos.y - nodeUI.size; nodes[idx + 14] = nodeUI._offset * 4 + 1;
                 nodes[idx + 15] = pos.x + nodeUI.size; nodes[idx + 16] = pos.y + nodeUI.size; nodes[idx + 17] = nodeUI._offset * 4 + 3;
-                //nodes[idxE + 3] = nodeUI.size;
             },
             
             createNode : function(ui) {
@@ -4514,7 +4606,6 @@ Viva.Graph.View.webglImageNodeProgram = function() {
                 var coordinates = atlas.getCoordinates(ui.src);
                 if (coordinates) {
                     ui._offset = coordinates.offset;
-                    // TODO: Support for mutliple textures.
                 } else {
                     ui._offset = 0;
                     // Image is not yet loaded into the atlas. Reload it:
@@ -4524,12 +4615,21 @@ Viva.Graph.View.webglImageNodeProgram = function() {
                 }
             },
             
-            removeNode : function(node) {
+            removeNode : function(nodeUI) {
                 if (nodesCount > 0) { nodesCount -=1; }
                 
-                if (node.id < nodesCount && nodesCount > 0) {
-                    utils.copyArrayPart(nodes, node.id*ATTRIBUTES_PER_PRIMITIVE, nodesCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                if (nodeUI.id < nodesCount && nodesCount > 0) {
+                    if (nodeUI.src) {
+                        atlas.remove(nodeUI.src);
+                    }
+                    
+                    utils.copyArrayPart(nodes, nodeUI.id*ATTRIBUTES_PER_PRIMITIVE, nodesCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                    
                 }
+            },
+            
+            replaceProperties : function(replacedNode, newNode) {
+                newNode._offset = replacedNode._offset;
             },
             
             updateTransform : function(newTransform) {
@@ -4878,8 +4978,16 @@ Viva.Graph.View.webglGraphics = function() {
                    return ; // no more nodes or removed node is the last in the list.
                }
                
-               nodes[nodeIdToRemove] = nodes[nodesCount];
+               var lastNode = nodes[nodesCount],
+                   replacedNode = nodes[nodeIdToRemove];
+                    
+               nodes[nodeIdToRemove] = lastNode;
                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
+               
+               // Since concrete shaders may cache properties in the ui element
+               // we are letting them to make this swap (e.g. image node shader
+               // uses this approach to update node's offset in the atlas) 
+               nodeProgram.replaceProperties(replacedNode.ui, lastNode.ui);
            }
        },
 
@@ -4976,7 +5084,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
             return true; 
         }
     },
-    spatialIndex = Viva.Graph.spatialIndex(graph, 64, preciseCheck),
+    
+    spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
     mouseEnterCallback, 
     mouseLeaveCallback,
     clickCallback,
@@ -5138,6 +5247,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
             
             settings.prerender = settings.prerender || 0;
         },
+        // Cache positions object to prevent GC pressure
+        cachedFromPos = {x : 0, y : 0, node: null},
+        cachedToPos = {x : 0, y : 0, node: null},
+        cachedNodePos = { x: 0, y: 0},
         
         renderLink = function(link){
             var fromNode = graph.getNode(link.fromId);
@@ -5147,27 +5260,22 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 return;
             }
             
-            var from = {
-                x : Math.round(fromNode.position.x),
-                y : Math.round(fromNode.position.y),
-                node: fromNode
-            },
-            to = {
-                x : Math.round(toNode.position.x),
-                y : Math.round(toNode.position.y),
-                node : toNode
-            };
+            cachedFromPos.x = fromNode.position.x;
+            cachedFromPos.y = fromNode.position.y;
+            cachedFromPos.node = fromNode;
             
-            graphics.updateLinkPosition(link.ui, from, to);
+            cachedToPos.x = toNode.position.x;
+            cachedToPos.y = toNode.position.y;
+            cachedToPos.node = toNode;
+            
+            graphics.updateLinkPosition(link.ui, cachedFromPos, cachedToPos);
         },
         
         renderNode = function(node) {
-            var position = { 
-                x : Math.round(node.position.x),
-                y : Math.round(node.position.y) 
-            };
+            cachedNodePos.x = node.position.x;
+            cachedNodePos.y = node.position.y; 
             
-            graphics.updateNodePosition(node.ui, position);
+            graphics.updateNodePosition(node.ui, cachedNodePos);
         },
         
         renderGraph = function(){

@@ -4,34 +4,33 @@
  * Allows querying graph nodes position at given point. 
  * 
  * @param graph - graph to be queried. 
- * @param tolerance offest in pixels from any node position to be considered for precise checking.
- * @param preciseCheckCallback [optional] - callback function(node, x, y). Should return true if point
- *         (x, y) belongs to given node; false otherwise. If callback is not specified tolerance is used
- *         for rough check.
+ * @param toleranceOrCheckCallback - if it's a number then it represents offest 
+ *          in pixels from any node position to be considered a part of the node.
+ *          if it's a function then it's called for every node to check intersection
  * 
  * TODO: currently it performes linear search. Use real spatial index to improve performance.
  */
-Viva.Graph.spatialIndex = function(graph, tolerance, preciseCheckCallback) {
-    var getNodeFunction;
-    tolerance = typeof tolerance === 'number' ? tolerance : 16;
-    
-    
-    if (typeof preciseCheckCallback === 'function') {
+Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
+    var getNodeFunction,
+        preciseCheckCallback,
+        tolerance = 16;
+   
+    if (typeof toleranceOrCheckCallback === 'function') {
+        preciseCheckCallback = toleranceOrCheckCallback;
         getNodeFunction = function(x, y) {
             var foundNode = null;
             graph.forEachNode(function(node) {
                 var pos = node.position;
-                if (pos.x - tolerance < x && x < pos.x + tolerance &&
-                    pos.y - tolerance < y && y < pos.y + tolerance) {
-                        if (preciseCheckCallback(node, x, y)){
-                            foundNode = node;
-                            return true;
-                        }
-                    }
+                if (preciseCheckCallback(node, x, y)){
+                    foundNode = node;
+                    return true;
+                }
             });
+            
             return foundNode;
         };
-    } else {
+    } else if (typeof toleranceOrCheckCallback === 'number') {
+        tolerance = toleranceOrCheckCallback;
         getNodeFunction = function(x, y) {
             var foundNode = null;
 
@@ -45,8 +44,9 @@ Viva.Graph.spatialIndex = function(graph, tolerance, preciseCheckCallback) {
             });
 
             return foundNode;
-        };
+        };        
     }
+
     
     return {
         getNodeAt : getNodeFunction
