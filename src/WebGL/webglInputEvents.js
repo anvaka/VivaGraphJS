@@ -17,7 +17,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
             return true; 
         }
     },
-    spatialIndex = Viva.Graph.spatialIndex(graph, 64, preciseCheck),
+    
+    spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
     mouseEnterCallback, 
     mouseLeaveCallback,
     clickCallback,
