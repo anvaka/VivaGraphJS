@@ -83,6 +83,10 @@ Viva.Graph.View.renderer = function(graph, settings) {
             
             settings.prerender = settings.prerender || 0;
         },
+        // Cache positions object to prevent GC pressure
+        cachedFromPos = {x : 0, y : 0, node: null},
+        cachedToPos = {x : 0, y : 0, node: null},
+        cachedNodePos = { x: 0, y: 0},
         
         renderLink = function(link){
             var fromNode = graph.getNode(link.fromId);
@@ -92,27 +96,22 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 return;
             }
             
-            var from = {
-                x : Math.round(fromNode.position.x),
-                y : Math.round(fromNode.position.y),
-                node: fromNode
-            },
-            to = {
-                x : Math.round(toNode.position.x),
-                y : Math.round(toNode.position.y),
-                node : toNode
-            };
+            cachedFromPos.x = fromNode.position.x;
+            cachedFromPos.y = fromNode.position.y;
+            cachedFromPos.node = fromNode;
             
-            graphics.updateLinkPosition(link.ui, from, to);
+            cachedToPos.x = toNode.position.x;
+            cachedToPos.y = toNode.position.y;
+            cachedToPos.node = toNode;
+            
+            graphics.updateLinkPosition(link.ui, cachedFromPos, cachedToPos);
         },
         
         renderNode = function(node) {
-            var position = { 
-                x : Math.round(node.position.x),
-                y : Math.round(node.position.y) 
-            };
+            cachedNodePos.x = node.position.x;
+            cachedNodePos.y = node.position.y; 
             
-            graphics.updateNodePosition(node.ui, position);
+            graphics.updateNodePosition(node.ui, cachedNodePos);
         },
         
         renderGraph = function(){
