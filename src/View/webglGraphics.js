@@ -314,8 +314,16 @@ Viva.Graph.View.webglGraphics = function() {
                    return ; // no more nodes or removed node is the last in the list.
                }
                
-               nodes[nodeIdToRemove] = nodes[nodesCount];
+               var lastNode = nodes[nodesCount],
+                   replacedNode = nodes[nodeIdToRemove];
+                    
+               nodes[nodeIdToRemove] = lastNode;
                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
+               
+               // Since concrete shaders may cache properties in the ui element
+               // we are letting them to make this swap (e.g. image node shader
+               // uses this approach to update node's offset in the atlas) 
+               nodeProgram.replaceProperties(replacedNode.ui, lastNode.ui);
            }
        },
 

@@ -101,6 +101,8 @@ Viva.Graph.View.webglNodeProgram = function() {
                 }
             },
             
+            replaceProperties : function(replacedNode, newNode) {},
+            
             render : function() {
                 gl.useProgram(program);
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
