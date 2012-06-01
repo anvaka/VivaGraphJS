@@ -5347,9 +5347,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
            var nodeUI = graphics.node(node);
            node.ui = nodeUI;
            graphics.initNode(nodeUI);
-           if (!node.position) {
-               layout.addNode(node);
-           }
+           layout.addNode(node);
            
            renderNode(node);
        },
