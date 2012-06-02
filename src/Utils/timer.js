@@ -37,8 +37,6 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
  * callback returns true;
  */
 Viva.Graph.Utils.timer = function(callback, interval){
- // I wanted to extract this to make further transition to 
- // requestAnimationFrame easier: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
  var intervalId,
      stopTimer = function(){
         window.cancelAnimationFrame(intervalId);
