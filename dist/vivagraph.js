@@ -3227,7 +3227,7 @@ Viva.Graph.View.cssGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        setInitialOffset : function(x, y) {
+        graphCenterChanged : function(x, y) {
             offsetX = x;
             offsetY = y;
             updateTransform();
@@ -3545,7 +3545,7 @@ Viva.Graph.View.svgGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        setInitialOffset : function(x, y) {
+        graphCenterChanged : function(x, y) {
             offsetX = x;
             offsetY = y;
             updateTransform();
@@ -4712,8 +4712,13 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         updateSize = function() {
-            width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
-            height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
+            if (container && graphicsRoot) {
+                width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
+                height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
+                if (gl) { gl.viewport(0, 0, width, height);}
+                if (linkProgram) { linkProgram.updateSize(width, height); }
+                if (nodeProgram) { nodeProgram.updateSize(width, height); }
+            }
         },
         
         nodeBuilderInternal = function(node){
@@ -4835,8 +4840,8 @@ Viva.Graph.View.webglGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        setInitialOffset : function(x, y) {
-            // todo: do I need this?
+        graphCenterChanged : function(x, y) {
+            updateSize();
         },
         
         translateRel : function(dx, dy) {
@@ -5037,7 +5042,7 @@ Viva.Graph.View.webglGraphics = function() {
        setNodeProgram : function(newProgram) {
            if (!gl && newProgram) {
                // Nothing created yet. Just set shader to the new one
-               // and let initialization logic take care about rest.
+               // and let initialization logic take care about the rest.
                nodeProgram = newProgram; 
                return;
            } else if (newProgram) {
@@ -5338,7 +5343,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
            transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
-           graphics.setInitialOffset(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
+           graphics.graphCenterChanged(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
            
            updateCenterRequired = false;
        },

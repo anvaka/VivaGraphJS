@@ -48,8 +48,13 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         updateSize = function() {
-            width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
-            height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
+            if (container && graphicsRoot) {
+                width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
+                height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
+                if (gl) { gl.viewport(0, 0, width, height);}
+                if (linkProgram) { linkProgram.updateSize(width, height); }
+                if (nodeProgram) { nodeProgram.updateSize(width, height); }
+            }
         },
         
         nodeBuilderInternal = function(node){
@@ -171,8 +176,8 @@ Viva.Graph.View.webglGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        setInitialOffset : function(x, y) {
-            // todo: do I need this?
+        graphCenterChanged : function(x, y) {
+            updateSize();
         },
         
         translateRel : function(dx, dy) {
@@ -222,7 +227,7 @@ Viva.Graph.View.webglGraphics = function() {
            container = c;
            
            graphicsRoot = document.createElement("canvas");
-           updateSize(); // todo: monitor container size change.
+           updateSize();
            resetScaleInternal();
            container.appendChild(graphicsRoot);
            
@@ -373,7 +378,7 @@ Viva.Graph.View.webglGraphics = function() {
        setNodeProgram : function(newProgram) {
            if (!gl && newProgram) {
                // Nothing created yet. Just set shader to the new one
-               // and let initialization logic take care about rest.
+               // and let initialization logic take care about the rest.
                nodeProgram = newProgram; 
                return;
            } else if (newProgram) {

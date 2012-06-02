@@ -194,7 +194,7 @@ Viva.Graph.View.cssGraphics = function() {
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        setInitialOffset : function(x, y) {
+        graphCenterChanged : function(x, y) {
             offsetX = x;
             offsetY = y;
             updateTransform();

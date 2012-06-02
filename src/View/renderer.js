@@ -174,7 +174,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
            viewPortOffset.x = viewPortOffset.y = 0;
            transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
            transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
-           graphics.setInitialOffset(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
+           graphics.graphCenterChanged(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
            
            updateCenterRequired = false;
        },
