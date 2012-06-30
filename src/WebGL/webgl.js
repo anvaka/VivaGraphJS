@@ -75,7 +75,7 @@ Viva.Graph.webgl = function(gl) {
                     foundLocations[name.slice(2)] = location;
                 } else if (name.indexOf('u_') === 0) {
                     location = gl.getUniformLocation(program, name);
-                    if(location === -1) {
+                    if(location === null) {
                         throw "Program doesn't have required uniform: " + name;
                     }
 
