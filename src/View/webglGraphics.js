@@ -246,7 +246,7 @@ Viva.Graph.View.webglGraphics = function() {
            
            updateTransformUniform();
            
-           // Notify the world if someoen waited for update.
+           // Notify the world if someoen waited for update. TODO: should send an event
            if (typeof initCallback === 'function') {
                initCallback(graphicsRoot);
            }
@@ -387,6 +387,22 @@ Viva.Graph.View.webglGraphics = function() {
            }
        },
        
+       /** 
+        * Updates default shader which renders links
+        * 
+        * @param newProgram to use for links. 
+        */
+       setLinkProgram : function(newProgram) {
+           if (!gl && newProgram) {
+               // Nothing created yet. Just set shader to the new one
+               // and let initialization logic take care about the rest.
+               linkProgram = newProgram; 
+               return;
+           } else if (newProgram) {
+               throw "Not implemented. Cannot swap shader on the fly... yet.";
+               // TODO: unload old shader and reinit.
+           }
+       },
        getGraphCoordinates : function(graphicsRootPos) {
            // to save memory we modify incoming parameter:
            // point in clipspace coordinates:
