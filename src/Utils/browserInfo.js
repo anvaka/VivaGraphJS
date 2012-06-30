@@ -1,6 +1,13 @@
 /*global Viva*/
 
 Viva.BrowserInfo = (function(){
+    if (typeof navigator === 'undefined') {
+        return {
+            browser : '',
+            version : '0'
+        };
+    }
+    
     var ua = navigator.userAgent;
     
     // Useragent RegExp

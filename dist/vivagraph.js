@@ -179,6 +179,13 @@ Viva.randomIterator = function(array, random) {
 /*global Viva*/
 
 Viva.BrowserInfo = (function(){
+    if (typeof navigator === 'undefined') {
+        return {
+            browser : '',
+            version : '0'
+        };
+    }
+    
     var ua = navigator.userAgent;
     
     // Useragent RegExp
@@ -595,6 +602,10 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 (function() {
     var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
+    if (typeof window === 'undefined') {
+        window = {}; // let it run in node.js environment. TODO: use something else, not window?
+    }
+    
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
         window.cancelAnimationFrame = 
@@ -624,8 +635,6 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
  * callback returns true;
  */
 Viva.Graph.Utils.timer = function(callback, interval){
- // I wanted to extract this to make further transition to 
- // requestAnimationFrame easier: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
  var intervalId,
      stopTimer = function(){
         window.cancelAnimationFrame(intervalId);
@@ -3430,50 +3439,50 @@ Viva.Graph.View = Viva.Graph.View || {};
  * Performs svg-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edeges of the graph.
  */
-Viva.Graph.View.svgGraphics = function() {
+Viva.Graph.View.svgGraphics = function () {
     var svgContainer,
         svgRoot,
         offsetX,
         offsetY,
         actualScale = 1,
- 
-        nodeBuilder = function(node){
+
+        nodeBuilder = function (node) {
             return Viva.Graph.svg('rect')
                      .attr('width', 10)
                      .attr('height', 10)
                      .attr('fill', '#00a2e8');
         },
-        
-        nodePositionCallback = function(nodeUI, pos){
+
+        nodePositionCallback = function (nodeUI, pos) {
             // TODO: Remove magic 5. It should be halfo of the width or height of the node.
             nodeUI.attr("x", pos.x - 5)
                   .attr("y", pos.y - 5);
         },
 
-        linkBuilder = function(link){
+        linkBuilder = function (link) {
             return Viva.Graph.svg('line')
                               .attr('stroke', '#999');
         },
-        
-        linkPositionCallback = function(linkUI, fromPos, toPos){
+
+        linkPositionCallback = function (linkUI, fromPos, toPos) {
             linkUI.attr("x1", fromPos.x)
                   .attr("y1", fromPos.y)
                   .attr("x2", toPos.x)
                   .attr("y2", toPos.y);
         },
-        
-        fireRescaled = function(graphics){
+
+        fireRescaled = function (graphics) {
             // TODO: maybe we shall copy changes? 
             graphics.fire('rescaled');
         },
-        
-        updateTransform = function() {
+
+        updateTransform = function () {
             if (svgContainer) {
                 var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
                 svgContainer.attr('transform', transform);
             }
         };
-    
+
     var graphics = {
         /**
          * Sets the collback that creates node representation or creates a new node
@@ -3486,17 +3495,17 @@ Viva.Graph.View.svgGraphics = function() {
          * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
          * Otherwise a node representation is returned for the passed parameter.
          */
-        node : function(builderCallbackOrNode) {
-            
+        node : function (builderCallbackOrNode) {
+
             if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function'){
                 return nodeBuilder(builderCallbackOrNode);
             }
-            
+
             nodeBuilder = builderCallbackOrNode;
-            
+
             return this;
         },
-        
+
         /**
          * Sets the collback that creates link representation or creates a new link
          * presentation if builderCallbackOrLink is not a function. 
@@ -3507,69 +3516,69 @@ Viva.Graph.View.svgGraphics = function() {
          * 
          * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
          * Otherwise a link representation is returned for the passed parameter.
-         */        
-        link : function(builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function'){
+         */
+        link : function (builderCallbackOrLink) {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
                 return linkBuilder(builderCallbackOrLink);
             }
-            
+
             linkBuilder = builderCallbackOrLink;
             return this;
         },
-        
+
         /**
          * Allows to override default position setter for the node with a new
          * function. newPlaceCallback(nodeUI, position) is function which
          * is used by updateNodePosition().
          */
-        placeNode : function(newPlaceCallback) {
+        placeNode : function (newPlaceCallback) {
             nodePositionCallback = newPlaceCallback;
             return this;
         },
 
-        placeLink : function(newPlaceLinkCallback) {
+        placeLink : function (newPlaceLinkCallback) {
             linkPositionCallback = newPlaceLinkCallback;
             return this;
         },
-        
+
         /**
          * Called every before renderer starts rendering.
          */
-        beginRender : function() {},
-        
+        beginRender : function () {},
+
         /**
          * Called every time when renderer finishes one step of rendering.
          */
-        endRender : function() {},
-        
+        endRender : function () {},
+
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
-        graphCenterChanged : function(x, y) {
+        graphCenterChanged : function (x, y) {
             offsetX = x;
             offsetY = y;
             updateTransform();
         },
-        
-        translateRel : function(dx, dy) {
+
+        translateRel : function (dx, dy) {
             var p = svgRoot.createSVGPoint(),
                 t = svgContainer.getCTM(),
                 origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
-                
+
             p.x = dx;
             p.y = dy;
-            
+
             p = p.matrixTransform(t.inverse());
             p.x = (p.x - origin.x) * t.a;
             p.y = (p.y - origin.y) * t.d;
-            
+
             t.e += p.x;
             t.f += p.y;
-            
+
             var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
             svgContainer.attr('transform', transform);
         },
-        
+
         scale : function(scaleFactor, scrollPoint) {
             var p = svgRoot.createSVGPoint();
             p.x = scrollPoint.x;
@@ -3621,11 +3630,12 @@ Viva.Graph.View.svgGraphics = function() {
         * @param linkUI visual representation of the link created by link() execution.
         */
        initLink : function(linkUI) {
-           if(svgContainer.childElementCount > 0) {
+            if (!linkUI) { return; }
+            if (svgContainer.childElementCount > 0) {
                svgContainer.insertBefore(linkUI, svgContainer.firstChild);
-           } else {
-               svgContainer.appendChild(linkUI);
-           }
+            } else {
+                svgContainer.appendChild(linkUI);
+            }
        },
 
       /**
@@ -3876,7 +3886,7 @@ Viva.Graph.webgl = function(gl) {
                     foundLocations[name.slice(2)] = location;
                 } else if (name.indexOf('u_') === 0) {
                     location = gl.getUniformLocation(program, name);
-                    if(location === -1) {
+                    if(location === null) {
                         throw "Program doesn't have required uniform: " + name;
                     }
 
@@ -4891,7 +4901,7 @@ Viva.Graph.View.webglGraphics = function() {
            container = c;
            
            graphicsRoot = document.createElement("canvas");
-           updateSize(); // todo: monitor container size change.
+           updateSize();
            resetScaleInternal();
            container.appendChild(graphicsRoot);
            
@@ -4910,7 +4920,7 @@ Viva.Graph.View.webglGraphics = function() {
            
            updateTransformUniform();
            
-           // Notify the world if someoen waited for update.
+           // Notify the world if someoen waited for update. TODO: should send an event
            if (typeof initCallback === 'function') {
                initCallback(graphicsRoot);
            }
@@ -5051,6 +5061,22 @@ Viva.Graph.View.webglGraphics = function() {
            }
        },
        
+       /** 
+        * Updates default shader which renders links
+        * 
+        * @param newProgram to use for links. 
+        */
+       setLinkProgram : function(newProgram) {
+           if (!gl && newProgram) {
+               // Nothing created yet. Just set shader to the new one
+               // and let initialization logic take care about the rest.
+               linkProgram = newProgram; 
+               return;
+           } else if (newProgram) {
+               throw "Not implemented. Cannot swap shader on the fly... yet.";
+               // TODO: unload old shader and reinit.
+           }
+       },
        getGraphCoordinates : function(graphicsRootPos) {
            // to save memory we modify incoming parameter:
            // point in clipspace coordinates:
