@@ -7,11 +7,11 @@
  * TODO: Fix IE's dom loaded 
  */
 
-(function(){
+(function () {
     var WORK_DIR = '../src/',
-		
+
 		OUT_FILE_NAME = '../dist/vivagraph',
-    
+
 		COMPLETE_BUILD = [
             "vivagraph.js",
             "version.js",
@@ -24,15 +24,15 @@
             "Utils/timer.js",
             "Utils/geom.js",
             "Utils/spatialIndex.js",
-            
+
             "Core/graph.js",
             "Core/generator.js",
             "Core/operations.js",
             "Algorithms/centrality.js",
-            
+
             "Algorithms/Community/slpa.js",
             "Algorithms/Community/community.js",
-            
+
             "Physics/primitives.js",
             //"Physics/rungeKuttaIntegrator.js",
             "Physics/eulerIntegrator.js",
@@ -43,26 +43,26 @@
             "Layout/forceDirected.js",
             //"Layout/gem.js",
             //"Layout/ace.js",
-            
+
             "View/cssGraphics.js",
             "Svg/svg.js",
             "View/svgGraphics.js",
             "View/svgNodeFactory.js",
-            
+
             "WebGL/webgl.js",
             "WebGL/webglUIModels.js",
             "WebGL/webglNodeProgram.js",
             "WebGL/webglLinkProgram.js",
             "WebGL/webglImageNodeProgram.js",
             "View/webglGraphics.js",
-            
+
             "WebGL/webglInputEvents.js",
-            
+
             "View/renderer.js",
             "Core/serializer.js"];
-            
+
    var currentConfig = COMPLETE_BUILD;
-   
+
    var inBrowserInclude = function(){
        var head= document.getElementsByTagName('head')[0],
 

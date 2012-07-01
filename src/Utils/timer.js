@@ -11,7 +11,6 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     if (typeof window === 'undefined') {
         window = {}; // let it run in node.js environment. TODO: use something else, not window?
     }
-    
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
         window.cancelAnimationFrame = 
