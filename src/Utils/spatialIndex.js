@@ -21,7 +21,7 @@ Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
             var foundNode = null;
             graph.forEachNode(function(node) {
                 var pos = node.position;
-                if (preciseCheckCallback(node, x, y)){
+                if (preciseCheckCallback(node, x, y)) {
                     foundNode = node;
                     return true;
                 }
@@ -31,10 +31,10 @@ Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
         };
     } else if (typeof toleranceOrCheckCallback === 'number') {
         tolerance = toleranceOrCheckCallback;
-        getNodeFunction = function(x, y) {
+        getNodeFunction = function (x, y) {
             var foundNode = null;
 
-            graph.forEachNode(function(node) {
+            graph.forEachNode(function (node) {
                 var pos = node.position;
                 if (pos.x - tolerance < x && x < pos.x + tolerance &&
                     pos.y - tolerance < y && y < pos.y + tolerance) {

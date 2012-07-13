@@ -404,6 +404,7 @@ Viva.Graph.View.webglGraphics = function() {
            }
        },
        getGraphCoordinates : function(graphicsRootPos) {
+           // TODO: could be a problem when container has margins?
            // to save memory we modify incoming parameter:
            // point in clipspace coordinates:
             graphicsRootPos.x = 2 * graphicsRootPos.x/width - 1;
