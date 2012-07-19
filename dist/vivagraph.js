@@ -3923,23 +3923,25 @@ Viva.Graph.webgl = function(gl) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 
-Viva.Graph.View.WebglUtils = function() {};
+Viva.Graph.View.WebglUtils = function() { };
 
 /**
  * Parses various color strings and returns color value used in webgl shaders.
  */
 
 Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
-        var parsedColor = 0x009ee8;
+        var parsedColor = 0x009ee8ff; 
         
         if (typeof color === 'string' && color) {
             if (color.length === 4) { // #rgb
                 color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
             }
-            if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
-                parsedColor = parseInt(color.substring(1, 7), 16);
+            if (color.length === 9) { // #rrggbbaa 
+                parsedColor = parseInt(color.substr(1), 16);
+            } else if (color.length === 7) { // or #rrggbb.
+                parsedColor = (parseInt(color.substr(1), 16) << 8) | 0xff;
             } else {
                 throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
             }
@@ -3974,7 +3976,7 @@ Viva.Graph.View.webglLine = function(color){
  * create a custom looking node.
  * 
  * @param size - size of the node in pixels.
- * @param color - color of the node in '#rrggbb' or '#rgb' format. 
+ * @param color - color of the node in '#aabbggrr' or '#rgb' format. 
  *  You can also pass '#rrggbbaa', but alpha chanel is always ignored. 
  */
 Viva.Graph.View.webglSquare = function(size, color){
@@ -3985,8 +3987,7 @@ Viva.Graph.View.webglSquare = function(size, color){
         size : typeof size === 'number' ? size : 10,
         
         /**
-         * Gets or sets color of the square. If you set this property externally
-         * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
+         * Gets or sets color of the square.  
          */
         color : Viva.Graph.View._webglUtil.parseColor(color)
     };
@@ -4026,13 +4027,15 @@ Viva.Graph.View.webglImage = function(size, src) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
 Viva.Graph.View.webglNodeProgram = function() {
-   var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y - its coordinates + color and size == 4 attributes per node. 
+   var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y, size, color
+       // x, y, z - floats, color = uint.
+       BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
          nodesFS = [
         'precision mediump float;',
         'varying vec4 color;',
@@ -4041,33 +4044,43 @@ Viva.Graph.View.webglNodeProgram = function() {
         '   gl_FragColor = color;',
         '}'].join('\n'),
         nodesVS = [
-        'attribute vec2 a_vertexPos;',
-        // Pack clor and size into vector. First elemnt is color, second - size.
-        // note: since it's floating point we can only use 24 bit to pack colors...
-        // thus alpha channel is dropped, and is always assumed to be 1.
-        'attribute vec2 a_customAttributes;', 
+        'attribute vec3 a_vertexPos;',
+        'attribute vec4 a_color;', 
         'uniform vec2 u_screenSize;',
         'uniform mat4 u_transform;',
         'varying vec4 color;',
         
         'void main(void) {',
-        '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);',
-        '   gl_PointSize = a_customAttributes[1] * u_transform[0][0];',
-        '   float c = a_customAttributes[0];',
-        '   color = vec4(0.0, 0.0, 0.0, 255.0);',
-        '   color.b = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.g = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
-        '}'].join('\n');
+        '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
+        '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
+        '   color = a_color.abgr;',
+        '}'].join('\n'),
         
-        var program,
-            gl,
-            buffer,
-            locations,
-            utils,
-            nodes = new Float32Array(64),
-            nodesCount = 0,
-            width, height, transform, sizeDirty;
+        program,
+        gl,
+        buffer,
+        locations,
+        utils,
+        storage = new ArrayBuffer(16 * BYTES_PER_NODE),
+        positions = new Float32Array(storage),
+        colors = new Uint32Array(storage),
+        nodesCount = 0,
+        width, height, transform, sizeDirty,
+        
+        ensureEnoughStorage = function() {
+            if ((nodesCount+1)*BYTES_PER_NODE >= storage.byteLength) {
+                // Every time we run out of space create new array twice bigger.
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                    extendedPositions = new Float32Array(extendedStorage),
+                    extendedColors = new Uint32Array(extendedStorage);
+                    
+                extendedColors.set(colors); // should be enough to copy just one view.
+                positions = extendedPositions;
+                colors = extendedColors;
+                storage = extendedStorage;
+            }
+        };
             
         return {
             load : function(glContext) {
@@ -4076,10 +4089,10 @@ Viva.Graph.View.webglNodeProgram = function() {
                 
                 program = utils.createProgram(nodesVS, nodesFS);
                 gl.useProgram(program);
-                locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform']);
+                locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
                 
                 gl.enableVertexAttribArray(locations.vertexPos);
-                gl.enableVertexAttribArray(locations.customAttributes);
+                gl.enableVertexAttribArray(locations.color);
                 
                 buffer = gl.createBuffer();
             },
@@ -4091,11 +4104,14 @@ Viva.Graph.View.webglNodeProgram = function() {
              * @param pos - new position of the node.
              */
             position : function(nodeUI, pos) {
-                var idx = nodeUI.id;
-                nodes[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
-                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
-                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.color;
-                nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
+                var idx = nodeUI.id,
+                    offset = idx * ATTRIBUTES_PER_PRIMITIVE;
+                
+                positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
+                positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+                positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
+                
+                colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;
             },
             
             updateTransform : function(newTransform) {
@@ -4110,7 +4126,7 @@ Viva.Graph.View.webglNodeProgram = function() {
             },
             
             createNode : function(node) {
-                nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
+                ensureEnoughStorage();
                 nodesCount += 1;
             },
             
@@ -4118,7 +4134,8 @@ Viva.Graph.View.webglNodeProgram = function() {
                 if (nodesCount > 0) { nodesCount -=1; }
                 
                 if (node.id < nodesCount && nodesCount > 0) {
-                    utils.copyArrayPart(nodes, node.id*ATTRIBUTES_PER_PRIMITIVE, nodesCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                    // we can use colors as a 'view' into array array buffer.
+                    utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
                 }
             },
             
@@ -4127,7 +4144,7 @@ Viva.Graph.View.webglNodeProgram = function() {
             render : function() {
                 gl.useProgram(program);
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
                 
                 if (sizeDirty) {
                     sizeDirty = false;
@@ -4135,8 +4152,8 @@ Viva.Graph.View.webglNodeProgram = function() {
                     gl.uniform2f(locations.screenSize, width, height);
                 }
 
-                gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
-                gl.vertexAttribPointer(locations.customAttributes, 2, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
+                gl.vertexAttribPointer(locations.vertexPos, 3, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
+                gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 3 * 4);
 
                 gl.drawArrays(gl.POINTS, 0, nodesCount);
             }
@@ -4148,13 +4165,14 @@ Viva.Graph.View.webglNodeProgram = function() {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 
 /**
  * Defines UI for links in webgl renderer. 
  */
 Viva.Graph.View.webglLinkProgram = function() {
      var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
+        BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
         linksFS = [
         'precision mediump float;',
         'varying vec4 color;',
@@ -4164,7 +4182,7 @@ Viva.Graph.View.webglLinkProgram = function() {
         
         linksVS = [
         'attribute vec2 a_vertexPos;',
-        'attribute float a_color;', 
+        'attribute vec4 a_color;', 
         
         'uniform vec2 u_screenSize;',
         'uniform mat4 u_transform;',
@@ -4173,22 +4191,36 @@ Viva.Graph.View.webglLinkProgram = function() {
         
         'void main(void) {',
         '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
-        '   color = vec4(0.0, 0.0, 0.0, 255.0);',
-        '   float c = a_color;',
-        '   color.b = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.g = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
-        '}'].join('\n');
+        '   color = a_color.abgr;',
+        '}'].join('\n'),
         
-        var program,
+            program,
             gl,
             buffer,
             utils,
             locations,
             linksCount = 0,
             frontLinkId, // used to track z-index of links.
-            links = new Float32Array(64),
-            width, height, transform, sizeDirty;
+            storage = new ArrayBuffer(16 * BYTES_PER_LINK),
+            positions = new Float32Array(storage),
+            colors = new Uint32Array(storage),
+            width, height, transform, sizeDirty,
+
+            ensureEnoughStorage = function() {
+                // TODO: this is a duplicate of webglNodeProgram code. Extract it to webgl.js
+                if ((linksCount+1)*BYTES_PER_LINK > storage.byteLength) {
+                    // Every time we run out of space create new array twice bigger.
+                    // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                    var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                        extendedPositions = new Float32Array(extendedStorage),
+                        extendedColors = new Uint32Array(extendedStorage);
+                        
+                    extendedColors.set(colors); // should be enough to copy just one view.
+                    positions = extendedPositions;
+                    colors = extendedColors;
+                    storage = extendedStorage;
+                }
+            };
         
         return {
             load : function(glContext) {
@@ -4208,17 +4240,18 @@ Viva.Graph.View.webglLinkProgram = function() {
             position: function(linkUi, fromPos, toPos) {
                 var linkIdx = linkUi.id,
                     offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
-                links[offset + 0] = fromPos.x;
-                links[offset + 1] = fromPos.y;
-                links[offset + 2] = linkUi.color;
+                positions[offset] = fromPos.x;
+                positions[offset + 1] = fromPos.y;
+                colors[offset + 2] = linkUi.color;
                 
-                links[offset + 3] = toPos.x;
-                links[offset + 4] = toPos.y;
-                links[offset + 5] = linkUi.color;
+                positions[offset + 3] = toPos.x;
+                positions[offset + 4] = toPos.y;
+                colors[offset + 5] = linkUi.color;
             },
             
             createLink : function(ui) {
-                 links = utils.extendArray(links, linksCount, ATTRIBUTES_PER_PRIMITIVE);
+                 ensureEnoughStorage();
+                 
                  linksCount += 1;
                  frontLinkId = ui.id;
             },
@@ -4227,7 +4260,8 @@ Viva.Graph.View.webglLinkProgram = function() {
                if (linksCount > 0) { linksCount -= 1;}
                // swap removed link with the last link. This will give us O(1) performance for links removal:
                if (ui.id < linksCount && linksCount > 0) {
-                   utils.copyArrayPart(links, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE); 
+                   // using colors as a view to array buffer is okay here.
+                   utils.copyArrayPart(colors, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE); 
                }
             },
             
@@ -4245,7 +4279,7 @@ Viva.Graph.View.webglLinkProgram = function() {
             render : function() {
                gl.useProgram(program);
                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-               gl.bufferData(gl.ARRAY_BUFFER, links, gl.DYNAMIC_DRAW);
+               gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
 
                 if (sizeDirty) {
                     sizeDirty = false;
@@ -4254,16 +4288,16 @@ Viva.Graph.View.webglLinkProgram = function() {
                 }
 
                gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-               gl.vertexAttribPointer(locations.color, 1, gl.FLOAT, false, 3 * 4, 2 * 4);
+               gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
 
-               gl.drawArrays(gl.LINES, 0, linksCount * 2);
+               gl.drawArrays(gl.LINES, 0, linksCount*2);
                
                frontLinkId = linksCount - 1;
             },
             
             bringToFront : function(link) {
                 if (frontLinkId > link.id) {
-                    utils.swapArrayPart(links, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                    utils.swapArrayPart(positions, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
                 }
                 if (frontLinkId > 0) {
                     frontLinkId -= 1;
@@ -4691,14 +4725,21 @@ Viva.Graph.View.webglImageNodeProgram = function() {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs webgl-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edeges of the graph.
+ * 
+ * @param options - to customize graphics  behavior. Currently supported parameter
+ *  enableBlending - true by default, allows to use transparency in node/links colors.
  */
-Viva.Graph.View.webglGraphics = function() {
+
+Viva.Graph.View.webglGraphics = function(options) {
+    options = options || {};
+    options.enableBlending = typeof options.enableBlending !== 'boolean' ? true : options.enableBlending;  
+    
     var container,
         graphicsRoot,
         gl,
@@ -4720,7 +4761,7 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         linkUIBuilder = function(link) {
-            return Viva.Graph.View.webglLine('#b3b3b3');
+            return Viva.Graph.View.webglLine(0xb3b3b3ff);
         },
  
         updateTransformUniform = function() {
@@ -4924,6 +4965,10 @@ Viva.Graph.View.webglGraphics = function() {
                var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
                alert(msg);
                throw msg; 
+           }
+           if (options.enableBlending) {
+               gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+               gl.enable(gl.BLEND);
            }
            
            linkProgram.load(gl);

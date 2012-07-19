@@ -8,16 +8,16 @@
         <script type='text/javascript'>
             /*global Viva*/
            var colors = [
-0x1f77b4, 0xaec7e8,
-0xff7f0e, 0xffbb78,
-0x2ca02c, 0x98df8a,
-0xd62728, 0xff9896,
-0x9467bd, 0xc5b0d5,
-0x8c564b, 0xc49c94,
-0xe377c2, 0xf7b6d2,
-0x7f7f7f, 0xc7c7c7,
-0xbcbd22, 0xdbdb8d,
-0x17becf, 0x9edae5
+0x1f77b4ff, 0xaec7e8ff,
+0xff7f0eff, 0xffbb78ff,
+0x2ca02cff, 0x98df8aff,
+0xd62728ff, 0xff9896ff,
+0x9467bdff, 0xc5b0d5ff,
+0x8c564bff, 0xc49c94ff,
+0xe377c2ff, 0xf7b6d2ff,
+0x7f7f7fff, 0xc7c7c7ff,
+0xbcbd22ff, 0xdbdb8dff,
+0x17becfff, 0x9edae5ff
                         ];
                         
            function beginRemoveNodesLoop(graph){
@@ -95,7 +95,7 @@
                    });
                    
                renderer.run(50);
-                
+                //graph.addLink(1, 2)
                beginAddNodesLoop(graph);
                l = layout;
            }

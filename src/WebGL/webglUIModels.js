@@ -5,23 +5,25 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 
-Viva.Graph.View.WebglUtils = function() {};
+Viva.Graph.View.WebglUtils = function() { };
 
 /**
  * Parses various color strings and returns color value used in webgl shaders.
  */
 
 Viva.Graph.View.WebglUtils.prototype.parseColor = function(color) {
-        var parsedColor = 0x009ee8;
+        var parsedColor = 0x009ee8ff; 
         
         if (typeof color === 'string' && color) {
             if (color.length === 4) { // #rgb
                 color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
             }
-            if (color.length === 9 || color.length === 7) { // #rrggbbaa or #rrggbb. Always ignore alpha:
-                parsedColor = parseInt(color.substring(1, 7), 16);
+            if (color.length === 9) { // #rrggbbaa 
+                parsedColor = parseInt(color.substr(1), 16);
+            } else if (color.length === 7) { // or #rrggbb.
+                parsedColor = (parseInt(color.substr(1), 16) << 8) | 0xff;
             } else {
                 throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
             }
@@ -56,7 +58,7 @@ Viva.Graph.View.webglLine = function(color){
  * create a custom looking node.
  * 
  * @param size - size of the node in pixels.
- * @param color - color of the node in '#rrggbb' or '#rgb' format. 
+ * @param color - color of the node in '#aabbggrr' or '#rgb' format. 
  *  You can also pass '#rrggbbaa', but alpha chanel is always ignored. 
  */
 Viva.Graph.View.webglSquare = function(size, color){
@@ -67,8 +69,7 @@ Viva.Graph.View.webglSquare = function(size, color){
         size : typeof size === 'number' ? size : 10,
         
         /**
-         * Gets or sets color of the square. If you set this property externally
-         * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
+         * Gets or sets color of the square.  
          */
         color : Viva.Graph.View._webglUtil.parseColor(color)
     };

@@ -5,13 +5,14 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 
 /**
  * Defines UI for links in webgl renderer. 
  */
 Viva.Graph.View.webglLinkProgram = function() {
      var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
+        BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
         linksFS = [
         'precision mediump float;',
         'varying vec4 color;',
@@ -21,7 +22,7 @@ Viva.Graph.View.webglLinkProgram = function() {
         
         linksVS = [
         'attribute vec2 a_vertexPos;',
-        'attribute float a_color;', 
+        'attribute vec4 a_color;', 
         
         'uniform vec2 u_screenSize;',
         'uniform mat4 u_transform;',
@@ -30,22 +31,36 @@ Viva.Graph.View.webglLinkProgram = function() {
         
         'void main(void) {',
         '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
-        '   color = vec4(0.0, 0.0, 0.0, 255.0);',
-        '   float c = a_color;',
-        '   color.b = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.g = mod(c, 256.0); c = floor(c/256.0);',
-        '   color.r = mod(c, 256.0); c = floor(c/256.0); color /= 255.0;',
-        '}'].join('\n');
+        '   color = a_color.abgr;',
+        '}'].join('\n'),
         
-        var program,
+            program,
             gl,
             buffer,
             utils,
             locations,
             linksCount = 0,
             frontLinkId, // used to track z-index of links.
-            links = new Float32Array(64),
-            width, height, transform, sizeDirty;
+            storage = new ArrayBuffer(16 * BYTES_PER_LINK),
+            positions = new Float32Array(storage),
+            colors = new Uint32Array(storage),
+            width, height, transform, sizeDirty,
+
+            ensureEnoughStorage = function() {
+                // TODO: this is a duplicate of webglNodeProgram code. Extract it to webgl.js
+                if ((linksCount+1)*BYTES_PER_LINK > storage.byteLength) {
+                    // Every time we run out of space create new array twice bigger.
+                    // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                    var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                        extendedPositions = new Float32Array(extendedStorage),
+                        extendedColors = new Uint32Array(extendedStorage);
+                        
+                    extendedColors.set(colors); // should be enough to copy just one view.
+                    positions = extendedPositions;
+                    colors = extendedColors;
+                    storage = extendedStorage;
+                }
+            };
         
         return {
             load : function(glContext) {
@@ -65,17 +80,18 @@ Viva.Graph.View.webglLinkProgram = function() {
             position: function(linkUi, fromPos, toPos) {
                 var linkIdx = linkUi.id,
                     offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE; 
-                links[offset + 0] = fromPos.x;
-                links[offset + 1] = fromPos.y;
-                links[offset + 2] = linkUi.color;
+                positions[offset] = fromPos.x;
+                positions[offset + 1] = fromPos.y;
+                colors[offset + 2] = linkUi.color;
                 
-                links[offset + 3] = toPos.x;
-                links[offset + 4] = toPos.y;
-                links[offset + 5] = linkUi.color;
+                positions[offset + 3] = toPos.x;
+                positions[offset + 4] = toPos.y;
+                colors[offset + 5] = linkUi.color;
             },
             
             createLink : function(ui) {
-                 links = utils.extendArray(links, linksCount, ATTRIBUTES_PER_PRIMITIVE);
+                 ensureEnoughStorage();
+                 
                  linksCount += 1;
                  frontLinkId = ui.id;
             },
@@ -84,7 +100,8 @@ Viva.Graph.View.webglLinkProgram = function() {
                if (linksCount > 0) { linksCount -= 1;}
                // swap removed link with the last link. This will give us O(1) performance for links removal:
                if (ui.id < linksCount && linksCount > 0) {
-                   utils.copyArrayPart(links, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE); 
+                   // using colors as a view to array buffer is okay here.
+                   utils.copyArrayPart(colors, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount*ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE); 
                }
             },
             
@@ -102,7 +119,7 @@ Viva.Graph.View.webglLinkProgram = function() {
             render : function() {
                gl.useProgram(program);
                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-               gl.bufferData(gl.ARRAY_BUFFER, links, gl.DYNAMIC_DRAW);
+               gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
 
                 if (sizeDirty) {
                     sizeDirty = false;
@@ -111,16 +128,16 @@ Viva.Graph.View.webglLinkProgram = function() {
                 }
 
                gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-               gl.vertexAttribPointer(locations.color, 1, gl.FLOAT, false, 3 * 4, 2 * 4);
+               gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
 
-               gl.drawArrays(gl.LINES, 0, linksCount * 2);
+               gl.drawArrays(gl.LINES, 0, linksCount*2);
                
                frontLinkId = linksCount - 1;
             },
             
             bringToFront : function(link) {
                 if (frontLinkId > link.id) {
-                    utils.swapArrayPart(links, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+                    utils.swapArrayPart(positions, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
                 }
                 if (frontLinkId > 0) {
                     frontLinkId -= 1;

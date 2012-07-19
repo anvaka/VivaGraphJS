@@ -3,14 +3,21 @@
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva Float32Array*/
+/* global Viva Float32Array */
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs webgl-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edeges of the graph.
+ * 
+ * @param options - to customize graphics  behavior. Currently supported parameter
+ *  enableBlending - true by default, allows to use transparency in node/links colors.
  */
-Viva.Graph.View.webglGraphics = function() {
+
+Viva.Graph.View.webglGraphics = function(options) {
+    options = options || {};
+    options.enableBlending = typeof options.enableBlending !== 'boolean' ? true : options.enableBlending;  
+    
     var container,
         graphicsRoot,
         gl,
@@ -32,7 +39,7 @@ Viva.Graph.View.webglGraphics = function() {
         },
         
         linkUIBuilder = function(link) {
-            return Viva.Graph.View.webglLine('#b3b3b3');
+            return Viva.Graph.View.webglLine(0xb3b3b3ff);
         },
  
         updateTransformUniform = function() {
@@ -236,6 +243,10 @@ Viva.Graph.View.webglGraphics = function() {
                var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
                alert(msg);
                throw msg; 
+           }
+           if (options.enableBlending) {
+               gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+               gl.enable(gl.BLEND);
            }
            
            linkProgram.load(gl);
