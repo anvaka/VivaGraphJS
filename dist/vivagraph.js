@@ -3965,7 +3965,7 @@ Viva.Graph.View.webglLine = function(color){
     return {
         /**
          * Gets or sets color of the line. If you set this property externally
-         * make sure it always come as integer of 0xRRGGBB format (no alpha channel); 
+         * make sure it always come as integer of 0xRRGGBBAA format 
          */
         color : Viva.Graph.View._webglUtil.parseColor(color)
     };
@@ -3976,8 +3976,7 @@ Viva.Graph.View.webglLine = function(color){
  * create a custom looking node.
  * 
  * @param size - size of the node in pixels.
- * @param color - color of the node in '#aabbggrr' or '#rgb' format. 
- *  You can also pass '#rrggbbaa', but alpha chanel is always ignored. 
+ * @param color - color of the node in '#rrggbbaa' or '#rgb' format.  
  */
 Viva.Graph.View.webglSquare = function(size, color){
     return {
