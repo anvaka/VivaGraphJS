@@ -7,38 +7,44 @@
 // TODO: I have to learn more about existing unit test frameworks in JS. 
 // But I'm too lazy at the moment so I wrote this simple micro framework
 
-/*global Viva console*/
+/*global Viva, console */
 
-if (typeof Viva === 'undefined') { Viva = {}; }
+var Viva = Viva || {};
 
 Viva.testing = function(context){
+    'use strict';
+    
     var isTestCategoryName = function(propertyName){
         return propertyName && propertyName.indexOf('test_') === 0;
     },
         
     getAllCategoryNamesFromContext = function(){
-        var categoryNames = [];
+        var categoryNames = [],
+            key;
         
-        for(var key in context){
+        for(key in context){
             if (context.hasOwnProperty(key) && isTestCategoryName(key)) {
                 categoryNames.push(key);
             }
         }
         
         return categoryNames;
-    };
+    },
     
-    var framework = {
+    framework = {
        log : function(level, message) {
            console.log(message);
            
-           var out = document.getElementById('output');
+           var out = document.getElementById('output'),
+               domRecord;
+               
            if (!out){
                out = document.createElement('div');
                out.id = 'output';
                document.body.appendChild(out);
            }
-           var domRecord = document.createElement('div');
+           
+           domRecord = document.createElement('div');
            domRecord.className = level;
            domRecord.innerHTML = message;
            
@@ -76,19 +82,20 @@ Viva.testing = function(context){
        },
        
        runAll : function(){
-          var categoryNames = getAllCategoryNamesFromContext();
+          var categoryNames = getAllCategoryNamesFromContext(),
+              i, categoryName, shortName, tests, testName;
           framework.log('info', 'Running all tests'); 
           
-          for(var i = 0; i < categoryNames.length; ++i) {
-              var categoryName = categoryNames[i],
-                  shortName = categoryName.match(/.+_(.+)/),
-                  tests = context[categoryName](framework);
+          for(i = 0; i < categoryNames.length; i += 1) {
+              categoryName = categoryNames[i];
+              shortName = categoryName.match(/.+_(.+)/);
+              tests = context[categoryName](framework);
                   
               shortName = (shortName && shortName[1]) || categoryName;
                
               framework.log('info', 'Running ' + shortName + ' category');
               
-              for(var testName in tests) {
+              for(testName in tests) {
                    if (tests.hasOwnProperty(testName)){
                         framework.run(testName, tests[testName]);
                    }
