@@ -8,6 +8,8 @@
  */
 
 (function () {
+    'use strict';
+    
     var WORK_DIR = '../src/',
 
 		OUT_FILE_NAME = '../dist/vivagraph',
@@ -59,91 +61,90 @@
             "WebGL/webglInputEvents.js",
 
             "View/renderer.js",
-            "Core/serializer.js"];
-
-   var currentConfig = COMPLETE_BUILD;
-
-   var inBrowserInclude = function(){
-       var head= document.getElementsByTagName('head')[0],
-
-           load = function(scriptPath, loadedCallback){
-              var script = document.createElement('script');
-              
-              script.type = 'text/javascript';
-              if (typeof script.onreadystatechange){
-
-                  script.onreadystatechange = function (){
-                      var loadCompleted = this.readyState == 'complete' || this.readyState == 'loaded';
-                      
-                      if (loadCompleted && loadCompleted ) {
-                          loadedCallback();
-                          // To avoid IE's potential double invokation.
-                          loadedCallback = null;
-                      }
-                  };
-              }
-              
-              script.onload = loadedCallback;
-              script.src = scriptPath;
-              head.appendChild(script);
-           },
-       
-            recursiveLoad = function(current){
-                if (current < currentConfig.length){
-                    load(WORK_DIR + currentConfig[current], function(){ 
-                        recursiveLoad(current + 1); 
-                    });
-                }
-            };
+            "Core/serializer.js"],
             
-            recursiveLoad(0);              
-        },
+            currentConfig = COMPLETE_BUILD,
+            
+            inBrowserInclude = function() {
+               var head= document.getElementsByTagName('head')[0],
         
-        inNodeMerge = function(){
-            /*global require*/
-            
-            var outFileName = OUT_FILE_NAME,
-            
-                concatFiles = function(){
-                    var fs = require('fs'),
-                        out = '';
+                   load = function(scriptPath, loadedCallback){
+                      var script = document.createElement('script');
+                      
+                      script.type = 'text/javascript';
+                      if (typeof script.onreadystatechange){
+        
+                          script.onreadystatechange = function (){
+                              var loadCompleted = this.readyState === 'complete' || this.readyState === 'loaded';
+                              
+                              if (loadCompleted && loadedCallback ) {
+                                  loadedCallback();
+                                  // To avoid IE's potential double invokation.
+                                  loadedCallback = null;
+                              }
+                          };
+                      }
+                      
+                      script.onload = loadedCallback;
+                      script.src = scriptPath;
+                      head.appendChild(script);
+                   },
+               
+                    recursiveLoad = function(current){
+                        if (current < currentConfig.length){
+                            load(WORK_DIR + currentConfig[current], function(){ 
+                                recursiveLoad(current + 1); 
+                            });
+                        }
+                    };
                     
-                    for(var i = 0; i < currentConfig.length; ++i) {
-                        out += fs.readFileSync(WORK_DIR + currentConfig[i], 'utf8');
-                    }
-                    
-                    return out;
-                },
+                    recursiveLoad(0);              
+            },
                 
-                uglify = function(orig_code){
-                    var uglifyjs = require("uglify-js"),
-						jsp = uglifyjs.parser,
-						pro = uglifyjs.uglify;
-                    
-                    var ast = jsp.parse(orig_code); 
-                    ast = pro.ast_mangle(ast); 
-                    ast = pro.ast_squeeze(ast);
-                    return pro.gen_code(ast); 
-                },
+            inNodeMerge = function(){
+                var outFileName = OUT_FILE_NAME,
                 
-                writeFileContent = function(fileName, fileContent){
-                    var fs = require('fs'),
-                        outFile = fs.openSync(fileName, 'w');
+                    concatFiles = function(){
+                        var fs = require('fs'),
+                            out = '',
+                            i;
+                        
+                        for(i = 0; i < currentConfig.length; i += 1) {
+                            out += fs.readFileSync(WORK_DIR + currentConfig[i], 'utf8');
+                        }
+                        
+                        return out;
+                    },
                     
-                    fs.writeSync(outFile, fileContent);
-                    fs.closeSync(outFile);                    
-                };
-                
-           var content = concatFiles();
-           writeFileContent(outFileName + '.js', content);
-           
-		   var uglified = uglify(content);
-           writeFileContent(outFileName + '.min.js', uglified);
-        };
+                    uglify = function(orig_code){
+                        var uglifyjs = require("uglify-js"),
+                            jsp = uglifyjs.parser,
+                            pro = uglifyjs.uglify,
+                            ast = jsp.parse(orig_code);
+                             
+                        ast = pro.ast_mangle(ast); 
+                        ast = pro.ast_squeeze(ast);
+                        return pro.gen_code(ast); 
+                    },
+                    
+                    writeFileContent = function(fileName, fileContent){
+                        var fs = require('fs'),
+                            outFile = fs.openSync(fileName, 'w');
+                        
+                        fs.writeSync(outFile, fileContent);
+                        fs.closeSync(outFile);                    
+                    },
+                    
+                    content = concatFiles(),
+                    uglified = uglify(content);
+                    
+               writeFileContent(outFileName + '.js', content);
+               writeFileContent(outFileName + '.min.js', uglified);
+            };
    
    if (typeof window === 'undefined'){
       inNodeMerge(); 
    } else {
       inBrowserInclude();
    }
-})();
+}());
