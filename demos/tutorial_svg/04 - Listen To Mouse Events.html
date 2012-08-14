@@ -26,6 +26,8 @@
                    // just enumerate all realted nodes and update link color:
                    graph.forEachLinkedNode(nodeId, function(node, link){
                        if (link && link.ui) {
+                           // link.ui is a special property of each link
+                           // points to the link presentation object.
                            link.ui.attr('stroke', isOn ? 'red' : 'gray');
                        }
                    });
@@ -51,15 +53,9 @@
             }); 
 
             graphics.link(function(link){
-                // we augment link model with a reference to its presentation. 
-                // In certain cases this is not very welcomed practice, but
-                // you get the idea: 
-                link.ui = Viva.Graph.svg('path')
+                return Viva.Graph.svg('path')
                               .attr('stroke', 'gray');
-                
-                return link.ui;
             }).placeLink(function(linkUI, fromPos, toPos) {
-                // linkUI - is the object returend from link() callback above.
                 var data = 'M' + fromPos.x + ',' + fromPos.y + 
                            'L' + toPos.x + ',' + toPos.y;
 
