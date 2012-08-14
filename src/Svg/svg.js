@@ -70,6 +70,58 @@ Viva.Graph.svg = function(element) {
         svgElement.setAttributeNS(xlinkns, 'xlink:href', target);
         return svgElement;
     };
+
+	svgElement.children = function (selector) {
+		var wrapped_children = [],
+			children_count = svgElement.childNodes.length;
+
+		if (selector === undefined && svgElement.hasChildNodes()) {
+			for (var i = 0; i < children_count; i++) {
+				wrapped_children.push(Viva.Graph.svg(svgElement.childNodes[i]));
+			}
+		} else if (typeof selector === 'string') {
+			var class_selector = (selector[0] === '.'),
+				id_selector    = (selector[0] === '#'),
+				tag_selector   = !class_selector && !id_selector;
+
+			for (var i = 0; i < children_count; i++) {
+				var el = svgElement.childNodes[i];
+
+				// pass comments, text nodes etc.
+				if (el.nodeType !== 1) {
+					continue;
+				} 
+
+				var	classes = el.attr('class'),
+					id = el.attr('id'),
+					tagName = el.nodeName;
+
+				if (class_selector && classes) {
+					classes = classes.replace(/\s+/g, ' ').split(' ');
+					for (var j = 0; j < classes.length; j++) {
+						if (class_selector && classes[j] === selector.substr(1)) {
+							wrapped_children.push(Viva.Graph.svg(el));
+							break;
+						} 
+					}
+				}
+				else if (id_selector && id === selector.substr(1)) {
+					wrapped_children.push(Viva.Graph.svg(el));
+					break;
+				} else if (tag_selector && tagName === selector) {
+					wrapped_children.push(Viva.Graph.svg(el));
+				}
+
+				wrapped_children = wrapped_children.concat(Viva.Graph.svg(el).children(selector));
+			}
+
+			if (id_selector && wrapped_children.length === 1) {
+				return wrapped_children[0];
+			}
+		}
+
+		return wrapped_children;
+	};
     
     return svgElement;
 };
