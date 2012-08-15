@@ -7,9 +7,9 @@
         function main () {
             // This demo shows how to create a directional arrow in SVG renderer.
             // Though it might seem wordy it's due to SVG specific operations.
-            // The library has minimal SVG manipulation support, mostly very
-            // low level. Maybe in future some of the following technniques
-            // will become part of the library itself...
+            // The library has minimal SVG manipulation support.
+            // Maybe in future some of the following technniques will become part 
+            // of the library itself...
             var graph = Viva.Graph.graph();
 
             var graphics = Viva.Graph.View.svgGraphics(),
@@ -81,7 +81,7 @@
                                 fromPos.y + fromNodeSize / 2, // bottom
                         // segment:
                                 fromPos.x, fromPos.y, toPos.x, toPos.y) 
-                           || fromPos; // if no intersection found - return centr of the node
+                           || fromPos; // if no intersection found - return center of the node
                 
                 var to = geom.intersectRect(
                         // rectangle:
@@ -91,7 +91,7 @@
                                 toPos.y + toNodeSize / 2, // bottom
                         // segment:
                                 toPos.x, toPos.y, fromPos.x, fromPos.y) 
-                            || toPos; // if no intersection found - return centr of the node
+                            || toPos; // if no intersection found - return center of the node
                             
                 var data = 'M' + from.x + ',' + from.y +
                            'L' + to.x + ',' + to.y;
@@ -104,7 +104,7 @@
             graph.addNode('indexzero', 'd43e8ea63b61e7669ded5b9d3c2e980f');
             graph.addLink('anvaka', 'indexzero');
             
-            // You might have noticed that we the order in which 
+            // You might have noticed that the order in which 
             // we call renderer.run() and graph.addNode()/addLink() differs from 
             // previous tutorials. The reason for this is that graphics.getSVGRoot() returns
             // null if it was not initialized by the renderer yet. Maybe this behavior will 
