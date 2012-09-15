@@ -5352,7 +5352,14 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                 handleMouseUp = function(e) {
                     documentEvents.stop('mousemove', handleMouseMove);
                     documentEvents.stop('mouseup', handleMouseUp);
+                },
+                
+                updateBoundRect = function() {
+                    boundRect = root.getBoundingClientRect();
                 };
+                
+             window.addEventListener('resize', updateBoundRect);
+             updateBoundRect();
 
              // mouse move inside container serves only to track mouse enter/leave events.
              root.addEventListener('mousemove',
@@ -5364,9 +5371,9 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                     var cancelBubble = false,
                         node;
                     
-                    pos.x = e.clientX - this.offsetLeft;
-                    pos.y = e.clientY - this.offsetTop;
-                    console.log(pos.x, pos.y);
+                    pos.x = e.clientX - boundRect.left;
+                    pos.y = e.clientY - boundRect.top;
+
                     webglGraphics.getGraphCoordinates(pos);
                     node = spatialIndex.getNodeAt(pos.x, pos.y);
                        
@@ -5387,8 +5394,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                  function(e) {
                     var cancelBubble = false,
                         args;
-                    pos.x = e.clientX - this.offsetLeft;
-                    pos.y = e.clientY - this.offsetTop;
+                    pos.x = e.clientX - boundRect.left;
+                    pos.y = e.clientY - boundRect.top;
                     webglGraphics.getGraphCoordinates(pos);
                     
                     args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
@@ -5415,8 +5422,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         var clickTime = +new Date(),
                             args;
                             
-                        pos.x = e.clientX - this.offsetLeft;
-                        pos.y = e.clientY - this.offsetTop;
+                        pos.x = e.clientX - boundRect.left;
+                        pos.y = e.clientY - boundRect.top;
                         webglGraphics.getGraphCoordinates(pos);
                         
                         args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
