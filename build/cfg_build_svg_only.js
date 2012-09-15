@@ -12,10 +12,11 @@ configuration = {
             "Utils/indexOf.js",
             "Utils/getDimensions.js",
             "Utils/events.js",
-            "Utils/dragndrop.js",
+            "Input/dragndrop.js",
+            "Input/domInputManager.js",
+            "Input/spatialIndex.js", // TODO: Do I need this for SVG?
             "Utils/timer.js",
             "Utils/geom.js",
-            "Utils/spatialIndex.js",
 
             "Core/graph.js",
             "Core/operations.js",

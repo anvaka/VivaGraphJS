@@ -27,7 +27,7 @@ Viva.Graph.View.cssGraphics = function() {
         
         transformName = (function(){
 			var browserName = Viva.BrowserInfo.browser,
-                prefix;
+                prefix, version;
     
             switch (browserName) {
                 case 'mozilla' :
@@ -40,19 +40,21 @@ Viva.Graph.View.cssGraphics = function() {
                     prefix = 'O';
                     break;
                 case 'msie' :
-                    var version = Viva.BrowserInfo.version.split(".")[0];
+                    version = Viva.BrowserInfo.version.split(".")[0];
                     if(version > 8) {
                         prefix = 'ms';
                     } else {
                         return OLD_IE;
                     }
+                    break;
              }
+             
              if (prefix) { // CSS3
                 return prefix + 'Transform';
-             } else { // Unknown browser
-                 return null; 
-             }
-        })(),
+             } 
+             // Unknown browser
+             return null; 
+        }()),
         
        /** 
         * Returns a function (ui, x, y, angleRad).
@@ -66,8 +68,8 @@ Viva.Graph.View.cssGraphics = function() {
         positionLink = (function() {
             if (transformName === OLD_IE) { // This is old IE, use filters
                 return function(ui, x, y, angleRad) {
-                    var cos = Math.cos(angleRad);
-                    var sin = Math.sin(angleRad);
+                    var cos = Math.cos(angleRad),
+                        sin = Math.sin(angleRad);
 
                     // IE 6, 7 and 8 are screwed up when it comes to transforms;
                     // I could not find justification for their choice of "floating"
@@ -92,7 +94,9 @@ Viva.Graph.View.cssGraphics = function() {
                     }
                     ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
                 };
-            } else if (transformName) { // Modern CSS3 browser
+            } 
+            
+            if (transformName) { // Modern CSS3 browser
                 return function(ui, x, y, angleRad) {
                     ui.style.left = x + 'px';
                     ui.style.top = y + 'px';
@@ -100,12 +104,12 @@ Viva.Graph.View.cssGraphics = function() {
                     ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
                     ui.style[transformName + 'Origin'] = 'left';
                 };
-            } else {
-                return function(ui, x, y, angleRad) {
-                    // Don't know how to rotate links in other browsers.
-                };
-            }
-        })(),
+            } 
+            
+            return function(ui, x, y, angleRad) {
+                // Don't know how to rotate links in other browsers.
+            };
+        }()),
         
          nodeBuilder = function(node){
             var nodeUI = document.createElement('div');
@@ -120,9 +124,9 @@ Viva.Graph.View.cssGraphics = function() {
         },
         
         linkPositionCallback = function(linkUI, fromPos, toPos) {
-            var dx = fromPos.x - toPos.x;
-            var dy = fromPos.y - toPos.y;
-            var length = Math.sqrt(dx * dx + dy * dy);
+            var dx = fromPos.x - toPos.x,
+                dy = fromPos.y - toPos.y,
+                length = Math.sqrt(dx * dx + dy * dy);
             
             linkUI.style.height = '1px';
             linkUI.style.width = length + 'px';
@@ -190,6 +194,11 @@ Viva.Graph.View.cssGraphics = function() {
             linkBuilder = builderCallbackOrLink;
             return this;
         },
+        
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop    
+         */
+        inputManager : Viva.Input.domInputManager,
         
         /**
          * Sets translate operation that should be applied to all nodes and links.

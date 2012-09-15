@@ -130,6 +130,11 @@ Viva.Graph.View.svgGraphics = function () {
             offsetY = y;
             updateTransform();
         },
+        
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop    
+         */
+        inputManager : Viva.Input.domInputManager,
 
         translateRel : function (dx, dy) {
             var p = svgRoot.createSVGPoint(),

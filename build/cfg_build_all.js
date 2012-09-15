@@ -12,10 +12,11 @@ configuration = {
             "Utils/indexOf.js",
             "Utils/getDimensions.js",
             "Utils/events.js",
-            "Utils/dragndrop.js",
+            "Input/dragndrop.js",
+            "Input/domInputManager.js",
+            "Input/spatialIndex.js",
             "Utils/timer.js",
             "Utils/geom.js",
-            "Utils/spatialIndex.js",
 
             "Core/graph.js",
             "Core/generator.js",
@@ -47,6 +48,7 @@ configuration = {
             "View/webglGraphics.js",
 
             "WebGL/webglInputEvents.js",
+            "Input/webglInputManager.js",
 
             "View/renderer.js",
             "Core/serializer.js"

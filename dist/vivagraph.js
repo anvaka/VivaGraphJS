@@ -405,6 +405,7 @@ Viva.Graph.Utils.events = function(element){
 /*global Viva, window*/
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
+// TODO: Move to input namespace
 Viva.Graph.Utils.dragndrop = function(element) {
     
     var start,
@@ -590,6 +591,103 @@ Viva.Graph.Utils.dragndrop = function(element) {
             documentEvents.stop('mouseup', handleMouseUp);
             updateScrollEvents(null);
         }
+    };
+};
+/**
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/*global Viva, window*/
+Viva.Input = Viva.Input || {};
+Viva.Input.domInputManager = function(graph, graphics) {
+    return {
+        /**
+         * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG 
+         * graphics we may listen to DOM events, whereas for WebGL we graphics
+         * should provide custom eventing mechanism.
+         *  
+         * @param node - to be monitored.
+         * @param handlers - object with set of three callbacks:
+         *   onStart: function(),
+         *   onDrag: function(e, offset),
+         *   onStop: function()
+         */
+        bindDragNDrop : function(node, handlers) {
+            if (handlers) {
+                var events = Viva.Graph.Utils.dragndrop(node.ui);
+                if (typeof handlers.onStart === 'function') {
+                    events.onStart(handlers.onStart);
+                }
+                if (typeof handlers.onDrag === 'function') {
+                    events.onDrag(handlers.onDrag);
+                } 
+                if (typeof handlers.onStop === 'function') {
+                    events.onStop(handlers.onStop);
+                }
+                
+                node.events = events;
+            } else if (node.events) {
+                // TODO: i'm not sure if this is required in JS world...
+                node.events.release();
+                node.events = null;
+                delete node.events;
+            }
+
+        }   
+    };
+};
+/*global Viva */
+
+/**
+ * Allows querying graph nodes position at given point. 
+ * 
+ * @param graph - graph to be queried. 
+ * @param toleranceOrCheckCallback - if it's a number then it represents offest 
+ *          in pixels from any node position to be considered a part of the node.
+ *          if it's a function then it's called for every node to check intersection
+ * 
+ * TODO: currently it performes linear search. Use real spatial index to improve performance.
+ */
+Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
+    var getNodeFunction,
+        preciseCheckCallback,
+        tolerance = 16;
+   
+    if (typeof toleranceOrCheckCallback === 'function') {
+        preciseCheckCallback = toleranceOrCheckCallback;
+        getNodeFunction = function(x, y) {
+            var foundNode = null;
+            graph.forEachNode(function(node) {
+                var pos = node.position;
+                if (preciseCheckCallback(node, x, y)) {
+                    foundNode = node;
+                    return true;
+                }
+            });
+            
+            return foundNode;
+        };
+    } else if (typeof toleranceOrCheckCallback === 'number') {
+        tolerance = toleranceOrCheckCallback;
+        getNodeFunction = function (x, y) {
+            var foundNode = null;
+
+            graph.forEachNode(function (node) {
+                var pos = node.position;
+                if (pos.x - tolerance < x && x < pos.x + tolerance &&
+                    pos.y - tolerance < y && y < pos.y + tolerance) {
+                        foundNode = node;
+                        return true;
+                    }
+            });
+
+            return foundNode;
+        };        
+    }
+
+    
+    return {
+        getNodeAt : getNodeFunction
     };
 };
 /**
@@ -848,61 +946,7 @@ Viva.Graph.geom = function() {
             return s;
         }  
     };
-};/*global Viva */
-
-/**
- * Allows querying graph nodes position at given point. 
- * 
- * @param graph - graph to be queried. 
- * @param toleranceOrCheckCallback - if it's a number then it represents offest 
- *          in pixels from any node position to be considered a part of the node.
- *          if it's a function then it's called for every node to check intersection
- * 
- * TODO: currently it performes linear search. Use real spatial index to improve performance.
- */
-Viva.Graph.spatialIndex = function(graph, toleranceOrCheckCallback) {
-    var getNodeFunction,
-        preciseCheckCallback,
-        tolerance = 16;
-   
-    if (typeof toleranceOrCheckCallback === 'function') {
-        preciseCheckCallback = toleranceOrCheckCallback;
-        getNodeFunction = function(x, y) {
-            var foundNode = null;
-            graph.forEachNode(function(node) {
-                var pos = node.position;
-                if (preciseCheckCallback(node, x, y)) {
-                    foundNode = node;
-                    return true;
-                }
-            });
-            
-            return foundNode;
-        };
-    } else if (typeof toleranceOrCheckCallback === 'number') {
-        tolerance = toleranceOrCheckCallback;
-        getNodeFunction = function (x, y) {
-            var foundNode = null;
-
-            graph.forEachNode(function (node) {
-                var pos = node.position;
-                if (pos.x - tolerance < x && x < pos.x + tolerance &&
-                    pos.y - tolerance < y && y < pos.y + tolerance) {
-                        foundNode = node;
-                        return true;
-                    }
-            });
-
-            return foundNode;
-        };        
-    }
-
-    
-    return {
-        getNodeAt : getNodeFunction
-    };
-};
-/**
+};/**
  * @fileOverview Contains definition of the core graph object.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -3083,7 +3127,7 @@ Viva.Graph.View.cssGraphics = function() {
         
         transformName = (function(){
 			var browserName = Viva.BrowserInfo.browser,
-                prefix;
+                prefix, version;
     
             switch (browserName) {
                 case 'mozilla' :
@@ -3096,19 +3140,21 @@ Viva.Graph.View.cssGraphics = function() {
                     prefix = 'O';
                     break;
                 case 'msie' :
-                    var version = Viva.BrowserInfo.version.split(".")[0];
+                    version = Viva.BrowserInfo.version.split(".")[0];
                     if(version > 8) {
                         prefix = 'ms';
                     } else {
                         return OLD_IE;
                     }
+                    break;
              }
+             
              if (prefix) { // CSS3
                 return prefix + 'Transform';
-             } else { // Unknown browser
-                 return null; 
-             }
-        })(),
+             } 
+             // Unknown browser
+             return null; 
+        }()),
         
        /** 
         * Returns a function (ui, x, y, angleRad).
@@ -3122,8 +3168,8 @@ Viva.Graph.View.cssGraphics = function() {
         positionLink = (function() {
             if (transformName === OLD_IE) { // This is old IE, use filters
                 return function(ui, x, y, angleRad) {
-                    var cos = Math.cos(angleRad);
-                    var sin = Math.sin(angleRad);
+                    var cos = Math.cos(angleRad),
+                        sin = Math.sin(angleRad);
 
                     // IE 6, 7 and 8 are screwed up when it comes to transforms;
                     // I could not find justification for their choice of "floating"
@@ -3148,7 +3194,9 @@ Viva.Graph.View.cssGraphics = function() {
                     }
                     ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
                 };
-            } else if (transformName) { // Modern CSS3 browser
+            } 
+            
+            if (transformName) { // Modern CSS3 browser
                 return function(ui, x, y, angleRad) {
                     ui.style.left = x + 'px';
                     ui.style.top = y + 'px';
@@ -3156,12 +3204,12 @@ Viva.Graph.View.cssGraphics = function() {
                     ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
                     ui.style[transformName + 'Origin'] = 'left';
                 };
-            } else {
-                return function(ui, x, y, angleRad) {
-                    // Don't know how to rotate links in other browsers.
-                };
-            }
-        })(),
+            } 
+            
+            return function(ui, x, y, angleRad) {
+                // Don't know how to rotate links in other browsers.
+            };
+        }()),
         
          nodeBuilder = function(node){
             var nodeUI = document.createElement('div');
@@ -3176,9 +3224,9 @@ Viva.Graph.View.cssGraphics = function() {
         },
         
         linkPositionCallback = function(linkUI, fromPos, toPos) {
-            var dx = fromPos.x - toPos.x;
-            var dy = fromPos.y - toPos.y;
-            var length = Math.sqrt(dx * dx + dy * dy);
+            var dx = fromPos.x - toPos.x,
+                dy = fromPos.y - toPos.y,
+                length = Math.sqrt(dx * dx + dy * dy);
             
             linkUI.style.height = '1px';
             linkUI.style.width = length + 'px';
@@ -3246,6 +3294,11 @@ Viva.Graph.View.cssGraphics = function() {
             linkBuilder = builderCallbackOrLink;
             return this;
         },
+        
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop    
+         */
+        inputManager : Viva.Input.domInputManager,
         
         /**
          * Sets translate operation that should be applied to all nodes and links.
@@ -3438,6 +3491,58 @@ Viva.Graph.svg = function(element) {
         svgElement.setAttributeNS(xlinkns, 'xlink:href', target);
         return svgElement;
     };
+
+	svgElement.children = function (selector) {
+		var wrapped_children = [],
+			children_count = svgElement.childNodes.length;
+
+		if (selector === undefined && svgElement.hasChildNodes()) {
+			for (var i = 0; i < children_count; i++) {
+				wrapped_children.push(Viva.Graph.svg(svgElement.childNodes[i]));
+			}
+		} else if (typeof selector === 'string') {
+			var class_selector = (selector[0] === '.'),
+				id_selector    = (selector[0] === '#'),
+				tag_selector   = !class_selector && !id_selector;
+
+			for (var i = 0; i < children_count; i++) {
+				var el = svgElement.childNodes[i];
+
+				// pass comments, text nodes etc.
+				if (el.nodeType !== 1) {
+					continue;
+				} 
+
+				var	classes = el.attr('class'),
+					id = el.attr('id'),
+					tagName = el.nodeName;
+
+				if (class_selector && classes) {
+					classes = classes.replace(/\s+/g, ' ').split(' ');
+					for (var j = 0; j < classes.length; j++) {
+						if (class_selector && classes[j] === selector.substr(1)) {
+							wrapped_children.push(Viva.Graph.svg(el));
+							break;
+						} 
+					}
+				}
+				else if (id_selector && id === selector.substr(1)) {
+					wrapped_children.push(Viva.Graph.svg(el));
+					break;
+				} else if (tag_selector && tagName === selector) {
+					wrapped_children.push(Viva.Graph.svg(el));
+				}
+
+				wrapped_children = wrapped_children.concat(Viva.Graph.svg(el).children(selector));
+			}
+
+			if (id_selector && wrapped_children.length === 1) {
+				return wrapped_children[0];
+			}
+		}
+
+		return wrapped_children;
+	};
     
     return svgElement;
 };
@@ -3573,6 +3678,11 @@ Viva.Graph.View.svgGraphics = function () {
             offsetY = y;
             updateTransform();
         },
+        
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop    
+         */
+        inputManager : Viva.Input.domInputManager,
 
         translateRel : function (dx, dy) {
             var p = svgRoot.createSVGPoint(),
@@ -4780,8 +4890,8 @@ Viva.Graph.View.webglGraphics = function(options) {
                 width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
                 height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
                 if (gl) { gl.viewport(0, 0, width, height);}
-                if (linkProgram) { linkProgram.updateSize(width, height); }
-                if (nodeProgram) { nodeProgram.updateSize(width, height); }
+                if (linkProgram) { linkProgram.updateSize(width/2, height/2); }
+                if (nodeProgram) { nodeProgram.updateSize(width/2, height/2); }
             }
         },
         
@@ -4870,6 +4980,11 @@ Viva.Graph.View.webglGraphics = function(options) {
         },
         
         /**
+         * Custom input manager listens to mouse events to process nodes drag-n-drop inside WebGL canvas    
+         */
+        inputManager : Viva.Input.webglInputManager,
+        
+        /**
          * Called every before renderer starts rendering.
          */
         beginRender : function() {},
@@ -4887,13 +5002,15 @@ Viva.Graph.View.webglGraphics = function(options) {
         },
         
         bringLinkToFront : function(linkUI) {
-            var frontLinkId = linkProgram.getFrontLinkId();
+            var frontLinkId = linkProgram.getFrontLinkId(),
+                srcLinkId, temp;
+
             linkProgram.bringToFront(linkUI);
             
             if (frontLinkId > linkUI.id) {
-               var srcLinkId = linkUI.id;
+               srcLinkId = linkUI.id;
 
-               var temp = links[frontLinkId];
+               temp = links[frontLinkId];
                links[frontLinkId] = links[srcLinkId];
                links[frontLinkId].ui.id = frontLinkId; 
                links[srcLinkId] = temp; 
@@ -4971,10 +5088,10 @@ Viva.Graph.View.webglGraphics = function(options) {
            }
            
            linkProgram.load(gl);
-           linkProgram.updateSize(width, height);
+           linkProgram.updateSize(width/2, height/2);
            
            nodeProgram.load(gl);
-           nodeProgram.updateSize(width, height);
+           nodeProgram.updateSize(width/2, height/2);
            
            updateTransformUniform();
            
@@ -5069,6 +5186,10 @@ Viva.Graph.View.webglGraphics = function(options) {
        * provider place given node UI to recommended position pos {x, y};
        */ 
        updateNodePosition : function(nodeUI, pos) {
+           // WebGL coordinate system is different. Would be better
+           // to have this transform in the shader code, but it would
+           // require every shader to be updated..           
+           pos.y = -pos.y;
            if(userPlaceNodeCallback) {
                 userPlaceNodeCallback(nodeUI, pos); 
            }
@@ -5081,6 +5202,11 @@ Viva.Graph.View.webglGraphics = function(options) {
        * provider place given link of the graph. Pos objects are {x, y};
        */  
        updateLinkPosition : function(link, fromPos, toPos) {
+           // WebGL coordinate system is different. Would be better
+           // to have this transform in the shader code, but it would
+           // require every shader to be updated..
+           fromPos.y = -fromPos.y;
+           toPos.y = -toPos.y;
            if(userPlaceLinkCallback) {
                userPlaceLinkCallback(link, fromPos, toPos); 
            }
@@ -5112,7 +5238,6 @@ Viva.Graph.View.webglGraphics = function(options) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about the rest.
                nodeProgram = newProgram; 
-               return;
            } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
@@ -5129,7 +5254,6 @@ Viva.Graph.View.webglGraphics = function(options) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about the rest.
                linkProgram = newProgram; 
-               return;
            } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
@@ -5145,8 +5269,9 @@ Viva.Graph.View.webglGraphics = function(options) {
             graphicsRootPos.x = (graphicsRootPos.x - transform[12])/transform[0];
             graphicsRootPos.y = (graphicsRootPos.y - transform[13])/transform[5]; 
             // now transform to graph coordinates:
-            graphicsRootPos.x *= width;
-            graphicsRootPos.y *= height;
+            graphicsRootPos.x *= width/2;
+            graphicsRootPos.y *= -height/2;
+            
             return graphicsRootPos;
        }
     };
@@ -5158,99 +5283,281 @@ Viva.Graph.View.webglGraphics = function(options) {
 };/*global Viva */
 
 /**
- * Monitors mouse input in webgl graphics and notifies subscribers. 
+ * Monitors graph-related mouse input in webgl graphics and notifies subscribers. 
  * 
- * @param {Object} webglGraphics
- * @param {Object} graph
+ * @param {Viva.Graph.View.webglGraphics} webglGraphics
+ * @param {Viva.Graph.graph} graph
  */
 Viva.Graph.webglInputEvents = function(webglGraphics, graph){
+    if (webglGraphics.webglInputEvents) {
+        // Don't listen twice, if we are already attached to this graphics:
+        return webglGraphics.webglInputEvents;
+    }
+    
     var preciseCheck = function(node, x, y) {
-        if (node.ui && node.ui.size) {
-            var pos = node.position,
-                half = node.ui.size;
-
-            return pos.x - half < x && x < pos.x + half &&
-                   pos.y - half < y && y < pos.y + half;
-        } else {
+            if (node.ui && node.ui.size) {
+                var pos = node.position,
+                    half = node.ui.size;
+    
+                return pos.x - half < x && x < pos.x + half &&
+                       pos.y - half < y && y < pos.y + half;
+            } 
+    
             return true;
-        }
-    },
+        },
+        mouseCapturedNode = null,
 
         spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
-        mouseEnterCallback,
-        mouseLeaveCallback,
-        clickCallback,
-        dblClickCallback,
+        mouseEnterCallback = [],
+        mouseLeaveCallback = [],
+        mouseDownCallback = [],
+        mouseUpCallback = [],
+        mouseMoveCallback = [],
+        clickCallback = [],
+        dblClickCallback = [],
+        documentEvents = Viva.Graph.Utils.events(window.document),
+        prevSelectStart,
+        prevDragStart,
+        
+        stopPropagation = function (e) {
+            if (e.stopPropagation) { e.stopPropagation(); }
+            else { 
+                e.cancelBubble = true; 
+            }
+        },
+        
+        handleDisabledEvent = function(e) {
+            stopPropagation(e);
+            return false;
+        },
+
+        invoke = function(callbacksChain, args) {
+            var i, stopPropagation;
+            for (i=0; i < callbacksChain.length; i += 1) {
+              stopPropagation = callbacksChain[i].apply(undefined, args);
+              if (stopPropagation) { return true; }
+            }
+        },
 
         startListen = function(root) {
             var pos = {x : 0, y : 0},
-                lastFound = null;
+                lastFound = null,
+                lastClickTime = +new Date(),
+                
+                handleMouseMove = function(e) {
+                    invoke(mouseMoveCallback, [lastFound, e]);
+                    pos.x = e.clientX;
+                    pos.y = e.clientY;
+                },
+                
+                handleMouseUp = function(e) {
+                    documentEvents.stop('mousemove', handleMouseMove);
+                    documentEvents.stop('mouseup', handleMouseUp);
+                };
 
+             // mouse move inside container serves only to track mouse enter/leave events.
              root.addEventListener('mousemove',
-                function (e){
-                     pos.x = e.clientX;
-                     pos.y = e.clientY;
-                     webglGraphics.getGraphCoordinates(pos);
-                     var node = spatialIndex.getNodeAt(pos.x, pos.y);
-                        
-                     if (node && lastFound !== node) {
-                         lastFound = node;
-                         if (typeof mouseEnterCallback === 'function') {
-                             mouseEnterCallback(lastFound);
-                         }
-                     } else if (node === null && lastFound !== node){
-                         if (typeof mouseLeaveCallback === 'function') {
-                             mouseLeaveCallback(lastFound);
-                         }
-                         
-                         lastFound = null;
-                     }
+                function (e) {
+                    if (mouseCapturedNode) {
+                        return; 
+                    }
+                    
+                    var cancelBubble = false;
+                        pos.x = e.clientX;
+                        pos.y = e.clientY;
+                    
+                    webglGraphics.getGraphCoordinates(pos);
+                    var node = spatialIndex.getNodeAt(pos.x, pos.y);
+                       
+                    if (node && lastFound !== node) {
+                        lastFound = node;
+                        cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
+                    } else if (node && lastFound === node) {
+                        // cancelBubble = cancelBubble || invoke(mouseMoveCallback, [lastFound, e]);
+                    } else if (node === null && lastFound !== node) {
+                        cancelBubble = cancelBubble || invoke(mouseLeaveCallback, [lastFound]);
+                        lastFound = null;
+                    }
+                    
+                    if (cancelBubble) { stopPropagation(e); }
               });
-              
-              var lastClickTime = +new Date();
               
               root.addEventListener('mousedown',
-                function(e) {
-                    var clickTime = +new Date();
-                     pos.x = e.clientX;
-                     pos.y = e.clientY;
-                     webglGraphics.getGraphCoordinates(pos);
-                     var node = spatialIndex.getNodeAt(pos.x, pos.y);
-                     if (node) {
-                         if (clickTime - lastClickTime < 400 && typeof dblClickCallback === 'function' && node === lastFound) {
-                             dblClickCallback(node, e);
-                         } else if (typeof clickCallback === 'function'){
-                            clickCallback(node, e);
-                         }
-                         lastFound = node;
-                     } else {
+                 function(e) {
+                    var cancelBubble = false,
+                        args;
+                    pos.x = e.clientX;
+                    pos.y = e.clientY;
+                    webglGraphics.getGraphCoordinates(pos);
+                    
+                    args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
+                    if (args[0]) {
+                        cancelBubble = invoke(mouseDownCallback, args);
+                        // we clicked on a node. Following drag should be handled on document events:
+                        documentEvents.on('mousemove', handleMouseMove);
+                        documentEvents.on('mouseup', handleMouseUp);
+                        
+                        prevSelectStart = document.onselectstart;
+                        prevDragStart = document.ondragstart;
+                        
+                        document.onselectstart = handleDisabledEvent;
+                        //dragObject.ondragstart = handleDisabledEvent;
+                        
+                        lastFound = args[0];
+                    } else {
                          lastFound = null;
-                     }
-                     lastClickTime = clickTime;
+                    }
+                    if (cancelBubble) { stopPropagation(e); }
               });
+              
+              root.addEventListener('mouseup',
+                  function(e) {
+                        var clickTime = +new Date(),
+                            args;
+                            
+                        pos.x = e.clientX;
+                        pos.y = e.clientY;
+                        webglGraphics.getGraphCoordinates(pos);
+                        
+                        args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
+                        if (args[0]) {
+                            document.onselectstart = prevSelectStart;
+                            //dragObject.ondragstart = prevDragStart; 
+    
+                            if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
+                                cancelBubble = invoke(dblClickCallback, args);
+                            } else {
+                                cancelBubble = invoke(clickCallback, args);
+                            }
+                            lastClickTime = clickTime;
+                            
+                            if (invoke(mouseUpCallback, args)) {
+                                stopPropagation(e);
+                            }
+                        }
+                  });
         };
     
     // webgl may not be initialized at this point. Pass callback
     // to start listen after graphics root is ready.
     webglGraphics.getGraphicsRoot(startListen);
     
-    return {
-        mouseEnter : function(callback){
-            mouseEnterCallback = callback;
+    webglGraphics.webglInputEvents = {
+        mouseEnter : function(callback) {
+            if (typeof callback === 'function') {
+                mouseEnterCallback.push(callback);
+            }
             return this;
         },
         mouseLeave : function(callback) {
-            mouseLeaveCallback = callback;
+            if (typeof callback === 'function') {
+                mouseLeaveCallback.push(callback);
+            }
             return this;
         },
-        click : function(callback){
-            clickCallback = callback;
+        mouseDown : function(callback) {
+            if (typeof callback === 'function') {
+                mouseDownCallback.push(callback);
+            }
+            return this;
+        },
+        mouseUp : function(callback) {
+            if (typeof callback === 'function') {
+                mouseUpCallback.push(callback);
+            }
+            return this;
+        },
+        mouseMove : function(callback) {
+            if (typeof callback === 'function') {
+                mouseMoveCallback.push(callback);
+            }
+            return this;
+        },
+        click : function(callback) {
+            if (typeof callback === 'function') {
+                clickCallback.push(callback);
+            }
             return this;
         },
         dblClick : function(callback){
-            dblClickCallback = callback;
+            if (typeof callback === 'function') {
+                dblClickCallback.push(callback);
+            }
             return this;
+        },
+        mouseCapture : function(node) {
+            mouseCapturedNode = node;
+        },
+        releaseMouseCapture : function(node) {
+            mouseCapturedNode = null;
         }
+    };
+    
+    return webglGraphics.webglInputEvents;
+};
+/**
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/*global Viva, window*/
+Viva.Input = Viva.Input || {};
+Viva.Input.webglInputManager = function(graph, graphics) {
+    var inputEvents = Viva.Graph.webglInputEvents(graphics, graph),
+        draggedNode = null,
+        internalHandlers = {},
+        pos = {x : 0, y : 0};
+    
+    inputEvents.mouseDown(function(node, e){
+        console.log('Mouse down', node, e);
+        draggedNode = node;
+        pos.x = e.clientX;
+        pos.y = e.clientY;
+        
+        inputEvents.mouseCapture(draggedNode);
+        
+        var handlers = internalHandlers[node.ui.id];
+        if (handlers && handlers.onStart) {
+            handlers.onStart(e, pos);
+        }
+        
+        return true;
+     }).mouseUp(function(node) {
+        inputEvents.releaseMouseCapture(draggedNode);
+        
+        draggedNode = null;
+        var handlers = internalHandlers[node.ui.id];
+        if (handlers && handlers.onStop) {
+            handlers.onStop();
+        }
+        return true; 
+     }).mouseMove(function(node, e){
+         if (draggedNode) {
+            var handlers = internalHandlers[draggedNode.ui.id];
+            if (handlers && handlers.onDrag) { 
+                 handlers.onDrag(e, {x : e.clientX - pos.x, y : e.clientY - pos.y });
+            }
+                            
+            pos.x = e.clientX;
+            pos.y = e.clientY;
+            return true;
+         }
+     });
+    
+    return {
+        /**
+         * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG 
+         * graphics we may listen to DOM events, whereas for WebGL we graphics
+         * should provide custom eventing mechanism.
+         *  
+         * @param node - to be monitored.
+         * @param handlers - object with set of three callbacks:
+         *   onStart: function(),
+         *   onDrag: function(e, offset),
+         *   onStop: function()
+         */
+        bindDragNDrop : function(node, handlers) {
+            internalHandlers[node.ui.id] = handlers;
+        }   
     };
 };
 /**
@@ -5307,6 +5614,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
     var layout = settings.layout,
         graphics = settings.graphics,
         container = settings.container,
+        inputManager,
         animationTimer,
         rendererInitialized = false,
         updateCenterRequired = true,
@@ -5337,6 +5645,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
             }
             
             settings.prerender = settings.prerender || 0;
+            inputManager = (graphics.inputManager || Viva.Input.domListener)(graph, graphics);
         },
         // Cache positions object to prevent GC pressure
         cachedFromPos = {x : 0, y : 0, node: null},
@@ -5344,8 +5653,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         cachedNodePos = { x: 0, y: 0},
         
         renderLink = function(link){
-            var fromNode = graph.getNode(link.fromId);
-            var toNode = graph.getNode(link.toId);
+            var fromNode = graph.getNode(link.fromId),
+                toNode = graph.getNode(link.toId);
     
             if(!fromNode || !toNode) {
                 return;
@@ -5413,8 +5722,9 @@ Viva.Graph.View.renderer = function(graph, settings) {
        prerender = function() {
            // To get good initial positions for the graph
            // perform several prerender steps in background.
+           var i;
            if (typeof settings.prerender === 'number' && settings.prerender > 0){
-               for (var i = 0; i < settings.prerender; ++i){
+               for (i = 0; i < settings.prerender; i += 1){
                    layout.step();
                }
            } else {
@@ -5474,32 +5784,32 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        listenNodeEvents = function(node) {
             var wasPinned = false;
-            // TODO: this should come from graphics? WebGL will not support this.
-            node.events = Viva.Graph.Utils.dragndrop(node.ui)
-                .onStart(function(){
-                    wasPinned = node.isPinned;
-                    node.isPinned = true;
-                    userInteraction = true;
-                    resetStable();
-                })
-                .onDrag(function(e, offset){
-                    node.position.x += offset.x / transform.scale;
-                    node.position.y += offset.y / transform.scale;
-                    userInteraction = true;
-                })
-                .onStop(function(){
-                    node.isPinned = wasPinned;
-                    userInteraction = false;
-                });
+            
+            // TODO: This may not be memory efficient. Consider reusing handlers object.
+            inputManager.bindDragNDrop(node, {
+                    onStart : function(){
+                        wasPinned = node.isPinned;
+                        node.isPinned = true;
+                        userInteraction = true;
+                        resetStable();
+                    },
+                    onDrag : function(e, offset){
+                        node.position.x += offset.x / transform.scale;
+                        node.position.y += offset.y / transform.scale;
+                        userInteraction = true;
+                        
+                        renderGraph();
+                    },
+                    onStop : function(){
+                        node.isPinned = wasPinned;
+                        userInteraction = false;
+                    } 
+                }
+            );
         },
         
         releaseNodeEvents = function(node) {
-            if (node.events) {
-                // TODO: i'm not sure if this is required in JS world...
-                node.events.release();
-                node.events = null;
-                delete node.events;
-            }
+            inputManager.bindDragNDrop(node, null);
         },
        
        initDom = function() {
@@ -5580,8 +5890,9 @@ Viva.Graph.View.renderer = function(graph, settings) {
             graph.forEachNode(listenNodeEvents);
             
             Viva.Graph.Utils.events(graph).on('changed', function(changes){
-                for(var i = 0; i < changes.length; ++i){
-                    var change = changes[i];
+                var i, change;
+                for(i = 0; i < changes.length; i += 1){
+                    change = changes[i];
                     if (change.node) {
                         processNodeChange(change);
                     } else if (change.link) {
@@ -5590,7 +5901,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 }
                 
                 resetStable();
-
             });
        };
        

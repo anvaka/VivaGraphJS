@@ -52,6 +52,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
     var layout = settings.layout,
         graphics = settings.graphics,
         container = settings.container,
+        inputManager,
         animationTimer,
         rendererInitialized = false,
         updateCenterRequired = true,
@@ -82,6 +83,7 @@ Viva.Graph.View.renderer = function(graph, settings) {
             }
             
             settings.prerender = settings.prerender || 0;
+            inputManager = (graphics.inputManager || Viva.Input.domListener)(graph, graphics);
         },
         // Cache positions object to prevent GC pressure
         cachedFromPos = {x : 0, y : 0, node: null},
@@ -89,8 +91,8 @@ Viva.Graph.View.renderer = function(graph, settings) {
         cachedNodePos = { x: 0, y: 0},
         
         renderLink = function(link){
-            var fromNode = graph.getNode(link.fromId);
-            var toNode = graph.getNode(link.toId);
+            var fromNode = graph.getNode(link.fromId),
+                toNode = graph.getNode(link.toId);
     
             if(!fromNode || !toNode) {
                 return;
@@ -158,8 +160,9 @@ Viva.Graph.View.renderer = function(graph, settings) {
        prerender = function() {
            // To get good initial positions for the graph
            // perform several prerender steps in background.
+           var i;
            if (typeof settings.prerender === 'number' && settings.prerender > 0){
-               for (var i = 0; i < settings.prerender; ++i){
+               for (i = 0; i < settings.prerender; i += 1){
                    layout.step();
                }
            } else {
@@ -219,32 +222,32 @@ Viva.Graph.View.renderer = function(graph, settings) {
        
        listenNodeEvents = function(node) {
             var wasPinned = false;
-            // TODO: this should come from graphics? WebGL will not support this.
-            node.events = Viva.Graph.Utils.dragndrop(node.ui)
-                .onStart(function(){
-                    wasPinned = node.isPinned;
-                    node.isPinned = true;
-                    userInteraction = true;
-                    resetStable();
-                })
-                .onDrag(function(e, offset){
-                    node.position.x += offset.x / transform.scale;
-                    node.position.y += offset.y / transform.scale;
-                    userInteraction = true;
-                })
-                .onStop(function(){
-                    node.isPinned = wasPinned;
-                    userInteraction = false;
-                });
+            
+            // TODO: This may not be memory efficient. Consider reusing handlers object.
+            inputManager.bindDragNDrop(node, {
+                    onStart : function(){
+                        wasPinned = node.isPinned;
+                        node.isPinned = true;
+                        userInteraction = true;
+                        resetStable();
+                    },
+                    onDrag : function(e, offset){
+                        node.position.x += offset.x / transform.scale;
+                        node.position.y += offset.y / transform.scale;
+                        userInteraction = true;
+                        
+                        renderGraph();
+                    },
+                    onStop : function(){
+                        node.isPinned = wasPinned;
+                        userInteraction = false;
+                    } 
+                }
+            );
         },
         
         releaseNodeEvents = function(node) {
-            if (node.events) {
-                // TODO: i'm not sure if this is required in JS world...
-                node.events.release();
-                node.events = null;
-                delete node.events;
-            }
+            inputManager.bindDragNDrop(node, null);
         },
        
        initDom = function() {
@@ -325,8 +328,9 @@ Viva.Graph.View.renderer = function(graph, settings) {
             graph.forEachNode(listenNodeEvents);
             
             Viva.Graph.Utils.events(graph).on('changed', function(changes){
-                for(var i = 0; i < changes.length; ++i){
-                    var change = changes[i];
+                var i, change;
+                for(i = 0; i < changes.length; i += 1){
+                    change = changes[i];
                     if (change.node) {
                         processNodeChange(change);
                     } else if (change.link) {
@@ -335,7 +339,6 @@ Viva.Graph.View.renderer = function(graph, settings) {
                 }
                 
                 resetStable();
-
             });
        };
        
