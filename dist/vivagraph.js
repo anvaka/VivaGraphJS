@@ -5317,7 +5317,6 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
         dblClickCallback = [],
         documentEvents = Viva.Graph.Utils.events(window.document),
         prevSelectStart,
-        prevDragStart,
         
         stopPropagation = function (e) {
             if (e.stopPropagation) { e.stopPropagation(); }
@@ -5362,12 +5361,14 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         return; 
                     }
                     
-                    var cancelBubble = false;
-                        pos.x = e.clientX;
-                        pos.y = e.clientY;
+                    var cancelBubble = false,
+                        node;
                     
+                    pos.x = e.clientX - this.offsetLeft;
+                    pos.y = e.clientY - this.offsetTop;
+                    console.log(pos.x, pos.y);
                     webglGraphics.getGraphCoordinates(pos);
-                    var node = spatialIndex.getNodeAt(pos.x, pos.y);
+                    node = spatialIndex.getNodeAt(pos.x, pos.y);
                        
                     if (node && lastFound !== node) {
                         lastFound = node;
@@ -5386,8 +5387,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                  function(e) {
                     var cancelBubble = false,
                         args;
-                    pos.x = e.clientX;
-                    pos.y = e.clientY;
+                    pos.x = e.clientX - this.offsetLeft;
+                    pos.y = e.clientY - this.offsetTop;
                     webglGraphics.getGraphCoordinates(pos);
                     
                     args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
@@ -5401,7 +5402,6 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         prevDragStart = document.ondragstart;
                         
                         document.onselectstart = handleDisabledEvent;
-                        //dragObject.ondragstart = handleDisabledEvent;
                         
                         lastFound = args[0];
                     } else {
@@ -5415,14 +5415,13 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         var clickTime = +new Date(),
                             args;
                             
-                        pos.x = e.clientX;
-                        pos.y = e.clientY;
+                        pos.x = e.clientX - this.offsetLeft;
+                        pos.y = e.clientY - this.offsetTop;
                         webglGraphics.getGraphCoordinates(pos);
                         
                         args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
                         if (args[0]) {
                             document.onselectstart = prevSelectStart;
-                            //dragObject.ondragstart = prevDragStart; 
     
                             if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
                                 cancelBubble = invoke(dblClickCallback, args);
@@ -5508,7 +5507,6 @@ Viva.Input.webglInputManager = function(graph, graphics) {
         pos = {x : 0, y : 0};
     
     inputEvents.mouseDown(function(node, e){
-        console.log('Mouse down', node, e);
         draggedNode = node;
         pos.x = e.clientX;
         pos.y = e.clientY;

@@ -79,12 +79,14 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         return; 
                     }
                     
-                    var cancelBubble = false;
-                        pos.x = e.clientX;
-                        pos.y = e.clientY;
+                    var cancelBubble = false,
+                        node;
                     
+                    pos.x = e.clientX - this.offsetLeft;
+                    pos.y = e.clientY - this.offsetTop;
+
                     webglGraphics.getGraphCoordinates(pos);
-                    var node = spatialIndex.getNodeAt(pos.x, pos.y);
+                    node = spatialIndex.getNodeAt(pos.x, pos.y);
                        
                     if (node && lastFound !== node) {
                         lastFound = node;
@@ -103,8 +105,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                  function(e) {
                     var cancelBubble = false,
                         args;
-                    pos.x = e.clientX;
-                    pos.y = e.clientY;
+                    pos.x = e.clientX - this.offsetLeft;
+                    pos.y = e.clientY - this.offsetTop;
                     webglGraphics.getGraphCoordinates(pos);
                     
                     args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
@@ -131,8 +133,8 @@ Viva.Graph.webglInputEvents = function(webglGraphics, graph){
                         var clickTime = +new Date(),
                             args;
                             
-                        pos.x = e.clientX;
-                        pos.y = e.clientY;
+                        pos.x = e.clientX - this.offsetLeft;
+                        pos.y = e.clientY - this.offsetTop;
                         webglGraphics.getGraphCoordinates(pos);
                         
                         args =[spatialIndex.getNodeAt(pos.x, pos.y), e];
