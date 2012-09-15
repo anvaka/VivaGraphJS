@@ -59,8 +59,8 @@ Viva.Graph.View.webglGraphics = function(options) {
                 width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
                 height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
                 if (gl) { gl.viewport(0, 0, width, height);}
-                if (linkProgram) { linkProgram.updateSize(width, height); }
-                if (nodeProgram) { nodeProgram.updateSize(width, height); }
+                if (linkProgram) { linkProgram.updateSize(width/2, height/2); }
+                if (nodeProgram) { nodeProgram.updateSize(width/2, height/2); }
             }
         },
         
@@ -149,6 +149,11 @@ Viva.Graph.View.webglGraphics = function(options) {
         },
         
         /**
+         * Custom input manager listens to mouse events to process nodes drag-n-drop inside WebGL canvas    
+         */
+        inputManager : Viva.Input.webglInputManager,
+        
+        /**
          * Called every before renderer starts rendering.
          */
         beginRender : function() {},
@@ -166,13 +171,15 @@ Viva.Graph.View.webglGraphics = function(options) {
         },
         
         bringLinkToFront : function(linkUI) {
-            var frontLinkId = linkProgram.getFrontLinkId();
+            var frontLinkId = linkProgram.getFrontLinkId(),
+                srcLinkId, temp;
+
             linkProgram.bringToFront(linkUI);
             
             if (frontLinkId > linkUI.id) {
-               var srcLinkId = linkUI.id;
+               srcLinkId = linkUI.id;
 
-               var temp = links[frontLinkId];
+               temp = links[frontLinkId];
                links[frontLinkId] = links[srcLinkId];
                links[frontLinkId].ui.id = frontLinkId; 
                links[srcLinkId] = temp; 
@@ -250,10 +257,10 @@ Viva.Graph.View.webglGraphics = function(options) {
            }
            
            linkProgram.load(gl);
-           linkProgram.updateSize(width, height);
+           linkProgram.updateSize(width/2, height/2);
            
            nodeProgram.load(gl);
-           nodeProgram.updateSize(width, height);
+           nodeProgram.updateSize(width/2, height/2);
            
            updateTransformUniform();
            
@@ -348,6 +355,10 @@ Viva.Graph.View.webglGraphics = function(options) {
        * provider place given node UI to recommended position pos {x, y};
        */ 
        updateNodePosition : function(nodeUI, pos) {
+           // WebGL coordinate system is different. Would be better
+           // to have this transform in the shader code, but it would
+           // require every shader to be updated..           
+           pos.y = -pos.y;
            if(userPlaceNodeCallback) {
                 userPlaceNodeCallback(nodeUI, pos); 
            }
@@ -360,6 +371,11 @@ Viva.Graph.View.webglGraphics = function(options) {
        * provider place given link of the graph. Pos objects are {x, y};
        */  
        updateLinkPosition : function(link, fromPos, toPos) {
+           // WebGL coordinate system is different. Would be better
+           // to have this transform in the shader code, but it would
+           // require every shader to be updated..
+           fromPos.y = -fromPos.y;
+           toPos.y = -toPos.y;
            if(userPlaceLinkCallback) {
                userPlaceLinkCallback(link, fromPos, toPos); 
            }
@@ -391,7 +407,6 @@ Viva.Graph.View.webglGraphics = function(options) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about the rest.
                nodeProgram = newProgram; 
-               return;
            } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
@@ -408,7 +423,6 @@ Viva.Graph.View.webglGraphics = function(options) {
                // Nothing created yet. Just set shader to the new one
                // and let initialization logic take care about the rest.
                linkProgram = newProgram; 
-               return;
            } else if (newProgram) {
                throw "Not implemented. Cannot swap shader on the fly... yet.";
                // TODO: unload old shader and reinit.
@@ -424,8 +438,9 @@ Viva.Graph.View.webglGraphics = function(options) {
             graphicsRootPos.x = (graphicsRootPos.x - transform[12])/transform[0];
             graphicsRootPos.y = (graphicsRootPos.y - transform[13])/transform[5]; 
             // now transform to graph coordinates:
-            graphicsRootPos.x *= width;
-            graphicsRootPos.y *= height;
+            graphicsRootPos.x *= width/2;
+            graphicsRootPos.y *= -height/2;
+            
             return graphicsRootPos;
        }
     };
