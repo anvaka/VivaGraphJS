@@ -54,7 +54,7 @@ Viva.Graph.Layout.forceDirected = function(graph, userSettings) {
         
         initializationRequired = true,
         
-        graphRect = {x1: 0, y1 : 0, x2 : 0, y2 : 0},
+        graphRect = new Viva.Graph.Rect(),
         
         random = Viva.random('ted.com', 103, 114, 101, 97, 116),
         

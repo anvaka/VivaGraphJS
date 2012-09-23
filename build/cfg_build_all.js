@@ -18,6 +18,7 @@ configuration = {
             "Utils/timer.js",
             "Utils/geom.js",
 
+            "Core/primitives.js",
             "Core/graph.js",
             "Core/generator.js",
             "Core/operations.js",
@@ -34,6 +35,7 @@ configuration = {
             "Physics/Forces/springForce.js",
             "Physics/forceSimulator.js",
             "Layout/forceDirected.js",
+            "Layout/constant.js",
 
             "View/cssGraphics.js",
             "Svg/svg.js",
