@@ -4,6 +4,7 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
@@ -43,7 +44,7 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         fireRescaled = function (graphics) {
-            // TODO: maybe we shall copy changes? 
+            // TODO: maybe we shall copy changes?
             graphics.fire('rescaled');
         },
 
@@ -57,18 +58,18 @@ Viva.Graph.View.svgGraphics = function () {
     var graphics = {
         /**
          * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function. 
-         * 
+         * presentation if builderCallbackOrNode is not a function.
+         *
          * @param builderCallbackOrNode a callback function that accepts graph node
          * as a parameter and must return an element representing this node. OR
          * if it's not a function it's treated as a node to which DOM element should be created.
-         * 
+         *
          * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
          * Otherwise a node representation is returned for the passed parameter.
          */
         node : function (builderCallbackOrNode) {
 
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function'){
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
                 return nodeBuilder(builderCallbackOrNode);
             }
 
@@ -79,12 +80,12 @@ Viva.Graph.View.svgGraphics = function () {
 
         /**
          * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function. 
-         * 
+         * presentation if builderCallbackOrLink is not a function.
+         *
          * @param builderCallbackOrLink a callback function that accepts graph link
          * as a parameter and must return an element representing this link. OR
          * if it's not a function it's treated as a link to which DOM element should be created.
-         * 
+         *
          * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
          * Otherwise a link representation is returned for the passed parameter.
          */
@@ -130,9 +131,9 @@ Viva.Graph.View.svgGraphics = function () {
             offsetY = y;
             updateTransform();
         },
-        
+
         /**
-         * Default input manager listens to DOM events to process nodes drag-n-drop    
+         * Default input manager listens to DOM events to process nodes drag-n-drop
          */
         inputManager : Viva.Input.domInputManager,
 
@@ -155,13 +156,13 @@ Viva.Graph.View.svgGraphics = function () {
             svgContainer.attr('transform', transform);
         },
 
-        scale : function(scaleFactor, scrollPoint) {
+        scale : function (scaleFactor, scrollPoint) {
             var p = svgRoot.createSVGPoint();
             p.x = scrollPoint.x;
             p.y = scrollPoint.y;
-            
+
             p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
-            
+
             // Compute new scale matrix in current mouse position
             var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
                 t = svgContainer.getCTM().multiply(k);
@@ -171,12 +172,12 @@ Viva.Graph.View.svgGraphics = function () {
             offsetY = t.f;
             var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
             svgContainer.attr('transform', transform);
-            
+
             fireRescaled(this);
             return actualScale;
         },
-        
-        resetScale : function(){
+
+        resetScale : function () {
             actualScale = 1;
             var transform = 'matrix(1, 0, 0, 1, 0, 0)';
             svgContainer.attr('transform', transform);
@@ -185,94 +186,94 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output 
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider prepare to render.
         */
-       init : function(container) {
-           svgRoot = Viva.Graph.svg("svg");
-           
-           svgContainer = Viva.Graph.svg("g")
-                .attr('buffered-rendering', 'dynamic');
+        init : function (container) {
+            svgRoot = Viva.Graph.svg("svg");
 
-           svgRoot.appendChild(svgContainer);
-           container.appendChild(svgRoot);
-           updateTransform();
-       },
-       
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given link of the graph
-        * 
-        * @param linkUI visual representation of the link created by link() execution.
-        */
-       initLink : function(linkUI) {
+            svgContainer = Viva.Graph.svg("g")
+                 .attr('buffered-rendering', 'dynamic');
+
+            svgRoot.appendChild(svgContainer);
+            container.appendChild(svgRoot);
+            updateTransform();
+        },
+
+        /**
+         * Called by Viva.Graph.View.renderer to let concrete graphic output
+         * provider prepare to render given link of the graph
+         *
+         * @param linkUI visual representation of the link created by link() execution.
+         */
+        initLink : function (linkUI) {
             if (!linkUI) { return; }
             if (svgContainer.childElementCount > 0) {
-               svgContainer.insertBefore(linkUI, svgContainer.firstChild);
+                svgContainer.insertBefore(linkUI, svgContainer.firstChild);
             } else {
                 svgContainer.appendChild(linkUI);
             }
-       },
+        },
 
-      /**
-       * Called by Viva.Graph.View.renderer to let concrete graphic output
-       * provider remove link from rendering surface.
-       * 
-       * @param linkUI visual representation of the link created by link() execution.
-       **/
-       releaseLink : function(linkUI) {
-           svgContainer.removeChild(linkUI);
-       },
-
-      /**
-       * Called by Viva.Graph.View.renderer to let concrete graphic output
-       * provider prepare to render given node of the graph.
-       * 
-       * @param nodeUI visual representation of the node created by node() execution.
-       **/
-       initNode : function(nodeUI) {
-           svgContainer.appendChild(nodeUI);
-       },
-
-      /**
-       * Called by Viva.Graph.View.renderer to let concrete graphic output
-       * provider remove node from rendering surface.
-       * 
-       * @param nodeUI visual representation of the node created by node() execution.
-       **/
-       releaseNode : function(nodeUI) {
-           svgContainer.removeChild(nodeUI);
-       },
-
-      /**
-       * Called by Viva.Graph.View.renderer to let concrete graphic output
-       * provider place given node UI to recommended position pos {x, y};
-       */ 
-       updateNodePosition : function(nodeUI, pos) {
-           nodePositionCallback(nodeUI, pos);
-       },
-       
        /**
-       * Called by Viva.Graph.View.renderer to let concrete graphic output
-       * provider place given link of the graph. Pos objects are {x, y};
-       */  
-       updateLinkPosition : function(link, fromPos, toPos) {
-           linkPositionCallback(link, fromPos, toPos);
-       },
-       
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove link from rendering surface.
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        **/
+        releaseLink : function (linkUI) {
+            svgContainer.removeChild(linkUI);
+        },
+
        /**
-        * Returns root svg element. 
-        * 
-        * Note: This is internal method specific to this renderer
-        * TODO: Renoame this to getGraphicsRoot() to be uniform accross graphics classes
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given node of the graph.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        initNode : function (nodeUI) {
+            svgContainer.appendChild(nodeUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove node from rendering surface.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        releaseNode : function (nodeUI) {
+            svgContainer.removeChild(nodeUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given node UI to recommended position pos {x, y};
         */
-       getSvgRoot : function() {
-           return svgRoot;
-       }
+        updateNodePosition : function (nodeUI, pos) {
+            nodePositionCallback(nodeUI, pos);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given link of the graph. Pos objects are {x, y};
+        */
+        updateLinkPosition : function (link, fromPos, toPos) {
+            linkPositionCallback(link, fromPos, toPos);
+        },
+
+        /**
+         * Returns root svg element.
+         *
+         * Note: This is internal method specific to this renderer
+         * TODO: Rename this to getGraphicsRoot() to be uniform accross graphics classes
+         */
+        getSvgRoot : function () {
+            return svgRoot;
+        }
     };
-    
+
     // Let graphics fire events before we return it to the caller.
     Viva.Graph.Utils.events(graphics).extend();
-    
+
     return graphics;
 };

@@ -3,21 +3,22 @@
  */
 
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
-Viva.Graph.Utils.indexOfElementInArray = function(element, array) {
+Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
     if (array.indexOf) {
         return array.indexOf(element);
     }
 
-    var len = array.length;
-    var i = 0;
+    var len = array.length,
+        i;
 
-    for ( ; i < len; i++ ) {
-        if ( i in array && array[i] === element ) {
+    for (i = 0; i < len; i += 1) {
+        if (array.hasOwnProperty(i) && (array[i] === element)) {
             return i;
         }
     }
-    
+
     return -1;
 };

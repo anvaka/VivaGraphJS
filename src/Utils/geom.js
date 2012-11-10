@@ -1,11 +1,12 @@
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 
-Viva.Graph.geom = function() {
-    
+Viva.Graph.geom = function () {
+
     return {
         // function from Graphics GEM to determine lines intersection:
         // http://www.opensource.apple.com/source/graphviz/graphviz-498/graphviz/dynagraph/common/xlines.c
-        intersect : function(x1, y1, x2, y2, // first line segment
+        intersect : function (x1, y1, x2, y2, // first line segment
                             x3, y3, x4, y4) { // second line segment
             var a1, a2, b1, b2, c1, c2, /* Coefficients of line eqns. */
                 r1, r2, r3, r4,         /* 'Sign' values */
@@ -27,7 +28,7 @@ Viva.Graph.geom = function() {
             /* Check signs of r3 and r4.  If both point 3 and point 4 lie on
              * same side of line 1, the line segments do not intersect.
              */
-        
+
             if (r3 !== 0 && r4 !== 0 && ((r3 >= 0) === (r4 >= 4))) {
                 return null; //no itersection.
             }
@@ -38,123 +39,125 @@ Viva.Graph.geom = function() {
             c2 = x4 * y3 - x3 * y4;
 
             /* Compute r1 and r2 */
-        
+
             r1 = a2 * x1 + b2 * y1 + c2;
             r2 = a2 * x2 + b2 * y2 + c2;
-        
+
             /* Check signs of r1 and r2.  If both point 1 and point 2 lie
              * on same side of second line segment, the line segments do
              * not intersect.
              */
-            if (r1 !== 0 && r2 !== 0 && ((r1 >= 0) === (r2 >= 0 ))) {
+            if (r1 !== 0 && r2 !== 0 && ((r1 >= 0) === (r2 >= 0))) {
                 return null; // no intersection;
             }
-            /* Line segments intersect: compute intersection point. 
+            /* Line segments intersect: compute intersection point.
              */
 
             denom = a1 * b2 - a2 * b1;
-            if ( denom === 0 ) {
+            if (denom === 0) {
                 return null; // Actually collinear..
             }
 
-            offset = denom < 0 ? - denom / 2 : denom / 2;
+            offset = denom < 0 ? -denom / 2 : denom / 2;
             offset = 0.0;
 
             /* The denom/2 is to get rounding instead of truncating.  It
              * is added or subtracted to the numerator, depending upon the
              * sign of the numerator.
              */
-        
-            
+
+
             num = b1 * c2 - b2 * c1;
-            result.x = ( num < 0 ? num - offset : num + offset ) / denom;
-        
+            result.x = (num < 0 ? num - offset : num + offset) / denom;
+
             num = a2 * c1 - a1 * c2;
-            result.y = ( num < 0 ? num - offset : num + offset ) / denom;
-        
-            return result;                                
+            result.y = (num < 0 ? num - offset : num + offset) / denom;
+
+            return result;
         },
-          
+
           /**
            * Returns intersection point of the rectangle defined by
            * left, top, right, bottom and a line starting in x1, y1
            * and ending in x2, y2;
-           */      
-        intersectRect : function(left, top, right, bottom, x1, y1, x2, y2) {
+           */
+        intersectRect : function (left, top, right, bottom, x1, y1, x2, y2) {
             return this.intersect(left, top, left, bottom, x1, y1, x2, y2) ||
                    this.intersect(left, bottom, right, bottom, x1, y1, x2, y2) ||
                    this.intersect(right, bottom, right, top, x1, y1, x2, y2) ||
                    this.intersect(right, top, left, top, x1, y1, x2, y2);
         },
-        
-        convexHull : function(points) {
-            var polarAngleSort = function(basePoint, points) {
-                var cosAngle = function(p) {
-                    var dx = p.x - basePoint.x,
-                        dy = p.y - basePoint.y,
-                        sign = dx > 0 ? 1 : -1;
-                    
-                    // We use squared dx, to avoid Sqrt opertion and improve performance.
-                    // To avoid sign loss during dx * dx operation we precompute its sign:
-                    return sign * dx * dx / (dx * dx + dy * dy);
-                };
-                
-                var sortedPoints = points.sort(function(p1, p2) {
-                    return cosAngle(p2) - cosAngle(p1);
-                });
-                
-                // If more than one point has the same angle, remove all but the one that is farthest from basePoint: 
-                var lastPoint = sortedPoints[0],
-                    lastAngle = cosAngle(lastPoint),
-                    dx = lastPoint.x - basePoint.x,
-                    dy = lastPoint.y - basePoint.y,
-                    lastDistance = dx * dx + dy * dy,
-                    curDistance;
-                    
-                for (var i = 1; i < sortedPoints.length; ++i) {
-                    lastPoint = sortedPoints[i];
-                    var angle = cosAngle(lastPoint);
-                    if (angle === lastAngle) {
-                        dx = lastPoint.x - basePoint.x;
-                        dy = lastPoint.y - basePoint.y;
-                        curDistance = dx * dx + dy * dy;
-                        
-                        if (curDistance < lastDistance) {
-                            sortedPoints.splice(i, 1);
+
+        convexHull : function (points) {
+            var polarAngleSort = function (basePoint, points) {
+                    var cosAngle = function (p) {
+                            var dx = p.x - basePoint.x,
+                                dy = p.y - basePoint.y,
+                                sign = dx > 0 ? 1 : -1;
+
+                            // We use squared dx, to avoid Sqrt opertion and improve performance.
+                            // To avoid sign loss during dx * dx operation we precompute its sign:
+                            return sign * dx * dx / (dx * dx + dy * dy);
+                        },
+
+                        sortedPoints = points.sort(function (p1, p2) {
+                            return cosAngle(p2) - cosAngle(p1);
+                        }),
+
+                        // If more than one point has the same angle, remove all but the one that is farthest from basePoint:
+                        lastPoint = sortedPoints[0],
+                        lastAngle = cosAngle(lastPoint),
+                        dx = lastPoint.x - basePoint.x,
+                        dy = lastPoint.y - basePoint.y,
+                        lastDistance = dx * dx + dy * dy,
+                        curDistance,
+                        i;
+
+                    for (i = 1; i < sortedPoints.length; ++i) {
+                        lastPoint = sortedPoints[i];
+                        var angle = cosAngle(lastPoint);
+                        if (angle === lastAngle) {
+                            dx = lastPoint.x - basePoint.x;
+                            dy = lastPoint.y - basePoint.y;
+                            curDistance = dx * dx + dy * dy;
+
+                            if (curDistance < lastDistance) {
+                                sortedPoints.splice(i, 1);
+                            } else {
+                                sortedPoints.splice(i - 1, 1);
+                            }
                         } else {
-                            sortedPoints.splice(i - 1, 1);
+                            lastAngle = angle;
                         }
-                    } else {
-                        lastAngle = angle;
                     }
-                }
-                
-                return sortedPoints;
-            },
-            
-            /**
-             * Returns true if angle formed by points p0, p1, p2 makes left turn.
-             * (counterclockwise)
-             */
-            ccw = function(p0, p1, p2) {
-                return ((p2.x - p0.x) * (p1.y - p0.y) - (p2.y - p0.y) * (p1.x - p0.x)) < 0;
-            };
-            
+
+                    return sortedPoints;
+                },
+
+                /**
+                 * Returns true if angle formed by points p0, p1, p2 makes left turn.
+                 * (counterclockwise)
+                 */
+                ccw = function (p0, p1, p2) {
+                    return ((p2.x - p0.x) * (p1.y - p0.y) - (p2.y - p0.y) * (p1.x - p0.x)) < 0;
+                };
+
             if (points.length < 3) {
-                return points; // This one is easy... Not precise, but should be enough for now. 
+                return points; // This one is easy... Not precise, but should be enough for now.
             }
-            
-            // let p0 be the point in Q with the minimum y-coordinate, or the leftmost 
+
+            // let p0 be the point in Q with the minimum y-coordinate, or the leftmost
             // such point in case of a tie
-            var p0Idx = 0; 
-            for (var i = 0; i < points.length; ++i) {
+            var p0Idx = 0,
+                i;
+            for (i = 0; i < points.length; ++i) {
                 if (points[i].y < points[p0Idx].y) {
                     p0Idx = i;
                 } else if (points[i].y === points[p0Idx].y && points[i].x < points[p0Idx].x) {
                     p0Idx = i;
                 }
             }
-            
+
             var p0 = points[p0Idx];
             // let <p1; p2; ... pm> be the remaining points
             points.splice(p0Idx, 1);
@@ -163,7 +166,7 @@ Viva.Graph.geom = function() {
             if (sortedPoints.length < 2) {
                 return sortedPoints;
             }
-            
+
             // let S be empty stack
             var s = [];
             s.push(p0);
@@ -171,16 +174,16 @@ Viva.Graph.geom = function() {
             s.push(sortedPoints[1]);
             var sLength = s.length;
             for (i = 2; i < sortedPoints.length; ++i) {
-                while(!ccw(s[sLength - 2], s[sLength - 1], sortedPoints[i])) {
+                while (!ccw(s[sLength - 2], s[sLength - 1], sortedPoints[i])) {
                     s.pop();
                     sLength -= 1;
                 }
-                
+
                 s.push(sortedPoints[i]);
                 sLength += 1;
             }
-            
+
             return s;
-        }  
+        }
     };
 };

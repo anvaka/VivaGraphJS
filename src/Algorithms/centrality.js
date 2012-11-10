@@ -7,9 +7,9 @@
  */
 
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.centrality = function () {
-    'use strict';
     var singleSourceShortestPath = function (graph, node, oriented) {
             // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
             // sorry about cryptic names.
@@ -155,7 +155,8 @@ Viva.Graph.centrality = function () {
         degreeCentrality : function (graph, kind) {
             var calcDegFunction,
                 sortedDegrees = [],
-                result = [];
+                result = [],
+                degree;
 
             kind = (kind || 'both').toLowerCase();
             if (kind === 'in') {
@@ -195,17 +196,18 @@ Viva.Graph.centrality = function () {
                 }
             });
 
-            for (var degree in sortedDegrees) {
+            for (degree in sortedDegrees) {
                 if (sortedDegrees.hasOwnProperty(degree)) {
-                    var nodes = sortedDegrees[degree];
-                    if (!nodes) { continue; }
-
-                    for (var j = 0; j < nodes.length; ++j){
-                        result.unshift({key : nodes[j], value : parseInt(degree, 10)});
+                    var nodes = sortedDegrees[degree],
+                        j;
+                    if (nodes) {
+                        for (j = 0; j < nodes.length; ++j) {
+                            result.unshift({key : nodes[j], value : parseInt(degree, 10)});
+                        }
                     }
                 }
             }
-            
+
             return result;
         }
     };

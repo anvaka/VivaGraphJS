@@ -1,4 +1,5 @@
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
@@ -10,18 +11,19 @@ Viva.Graph.Physics = Viva.Graph.Physics || {};
  *
  * http://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
  */
-Viva.Graph.Physics.rungeKuttaIntegrator = function() {
-    var ensureRk4Initialized = function(forceSimulator) {
+Viva.Graph.Physics.rungeKuttaIntegrator = function () {
+    var ensureRk4Initialized = function (forceSimulator) {
         // Sanity check
-        if(!forceSimulator || !forceSimulator.bodies) {
+        if (!forceSimulator || !forceSimulator.bodies) {
             throw {
                 message : 'Simulator does not have defined bodies array'
             };
         }
+        var i;
 
-        if(!forceSimulator.rk4) {
+        if (!forceSimulator.rk4) {
             // Init storage for interm steps of RK4.
-            for(var i = 0; i < forceSimulator.bodies.length; i++) {
+            for (i = 0; i < forceSimulator.bodies.length; i++) {
                 var body = forceSimulator.bodies[i];
                 body.rgkDataV = [];
                 body.rgkDataF = [];
@@ -30,22 +32,27 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
         }
     };
     return {
-        setSimulator : function(forceSimulator) {
+        setSimulator : function (forceSimulator) {
         },
-        integrate : function(forceSimulator, timeStep) {
+        integrate : function (forceSimulator, timeStep) {
             ensureRk4Initialized(forceSimulator);
 
             // TODO: if number of bodies changed we might get into troubles here
             var speedLimit = forceSimulator.speedLimit,
-                ar, vx, vy, v, coeff,
-                body, location,
+                ar,
+                vx,
+                vy,
+                v,
+                coeff,
+                body,
+                location,
                 i,
-                max = forceSimulator.bodies.length; 
+                max = forceSimulator.bodies.length;
 
-            for(i = 0; i < max; ++i) {
+            for (i = 0; i < max; ++i) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
-                
+
                 body.prevLocation.x = body.location.x;
                 body.prevLocation.y = body.location.y;
 
@@ -69,7 +76,7 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
 
             forceSimulator.accumulate();
 
-            for( i = 0; i < max; i++) {
+            for (i = 0; i < max; i++) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
 
@@ -77,7 +84,7 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
                 vx = body.velocity.x + 0.5 * body.rgkDataF[0].x;
                 vy = body.velocity.y + 0.5 * body.rgkDataF[0].y;
                 v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
+                if (v > speedLimit) {
                     vx = speedLimit * vx / v;
                     vy = speedLimit * vy / v;
                 }
@@ -99,13 +106,13 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
 
             forceSimulator.accumulate();
 
-            for( i = 0; i < max; i++) {
+            for (i = 0; i < max; i++) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
                 vx = body.velocity.x + 0.5 * body.rgkDataF[1].x;
                 vy = body.velocity.y + 0.5 * body.rgkDataF[1].y;
                 v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
+                if (v > speedLimit) {
                     vx = speedLimit * vx / v;
                     vy = speedLimit * vy / v;
                 }
@@ -128,14 +135,14 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
             forceSimulator.accumulate();
 
             var tx = 0, ty = 0;
-            
-            for( i = 0; i < max; i++) {
+
+            for (i = 0; i < max; i++) {
                 body = forceSimulator.bodies[i];
                 coeff = timeStep / body.mass;
                 vx = body.velocity.x + body.rgkDataF[2].x;
                 vy = body.velocity.y + body.rgkDataF[2].y;
                 v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
+                if (v > speedLimit) {
                     vx = speedLimit * vx / v;
                     vy = speedLimit * vy / v;
                 }
@@ -160,19 +167,19 @@ Viva.Graph.Physics.rungeKuttaIntegrator = function() {
                 vx = (rgkDataF[0].x + rgkDataF[3].x) / 6 + (rgkDataF[1].x + rgkDataF[2].x) / 3;
                 vy = (rgkDataF[0].y + rgkDataF[3].y) / 6 + (rgkDataF[1].y + rgkDataF[2].y) / 3;
                 v = Math.sqrt(vx * vx + vy * vy);
-                if(v > speedLimit) {
+                if (v > speedLimit) {
                     vx = speedLimit * vx / v;
                     vy = speedLimit * vy / v;
                 }
 
                 tx += vx;
                 ty += vy; // not quite right; should be distances, to comply with eulerIntegrator, but not sure whether I need this anyway
-                
+
                 body.velocity.x += vx;
                 body.velocity.y += vy;
             }
-            
-            return tx * tx + ty * ty; 
+
+            return tx * tx + ty * ty;
         }
     };
 };

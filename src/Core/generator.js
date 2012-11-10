@@ -5,8 +5,9 @@
  */
 
 /*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
-Viva.Graph.generator = function() {
+Viva.Graph.generator = function () {
 
     return {
         /**
@@ -14,17 +15,20 @@ Viva.Graph.generator = function() {
          *
          * @param n represents number of nodes in the complete graph.
          */
-        complete : function(n) {
-            if(!n || n < 1) {
+        complete : function (n) {
+            if (!n || n < 1) {
                 throw { message: 'At least two nodes expected for complete graph' };
             }
 
-            var g = Viva.Graph.graph();
+            var g = Viva.Graph.graph(),
+                i,
+                j;
+
             g.Name = "Complete K" + n;
 
-            for(var i = 0; i < n; ++i) {
-                for(var j = i + 1; j < n; ++j) {
-                    if(i !== j) {
+            for (i = 0; i < n; ++i) {
+                for (j = i + 1; j < n; ++j) {
+                    if (i !== j) {
                         g.addLink(i, j);
                     }
                 }
@@ -32,27 +36,30 @@ Viva.Graph.generator = function() {
 
             return g;
         },
-        
+
         /**
-         * Generates complete bipartite graph K n,m. Each node in the 
+         * Generates complete bipartite graph K n,m. Each node in the
          * first partition is connected to all nodes in the second partition.
-         * 
+         *
          * @param n represents number of nodes in the first graph partition
          * @param m represents number of nodes in the second graph partition
          */
-        completeBipartite : function(n, m){
-          if(!n || !m || n < 0 || m < 0) {
+        completeBipartite : function (n, m) {
+            if (!n || !m || n < 0 || m < 0) {
                 throw { message: 'Graph dimensions are invalid. Number of nodes in each partition should be greate than 0' };
             }
 
-            var g = Viva.Graph.graph();
+            var g = Viva.Graph.graph(),
+                i,
+                j;
+
             g.Name = "Complete K " + n + "," + m;
-            for(var i = 0; i < n; ++i){
-                for(var j = n; j < n + m; ++j){
+            for (i = 0; i < n; ++i) {
+                for (j = n; j < n + m; ++j) {
                     g.addLink(i, j);
                 }
-            }  
-            
+            }
+
             return g;
         },
         /**
@@ -60,15 +67,16 @@ Viva.Graph.generator = function() {
          *
          * @param n number of steps in the ladder.
          */
-        ladder : function(n) {
-            if(!n || n < 0) {
+        ladder : function (n) {
+            if (!n || n < 0) {
                 throw { message: 'Invalid number of nodes' };
             }
 
-            var g = Viva.Graph.graph();
+            var g = Viva.Graph.graph(),
+                i;
             g.Name = "Ladder graph " + n;
 
-            for(var i = 0; i < n - 1; ++i) {
+            for (i = 0; i < n - 1; ++i) {
                 g.addLink(i, i + 1);
                 // first row
                 g.addLink(n + i, n + i + 1);
@@ -88,14 +96,14 @@ Viva.Graph.generator = function() {
          *
          * @param n number of steps in the ladder.
          */
-        circularLadder : function(n){
-            if(!n || n < 0) {
+        circularLadder : function (n) {
+            if (!n || n < 0) {
                 throw { message: 'Invalid number of nodes' };
             }
-            
+
             var g = this.ladder(n);
             g.Name = "Circular ladder graph " + n;
-            
+
             g.addLink(0, n - 1);
             g.addLink(n, 2 * n - 1);
             return g;
@@ -106,65 +114,73 @@ Viva.Graph.generator = function() {
          * @param n number of rows in the graph.
          * @param m number of columns in the graph.
          */
-        grid: function(n, m){
-            var g = Viva.Graph.graph();
+        grid: function (n, m) {
+            var g = Viva.Graph.graph(),
+                i,
+                j;
             g.Name = "Grid graph " + n + "x" + m;
-            for(var i = 0; i < n; ++i){
-                for (var j = 0; j < m; ++j){
+            for (i = 0; i < n; ++i) {
+                for (j = 0; j < m; ++j) {
                     var node = i + j * n;
                     if (i > 0) { g.addLink(node, i - 1 + j * n); }
                     if (j > 0) { g.addLink(node, i + (j - 1) * n); }
                 }
             }
-            
+
             return g;
         },
-        
-        path: function(n){
-            if(!n || n < 0) {
+
+        path: function (n) {
+            if (!n || n < 0) {
                 throw { message: 'Invalid number of nodes' };
             }
-            
-            var g = Viva.Graph.graph();
+
+            var g = Viva.Graph.graph(),
+                i;
             g.Name = "Path graph " + n;
             g.addNode(0);
-            for(var i = 1; i < n; ++i){
+
+            for (i = 1; i < n; ++i) {
                 g.addLink(i - 1, i);
             }
-            
+
             return g;
         },
-        
-        lollipop: function(m, n){
-            if(!n || n < 0 || !m || m < 0) {
+
+        lollipop: function (m, n) {
+            if (!n || n < 0 || !m || m < 0) {
                 throw { message: 'Invalid number of nodes' };
             }
-            
-            var g = this.complete(m);
+
+            var g = this.complete(m),
+                i;
             g.Name = "Lollipop graph. Head x Path " + m + "x" + n;
-            
-            for(var i = 0; i < n; ++i){
+
+            for (i = 0; i < n; ++i) {
                 g.addLink(m + i - 1, m + i);
             }
-            
+
             return g;
         },
-        
+
         /**
          * Creates balanced binary tree with n levels.
          */
-        balancedBinTree: function (n){
-            var g = Viva.Graph.graph();
+        balancedBinTree: function (n) {
+            var g = Viva.Graph.graph(),
+                count = Math.pow(2, n),
+                level;
             g.Name = "Balanced bin tree graph " + n;
-            var count = Math.pow(2, n);
-            for(var level = 1; level < count; ++level){
-                var root = level;
-                var left = root * 2;
-                var right = root * 2 + 1;
+
+            for (level = 1; level < count; ++level) {
+                var root = level,
+                    left = root * 2,
+                    right = root * 2 + 1;
+
                 g.addLink(root, left);
                 g.addLink(root, right);
             }
-            
+
             return g;
         },
         /**
@@ -172,17 +188,18 @@ Viva.Graph.generator = function() {
          *
          * @param n number of nodes in the graph.
          */
-        randomNoLinks : function(n){
-            if(!n || n < 0) {
+        randomNoLinks : function (n) {
+            if (!n || n < 0) {
                 throw { message: 'Invalid number of nodes' };
             }
 
-            var g = Viva.Graph.graph();
+            var g = Viva.Graph.graph(),
+                i;
             g.Name = "Random graph, no Links: " + n;
-            for(var i = 0; i < n; ++i){
+            for (i = 0; i < n; ++i) {
                 g.addNode(i);
             }
-            
+
             return g;
         }
     };

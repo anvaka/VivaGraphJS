@@ -5,8 +5,8 @@
  */
 
 /*global Viva*/
-
-Viva.Graph.operations = function() {
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
+Viva.Graph.operations = function () {
 
     return {
         /**
@@ -18,12 +18,12 @@ Viva.Graph.operations = function() {
          * 
          * @returns density of the graph if graph has nodes. NaN otherwise 
          */
-        density : function(graph) {
+        density : function (graph) {
             var nodes = graph.getNodesCount();
             if (nodes === 0) {
                 return NaN;
             }
-            
+
             return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
         }
     };
