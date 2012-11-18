@@ -96,9 +96,7 @@ Viva.Graph.graph = function () {
 
             var node = this.getNode(nodeId);
             if (!node) {
-                node = {};
-                node.links = [];
-                node.id = nodeId;
+                node = new Viva.Graph.Node(nodeId);
                 nodesCount++;
 
                 recordNodeChange(node, 'add');
@@ -118,7 +116,6 @@ Viva.Graph.graph = function () {
                     augmentedData = null;
                 } else {
                     for (name in data) {
-                        // TODO: Do we want to copy everything, including prototype's properties?
                         if (data.hasOwnProperty(name)) {
                             augmentedData[name] = data[name];
                         }
@@ -151,11 +148,7 @@ Viva.Graph.graph = function () {
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
-            var link = {
-                fromId : fromId,
-                toId : toId,
-                data : data
-            };
+            var link = new Viva.Graph.Link(fromId, toId, data);
 
             links.push(link);
 

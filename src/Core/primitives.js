@@ -18,3 +18,21 @@ Viva.Graph.Point2d = function (x, y) {
     this.x = x || 0;
     this.y = y || 0;
 };
+
+/**
+ * Internal structure to represent node;
+ */
+Viva.Graph.Node = function (id) {
+    this.id = id;
+    this.links = [];
+    this.data = null;
+};
+
+/**
+ * Internal structure to represent links;
+ */
+Viva.Graph.Link = function (fromId, toId, data) {
+    this.fromId = fromId;
+    this.toId = toId;
+    this.data = data;
+};
