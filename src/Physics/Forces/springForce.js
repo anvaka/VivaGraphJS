@@ -1,16 +1,13 @@
 /*global Viva*/
 /*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
-Viva.Graph.Physics.springForce = function (options) {
-    if (!options) {
-        options = {};
-    }
+Viva.Graph.Physics.springForce = function (currentOptions) {
+    currentOptions = Viva.lazyExtend(currentOptions, {
+        length : 50,
+        coeff : 0.00022
+    });
 
-    var currentOptions = {
-            length : options.length || 50,
-            coeff : typeof options.coeff === 'number' ? options.coeff : 0.00022
-        },
-        random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
+    var random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
 
     return {
         init : function (forceSimulator) {},

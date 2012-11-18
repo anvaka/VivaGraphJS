@@ -11,17 +11,17 @@ Viva.Graph.Layout = Viva.Graph.Layout || {};
  * @param {Object} userSettings
  */
 Viva.Graph.Layout.constant = function (graph, userSettings) {
-    userSettings = userSettings || {};
+    userSettings = Viva.lazyExtend(userSettings, {
+        maxX : 1024,
+        maxY : 1024,
+        seed : 'Deterministic randomness made me do this'
+    });
 
-    var seed = userSettings.seed || 'Deterministic randomness made me do this',
-        maxX = (typeof userSettings.maxX === 'number') ? userSettings.maxX : 1024,
-        maxY = (typeof userSettings.maxY === 'number') ? userSettings.maxY : 1024,
-        rand = Viva.random(seed),
-
+    var rand = Viva.random(userSettings.seed),
         graphRect = new Viva.Graph.Rect(),
 
         placeNodeCallback = function (node) {
-            return new Viva.Graph.Point2d(rand.next(maxX), rand.next(maxY));
+            return new Viva.Graph.Point2d(rand.next(userSettings.maxX), rand.next(userSettings.maxY));
         },
 
         updateNodePositions = function () {

@@ -9,11 +9,14 @@
  * http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
  */
 Viva.Graph.Physics.nbodyForce = function (options) {
-    options = options || {};
+    options = Viva.lazyExtend(options || {
+        gravity : -1,
+        theta : 0.8
+    });
 
-    var gravity = typeof options.gravity === 'number' ? options.gravity : -1,
+    var gravity = options.gravity,
         updateQueue = [],
-        theta = options.theta || 0.8,
+        theta = options.theta,
         random = Viva.random('5f4dcc3b5aa765d61d8327deb882cf99', 75, 20, 63, 0x6c, 65, 76, 65, 72),
 
         Node = function () {

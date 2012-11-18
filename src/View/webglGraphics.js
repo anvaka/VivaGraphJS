@@ -14,11 +14,22 @@ Viva.Graph.View = Viva.Graph.View || {};
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
+ *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
+ *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
  */
 
 Viva.Graph.View.webglGraphics = function (options) {
-    options = options || {};
-    options.enableBlending = typeof options.enableBlending !== 'boolean' ? true : options.enableBlending;
+    options = Viva.lazyExtend(options, {
+        enableBlending : true,
+        preserveDrawingBuffer : false,
+        clearColor: false,
+        clearColorValue : {
+            r : 1,
+            g : 1,
+            b : 1,
+            a : 1
+        }
+    });
 
     var container,
         graphicsRoot,
@@ -157,9 +168,12 @@ Viva.Graph.View.webglGraphics = function (options) {
         inputManager : Viva.Input.webglInputManager,
 
         /**
-         * Called every before renderer starts rendering.
+         * Called every time before renderer starts rendering.
          */
-        beginRender : function () {},
+        beginRender : function () {
+            // this function could be replaced by this.init, 
+            // based on user options.
+        },
 
         /**
          * Called every time when renderer finishes one step of rendering.
@@ -242,6 +256,12 @@ Viva.Graph.View.webglGraphics = function (options) {
         * provider prepare to render.
         */
         init : function (c) {
+            var contextParameters = {};
+
+            if (options.preserveDrawingBuffer) {
+                contextParameters.preserveDrawingBuffer = true;
+            }
+
             container = c;
 
             graphicsRoot = window.document.createElement("canvas");
@@ -249,7 +269,8 @@ Viva.Graph.View.webglGraphics = function (options) {
             resetScaleInternal();
             container.appendChild(graphicsRoot);
 
-            gl = graphicsRoot.getContext('experimental-webgl');
+
+            gl = graphicsRoot.getContext('experimental-webgl', contextParameters);
             if (!gl) {
                 var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
                 window.alert(msg);
@@ -258,6 +279,15 @@ Viva.Graph.View.webglGraphics = function (options) {
             if (options.enableBlending) {
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                 gl.enable(gl.BLEND);
+            }
+            if (options.clearColor) {
+                var color = options.clearColorValue;
+                gl.clearColor(color.r, color.g, color.b, color.a);
+                // TODO: not the best way, really. Should come up with something better
+                // what if we need more updates inisde beginRender, like depth buffer?
+                this.beginRender = function () {
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                };
             }
 
             linkProgram.load(gl);
@@ -391,6 +421,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Returns root element which hosts graphics.
          */
         getGraphicsRoot : function (callbackWhenReady) {
+            // todo: should fire an event, instead of having this context.
             if (typeof callbackWhenReady === 'function') {
                 if (graphicsRoot) {
                     callbackWhenReady(graphicsRoot);

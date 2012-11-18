@@ -2,7 +2,7 @@
 /*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
-Viva.Graph.Layout.forceDirected = function (graph, userSettings) {
+Viva.Graph.Layout.forceDirected = function (graph, settings) {
     var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
 
     if (!graph) {
@@ -10,41 +10,40 @@ Viva.Graph.Layout.forceDirected = function (graph, userSettings) {
             message : "Graph structure cannot be undefined"
         };
     }
-    userSettings = userSettings || {};
 
-    var settings = {
-            /**
-             * Ideal length for links (springs in physical model).
-             */
-            springLength : typeof userSettings.springLength === 'number' ? userSettings.springLength : 80,
+    settings = Viva.lazyExtend(settings, {
+        /**
+         * Ideal length for links (springs in physical model).
+         */
+        springLength : 80,
 
-            /**
-             * Hook's law coefficient. 1 - solid spring.
-             */
-            springCoeff : typeof userSettings.springCoeff === 'number' ? userSettings.springCoeff : 0.0002,
+        /**
+         * Hook's law coefficient. 1 - solid spring.
+         */
+        springCoeff : 0.0002,
 
-            /**
-             * Coulomb's law coefficient. It's used to repel nodes thus should be negative
-             * if you make it positive nodes start attract each other :).
-             */
-            gravity: typeof userSettings.gravity === 'number' ? userSettings.gravity : -1.2,
+        /**
+         * Coulomb's law coefficient. It's used to repel nodes thus should be negative
+         * if you make it positive nodes start attract each other :).
+         */
+        gravity: -1.2,
 
-            /**
-             * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
-             * The closer it's to 1 the more nodes algorithm will have to go through.
-             * Setting it to one makes Barnes Hut simulation no different from
-             * brute-force forces calculation (each node is considered).
-             */
-            theta : typeof userSettings.theta === 'number' ? userSettings.theta : 0.8,
+        /**
+         * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
+         * The closer it's to 1 the more nodes algorithm will have to go through.
+         * Setting it to one makes Barnes Hut simulation no different from
+         * brute-force forces calculation (each node is considered).
+         */
+        theta : 0.8,
 
-            /**
-             * Drag force coefficient. Used to slow down system, thus should be less than 1.
-             * The closer it is to 0 the less tight system will be.
-             */
-            dragCoeff : typeof userSettings.dragCoeff === 'number' ? userSettings.dragCoeff : 0.02
-        },
+        /**
+         * Drag force coefficient. Used to slow down system, thus should be less than 1.
+         * The closer it is to 0 the less tight system will be.
+         */
+        dragCoeff : 0.02
+    });
 
-        forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
+    var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
 
         nbodyForce = Viva.Graph.Physics.nbodyForce({gravity : settings.gravity, theta: settings.theta}),
 

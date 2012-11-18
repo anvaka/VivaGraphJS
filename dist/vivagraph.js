@@ -1,16 +1,41 @@
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global window, Float32Array, Uint32Array, ArrayBuffer, global*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true, regexp: true, white:true, todo: true*/
 
 // TODO: rename all links to edges. Otherwise it's incositent
 var Viva = Viva || {};
 
 Viva.Graph = Viva.Graph || {};
-Viva.Graph.version = '1.0.0.42';
+Viva.Graph.version = '1.0.0.42';/*global Viva */
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true */
 
+/** 
+ * Extends target object with given fields/values in the options object.
+ * Unlike jQuery's extend this method does not override target object
+ * properties if their type matches corresponding type in the options object
+ */
+Viva.lazyExtend = function (target, options) {
+    var key;
+    if (!target) { target = {}; }
+    if (options) {
+        for (key in options) {
+            if (options.hasOwnProperty(key)) {
+                var targetHasIt = target.hasOwnProperty(key),
+                    optionsValueType = typeof options[key],
+                    shouldReplace = !targetHasIt || (typeof target[key] !== optionsValueType);
 
+                if (shouldReplace) {
+                    target[key] = options[key];
+                } else if (optionsValueType === 'object') {
+                    // go deep, don't care about loops here, we are simple API!:
+                    target[key] = Viva.lazyExtend(target[key], options[key]);
+                }
+            }
+        }
+    }
+
+    return target;
+};
 /**
  * Implenetation of seeded pseudo random number generator, based on LFIB4 algorithm.
  *
@@ -185,8 +210,8 @@ Viva.randomIterator = function (array, random) {
         }
     };
 };
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
 
 Viva.BrowserInfo = (function () {
     if (typeof window === 'undefined' || !window.hasOwnProperty('navigator')) {
@@ -217,8 +242,8 @@ Viva.BrowserInfo = (function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
@@ -237,8 +262,8 @@ Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
 
     return -1;
 };
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.getDimension = function (container) {
@@ -278,8 +303,8 @@ Viva.Graph.Utils.findElementPosition = function (obj) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 // TODO: I don't really like the way I implemented events. It looks clumsy and
@@ -416,8 +441,8 @@ Viva.Graph.Utils.events = function (element) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 // TODO: Move to input namespace
@@ -607,8 +632,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Input = Viva.Input || {};
 Viva.Input.domInputManager = function (graph, graphics) {
     return {
@@ -646,8 +671,8 @@ Viva.Input.domInputManager = function (graph, graphics) {
         }
     };
 };
-
-
+/*global Viva */
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * Allows querying graph nodes position at given point.
@@ -707,8 +732,8 @@ Viva.Graph.spatialIndex = function (graph, toleranceOrCheckCallback) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, window, global*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 (function () {
@@ -773,8 +798,8 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
             }
         };
     };
-}());
-
+}());/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true */
 
 Viva.Graph.geom = function () {
 
@@ -961,8 +986,8 @@ Viva.Graph.geom = function () {
             return s;
         }
     };
-};
-
+};/*global Viva */
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * Very generic rectangle. 
@@ -980,14 +1005,32 @@ Viva.Graph.Rect = function (x1, y1, x2, y2) {
 Viva.Graph.Point2d = function (x, y) {
     this.x = x || 0;
     this.y = y || 0;
+};
+
+/**
+ * Internal structure to represent node;
+ */
+Viva.Graph.Node = function (id) {
+    this.id = id;
+    this.links = [];
+    this.data = null;
+};
+
+/**
+ * Internal structure to represent links;
+ */
+Viva.Graph.Link = function (fromId, toId, data) {
+    this.fromId = fromId;
+    this.toId = toId;
+    this.data = data;
 };/**
  * @fileOverview Contains definition of the core graph object.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 /**
  * @namespace Represents a graph data structure.
  *
@@ -1078,9 +1121,7 @@ Viva.Graph.graph = function () {
 
             var node = this.getNode(nodeId);
             if (!node) {
-                node = {};
-                node.links = [];
-                node.id = nodeId;
+                node = new Viva.Graph.Node(nodeId);
                 nodesCount++;
 
                 recordNodeChange(node, 'add');
@@ -1100,7 +1141,6 @@ Viva.Graph.graph = function () {
                     augmentedData = null;
                 } else {
                     for (name in data) {
-                        // TODO: Do we want to copy everything, including prototype's properties?
                         if (data.hasOwnProperty(name)) {
                             augmentedData[name] = data[name];
                         }
@@ -1133,11 +1173,7 @@ Viva.Graph.graph = function () {
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
-            var link = {
-                fromId : fromId,
-                toId : toId,
-                data : data
-            };
+            var link = new Viva.Graph.Link(fromId, toId, data);
 
             links.push(link);
 
@@ -1400,8 +1436,8 @@ Viva.Graph.graph = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.generator = function () {
 
@@ -1606,8 +1642,8 @@ Viva.Graph.generator = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.operations = function () {
 
     return {
@@ -1638,8 +1674,8 @@ Viva.Graph.operations = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.centrality = function () {
     var singleSourceShortestPath = function (graph, node, oriented) {
@@ -1843,8 +1879,8 @@ Viva.Graph.centrality = function () {
             return result;
         }
     };
-};
-
+};/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph._community = {};
 
 /**
@@ -2123,8 +2159,8 @@ Viva.Graph._community.occuranceMap = function (random) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.community = function () {
     return {
         /**
@@ -2139,8 +2175,8 @@ Viva.Graph.community = function () {
             return algorithm.run();
         }
     };
-};
-
+};/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 Viva.Graph.Physics.Vector = function (x, y) {
@@ -2214,8 +2250,8 @@ Viva.Graph.Physics.QuadTreeNode = function () {
     this.x2 = 0;
     this.y2 = 0;
 };
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
@@ -2264,8 +2300,8 @@ Viva.Graph.Physics.eulerIntegrator = function () {
         }
     };
 };
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * This is Barnes Hut simulation algorithm. Implementation
@@ -2275,11 +2311,14 @@ Viva.Graph.Physics.eulerIntegrator = function () {
  * http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
  */
 Viva.Graph.Physics.nbodyForce = function (options) {
-    options = options || {};
+    options = Viva.lazyExtend(options || {
+        gravity : -1,
+        theta : 0.8
+    });
 
-    var gravity = typeof options.gravity === 'number' ? options.gravity : -1,
+    var gravity = options.gravity,
         updateQueue = [],
-        theta = options.theta || 0.8,
+        theta = options.theta,
         random = Viva.random('5f4dcc3b5aa765d61d8327deb882cf99', 75, 20, 63, 0x6c, 65, 76, 65, 72),
 
         Node = function () {
@@ -2565,65 +2604,8 @@ Viva.Graph.Physics.nbodyForce = function (options) {
             return {gravity : gravity, theta : theta};
         }
     };
-};
-
-/**
- * Brute force approach to nbody force calculation with O(n^2) performance.
- * I implemented it only to assist in finding bugs in Barnes Hut implementation.
- * This force is not intended to be used anywhere and probably weill be removed
- * in future.
- */
-Viva.Graph.Physics.nbodyForceBrute = function (options) {
-    options = options || {};
-    var gravity = typeof options.gravity === 'number' ? options.gravity : -1;
-    var bodies = [],
-        random = Viva.random('don\'t use this');
-
-    var update = function (sourceBody) {
-        var i;
-        sourceBody.force.x = 0;
-        sourceBody.force.y = 0;
-        for (i = 0; i < bodies.length; ++i) {
-            var body = bodies[i];
-            if (body !== sourceBody) {
-                var dx = body.location.x - sourceBody.location.x,
-                    dy = body.location.y - sourceBody.location.y,
-                    r = Math.sqrt(dx * dx + dy * dy);
-
-                if (r === 0) {
-                    // Poor man's protection agains zero distance.
-                    dx = (random.nextDouble() - 0.5) / 50;
-                    dy = (random.nextDouble() - 0.5) / 50;
-                    r = Math.sqrt(dx * dx + dy * dy);
-                }
-
-                // This is standard gravition force calculation but we divide
-                // by r^3 to save two operations when normalizing force vector.
-                var v = gravity * body.mass * sourceBody.mass / (r * r * r);
-                sourceBody.force.x = sourceBody.force.x + v * dx;
-                sourceBody.force.y = sourceBody.force.y + v * dy;
-            }
-        }
-    };
-
-    return {
-        insert : function () {},
-        init :  function (forceSimulator) {
-            bodies = forceSimulator.bodies;
-        },
-        update : update,
-        options : function (newOptions) {
-            if (newOptions) {
-                if (typeof newOptions.gravity === 'number') { gravity = newOptions.gravity; }
-
-                return this;
-            }
-
-            return {gravity : gravity};
-        }
-    };
-};
-
+};/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Physics.dragForce = function (options) {
     if (!options) {
         options = {};
@@ -2650,19 +2632,16 @@ Viva.Graph.Physics.dragForce = function (options) {
         }
     };
 };
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
+Viva.Graph.Physics.springForce = function (currentOptions) {
+    currentOptions = Viva.lazyExtend(currentOptions, {
+        length : 50,
+        coeff : 0.00022
+    });
 
-
-Viva.Graph.Physics.springForce = function (options) {
-    if (!options) {
-        options = {};
-    }
-
-    var currentOptions = {
-            length : options.length || 50,
-            coeff : typeof options.coeff === 'number' ? options.coeff : 0.00022
-        },
-        random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
+    var random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
 
     return {
         init : function (forceSimulator) {},
@@ -2702,8 +2681,8 @@ Viva.Graph.Physics.springForce = function (options) {
         }
     };
 };
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 /**
@@ -2866,11 +2845,11 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
             springForces.push(force);
         }
     };
-};
-
+};/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
-Viva.Graph.Layout.forceDirected = function (graph, userSettings) {
+Viva.Graph.Layout.forceDirected = function (graph, settings) {
     var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
 
     if (!graph) {
@@ -2878,41 +2857,40 @@ Viva.Graph.Layout.forceDirected = function (graph, userSettings) {
             message : "Graph structure cannot be undefined"
         };
     }
-    userSettings = userSettings || {};
 
-    var settings = {
-            /**
-             * Ideal length for links (springs in physical model).
-             */
-            springLength : typeof userSettings.springLength === 'number' ? userSettings.springLength : 80,
+    settings = Viva.lazyExtend(settings, {
+        /**
+         * Ideal length for links (springs in physical model).
+         */
+        springLength : 80,
 
-            /**
-             * Hook's law coefficient. 1 - solid spring.
-             */
-            springCoeff : typeof userSettings.springCoeff === 'number' ? userSettings.springCoeff : 0.0002,
+        /**
+         * Hook's law coefficient. 1 - solid spring.
+         */
+        springCoeff : 0.0002,
 
-            /**
-             * Coulomb's law coefficient. It's used to repel nodes thus should be negative
-             * if you make it positive nodes start attract each other :).
-             */
-            gravity: typeof userSettings.gravity === 'number' ? userSettings.gravity : -1.2,
+        /**
+         * Coulomb's law coefficient. It's used to repel nodes thus should be negative
+         * if you make it positive nodes start attract each other :).
+         */
+        gravity: -1.2,
 
-            /**
-             * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
-             * The closer it's to 1 the more nodes algorithm will have to go through.
-             * Setting it to one makes Barnes Hut simulation no different from
-             * brute-force forces calculation (each node is considered).
-             */
-            theta : typeof userSettings.theta === 'number' ? userSettings.theta : 0.8,
+        /**
+         * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
+         * The closer it's to 1 the more nodes algorithm will have to go through.
+         * Setting it to one makes Barnes Hut simulation no different from
+         * brute-force forces calculation (each node is considered).
+         */
+        theta : 0.8,
 
-            /**
-             * Drag force coefficient. Used to slow down system, thus should be less than 1.
-             * The closer it is to 0 the less tight system will be.
-             */
-            dragCoeff : typeof userSettings.dragCoeff === 'number' ? userSettings.dragCoeff : 0.02
-        },
+        /**
+         * Drag force coefficient. Used to slow down system, thus should be less than 1.
+         * The closer it is to 0 the less tight system will be.
+         */
+        dragCoeff : 0.02
+    });
 
-        forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
+    var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
 
         nbodyForce = Viva.Graph.Physics.nbodyForce({gravity : settings.gravity, theta: settings.theta}),
 
@@ -3184,8 +3162,8 @@ Viva.Graph.Layout.forceDirected = function (graph, userSettings) {
             return dragForce.options().coeff;
         }
     };
-};
-
+};/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 /**
@@ -3197,17 +3175,17 @@ Viva.Graph.Layout = Viva.Graph.Layout || {};
  * @param {Object} userSettings
  */
 Viva.Graph.Layout.constant = function (graph, userSettings) {
-    userSettings = userSettings || {};
+    userSettings = Viva.lazyExtend(userSettings, {
+        maxX : 1024,
+        maxY : 1024,
+        seed : 'Deterministic randomness made me do this'
+    });
 
-    var seed = userSettings.seed || 'Deterministic randomness made me do this',
-        maxX = (typeof userSettings.maxX === 'number') ? userSettings.maxX : 1024,
-        maxY = (typeof userSettings.maxY === 'number') ? userSettings.maxY : 1024,
-        rand = Viva.random(seed),
-
+    var rand = Viva.random(userSettings.seed),
         graphRect = new Viva.Graph.Rect(),
 
         placeNodeCallback = function (node) {
-            return new Viva.Graph.Point2d(rand.next(maxX), rand.next(maxY));
+            return new Viva.Graph.Point2d(rand.next(userSettings.maxX), rand.next(userSettings.maxY));
         },
 
         updateNodePositions = function () {
@@ -3303,8 +3281,8 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -3624,8 +3602,8 @@ Viva.Graph.View.cssGraphics = function () {
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
 
 /**
  * Simple wrapper over svg object model API, to shorten the usage syntax.
@@ -3750,8 +3728,8 @@ Viva.Graph.svg = function (element) {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
@@ -4033,8 +4011,8 @@ Viva.Graph.View.svgGraphics = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View.svgNodeFactory = function (graph) {
     var highlightColor = 'orange',
@@ -4157,8 +4135,8 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*jslint sloppy: true, vars: true, plusplus: true */
+/*global Viva, window, Float32Array*/
 
 Viva.Graph.webgl = function (gl) {
     var createShader = function (shaderText, type) {
@@ -4168,7 +4146,7 @@ Viva.Graph.webgl = function (gl) {
 
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 var msg = gl.getShaderInfoLog(shader);
-                alert(msg);
+                window.alert(msg);
                 throw msg;
             }
 
@@ -4187,7 +4165,7 @@ Viva.Graph.webgl = function (gl) {
 
             if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
                 var msg = gl.getShaderInfoLog(program);
-                alert(msg);
+                window.alert(msg);
                 throw msg;
             }
 
@@ -4261,8 +4239,8 @@ Viva.Graph.webgl = function (gl) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true,regexp:true */
 
 Viva.Graph.View.WebglUtils = function () { };
 
@@ -4364,8 +4342,8 @@ Viva.Graph.View.webglImage = function (size, src) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
@@ -4506,8 +4484,8 @@ Viva.Graph.View.webglNodeProgram = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * Defines UI for links in webgl renderer.
@@ -4661,8 +4639,8 @@ Viva.Graph.View.webglLinkProgram = function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, Float32Array, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 /**
  * Single texture in the webglAtlas.
@@ -5001,7 +4979,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
          */
         position : function (nodeUI, pos) {
             var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
-            
+            /*jslint white:true*/
             nodes[idx] = pos.x - nodeUI.size; nodes[idx + 1] = pos.y - nodeUI.size; nodes[idx + 2] = nodeUI._offset * 4;
             nodes[idx + 3] = pos.x + nodeUI.size; nodes[idx + 4] = pos.y - nodeUI.size; nodes[idx + 5] = nodeUI._offset * 4 + 1;
             nodes[idx + 6] = pos.x - nodeUI.size; nodes[idx + 7] = pos.y + nodeUI.size; nodes[idx + 8] = nodeUI._offset * 4 + 2;
@@ -5078,8 +5056,8 @@ Viva.Graph.View.webglImageNodeProgram = function () {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-
+/*global Viva, Float32Array, window */
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -5089,11 +5067,22 @@ Viva.Graph.View = Viva.Graph.View || {};
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
+ *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
+ *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
  */
 
 Viva.Graph.View.webglGraphics = function (options) {
-    options = options || {};
-    options.enableBlending = typeof options.enableBlending !== 'boolean' ? true : options.enableBlending;
+    options = Viva.lazyExtend(options, {
+        enableBlending : true,
+        preserveDrawingBuffer : false,
+        clearColor: false,
+        clearColorValue : {
+            r : 1,
+            g : 1,
+            b : 1,
+            a : 1
+        }
+    });
 
     var container,
         graphicsRoot,
@@ -5232,9 +5221,12 @@ Viva.Graph.View.webglGraphics = function (options) {
         inputManager : Viva.Input.webglInputManager,
 
         /**
-         * Called every before renderer starts rendering.
+         * Called every time before renderer starts rendering.
          */
-        beginRender : function () {},
+        beginRender : function () {
+            // this function could be replaced by this.init, 
+            // based on user options.
+        },
 
         /**
          * Called every time when renderer finishes one step of rendering.
@@ -5317,6 +5309,12 @@ Viva.Graph.View.webglGraphics = function (options) {
         * provider prepare to render.
         */
         init : function (c) {
+            var contextParameters = {};
+
+            if (options.preserveDrawingBuffer) {
+                contextParameters.preserveDrawingBuffer = true;
+            }
+
             container = c;
 
             graphicsRoot = window.document.createElement("canvas");
@@ -5324,7 +5322,8 @@ Viva.Graph.View.webglGraphics = function (options) {
             resetScaleInternal();
             container.appendChild(graphicsRoot);
 
-            gl = graphicsRoot.getContext('experimental-webgl');
+
+            gl = graphicsRoot.getContext('experimental-webgl', contextParameters);
             if (!gl) {
                 var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
                 window.alert(msg);
@@ -5333,6 +5332,15 @@ Viva.Graph.View.webglGraphics = function (options) {
             if (options.enableBlending) {
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                 gl.enable(gl.BLEND);
+            }
+            if (options.clearColor) {
+                var color = options.clearColorValue;
+                gl.clearColor(color.r, color.g, color.b, color.a);
+                // TODO: not the best way, really. Should come up with something better
+                // what if we need more updates inisde beginRender, like depth buffer?
+                this.beginRender = function () {
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                };
             }
 
             linkProgram.load(gl);
@@ -5466,6 +5474,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Returns root element which hosts graphics.
          */
         getGraphicsRoot : function (callbackWhenReady) {
+            // todo: should fire an event, instead of having this context.
             if (typeof callbackWhenReady === 'function') {
                 if (graphicsRoot) {
                     callbackWhenReady(graphicsRoot);
@@ -5528,8 +5537,8 @@ Viva.Graph.View.webglGraphics = function (options) {
     Viva.Graph.Utils.events(graphics).extend();
 
     return graphics;
-};
-
+};/*global Viva, window */
+/*jslint sloppy: true, vars: true, plusplus: true */
 
 /**
  * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
@@ -5754,8 +5763,8 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Input = Viva.Input || {};
 Viva.Input.webglInputManager = function (graph, graphics) {
@@ -5821,8 +5830,8 @@ Viva.Input.webglInputManager = function (graph, graphics) {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-
+/*global Viva, window*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -6209,8 +6218,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
         }
     };
 };
-
-
+/*global Viva, JSON*/
+/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.serializer = function () {
     var checkJSON = function () {

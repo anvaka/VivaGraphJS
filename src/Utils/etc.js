@@ -1,6 +1,33 @@
 /*global Viva */
 /*jslint sloppy: true, vars: true, plusplus: true, bitwise: true */
 
+/** 
+ * Extends target object with given fields/values in the options object.
+ * Unlike jQuery's extend this method does not override target object
+ * properties if their type matches corresponding type in the options object
+ */
+Viva.lazyExtend = function (target, options) {
+    var key;
+    if (!target) { target = {}; }
+    if (options) {
+        for (key in options) {
+            if (options.hasOwnProperty(key)) {
+                var targetHasIt = target.hasOwnProperty(key),
+                    optionsValueType = typeof options[key],
+                    shouldReplace = !targetHasIt || (typeof target[key] !== optionsValueType);
+
+                if (shouldReplace) {
+                    target[key] = options[key];
+                } else if (optionsValueType === 'object') {
+                    // go deep, don't care about loops here, we are simple API!:
+                    target[key] = Viva.lazyExtend(target[key], options[key]);
+                }
+            }
+        }
+    }
+
+    return target;
+};
 /**
  * Implenetation of seeded pseudo random number generator, based on LFIB4 algorithm.
  *
