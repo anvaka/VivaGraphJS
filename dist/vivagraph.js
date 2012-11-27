@@ -3654,7 +3654,7 @@ Viva.Graph.svg = function (element) {
     };
 
     svgElement.text = function (textContent) {
-        if (textContent) {
+        if (typeof textContent !== 'undefined') {
             svgElement.textContent = textContent;
             return svgElement;
         }
