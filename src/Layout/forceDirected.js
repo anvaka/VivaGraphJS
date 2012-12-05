@@ -239,6 +239,16 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             releaseLink(link);
         },
 
+        /**
+         * Request to release all resources
+         */
+        dispose : function () {
+            // Because I do not have reference to all nodes
+            // they should be disposed externally. Probably this will change
+            // In future. For now just reset this flag.
+            initializationRequired = true;
+        },
+
         // Layout specific methods
         /**
          * Gets or sets current desired length of the edge.

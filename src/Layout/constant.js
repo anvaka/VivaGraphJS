@@ -84,6 +84,11 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
 
         removeLink : function (link) { /* nop */ },
 
+        /**
+         * Request to release all resources
+         */
+        dispose : function () { /* nop */ },
+
         // Layout specific methods:
 
         /**

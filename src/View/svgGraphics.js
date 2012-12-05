@@ -200,6 +200,16 @@ Viva.Graph.View.svgGraphics = function () {
             updateTransform();
         },
 
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (svgRoot && container) {
+                container.removeChild(svgRoot);
+            }
+        },
+
         /**
          * Called by Viva.Graph.View.renderer to let concrete graphic output
          * provider prepare to render given link of the graph

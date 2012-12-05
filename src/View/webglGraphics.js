@@ -304,6 +304,17 @@ Viva.Graph.View.webglGraphics = function (options) {
             }
         },
 
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (graphicsRoot && container) {
+                container.removeChild(graphicsRoot);
+                // TODO: anything else?
+            }
+        },
+
        /**
         * Checks whether webgl is supported by this browser.
         */

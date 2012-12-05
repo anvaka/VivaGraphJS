@@ -9,7 +9,7 @@ Viva.Input.domInputManager = function (graph, graphics) {
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
-         * graphics we may listen to DOM events, whereas for WebGL we graphics
+         * graphics we may listen to DOM events, whereas for WebGL the graphics
          * should provide custom eventing mechanism.
          *
          * @param node - to be monitored.

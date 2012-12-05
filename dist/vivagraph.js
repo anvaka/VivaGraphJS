@@ -639,7 +639,7 @@ Viva.Input.domInputManager = function (graph, graphics) {
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
-         * graphics we may listen to DOM events, whereas for WebGL we graphics
+         * graphics we may listen to DOM events, whereas for WebGL the graphics
          * should provide custom eventing mechanism.
          *
          * @param node - to be monitored.
@@ -3086,6 +3086,16 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             releaseLink(link);
         },
 
+        /**
+         * Request to release all resources
+         */
+        dispose : function () {
+            // Because I do not have reference to all nodes
+            // they should be disposed externally. Probably this will change
+            // In future. For now just reset this flag.
+            initializationRequired = true;
+        },
+
         // Layout specific methods
         /**
          * Gets or sets current desired length of the edge.
@@ -3247,6 +3257,11 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         addLink : function (link) { /* nop */ },
 
         removeLink : function (link) { /* nop */ },
+
+        /**
+         * Request to release all resources
+         */
+        dispose : function () { /* nop */ },
 
         // Layout specific methods:
 
@@ -3923,6 +3938,16 @@ Viva.Graph.View.svgGraphics = function () {
             svgRoot.appendChild(svgContainer);
             container.appendChild(svgRoot);
             updateTransform();
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (svgRoot && container) {
+                container.removeChild(svgRoot);
+            }
         },
 
         /**
@@ -5357,6 +5382,17 @@ Viva.Graph.View.webglGraphics = function (options) {
             }
         },
 
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (graphicsRoot && container) {
+                container.removeChild(graphicsRoot);
+                // TODO: anything else?
+            }
+        },
+
        /**
         * Checks whether webgl is supported by this browser.
         */
@@ -5911,12 +5947,16 @@ Viva.Graph.View.renderer = function (graph, settings) {
             }
 
             settings.prerender = settings.prerender || 0;
-            inputManager = (graphics.inputManager || Viva.Input.domListener)(graph, graphics);
+            inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
         },
         // Cache positions object to prevent GC pressure
         cachedFromPos = {x : 0, y : 0, node: null},
         cachedToPos = {x : 0, y : 0, node: null},
         cachedNodePos = { x: 0, y: 0},
+        windowEvents = Viva.Graph.Utils.events(window),
+        graphEvents,
+        containerDrag,
+
 
         renderLink = function (link) {
             var fromNode = graph.getNode(link.fromId),
@@ -6087,6 +6127,10 @@ Viva.Graph.View.renderer = function (graph, settings) {
             }
         },
 
+        releaseDom = function () {
+            graphics.release(container);
+        },
+
         processNodeChange = function (change) {
             var node = change.node;
 
@@ -6131,13 +6175,45 @@ Viva.Graph.View.renderer = function (graph, settings) {
             }
         },
 
-        listenToEvents = function () {
-            Viva.Graph.Utils.events(window).on('resize', function () {
-                updateCenter();
-                onRenderFrame();
-            });
+        onGraphChanged = function (changes) {
+            var i, change;
+            for (i = 0; i < changes.length; i += 1) {
+                change = changes[i];
+                if (change.node) {
+                    processNodeChange(change);
+                } else if (change.link) {
+                    processLinkChange(change);
+                }
+            }
 
-            var containerDrag = Viva.Graph.Utils.dragndrop(container);
+            resetStable();
+        },
+
+        onWindowResized = function () {
+            updateCenter();
+            onRenderFrame();
+        },
+
+        releaseContainerDragManager = function () {
+            if (containerDrag) {
+                containerDrag.release();
+                containerDrag = null;
+            }
+        },
+
+        releaseGraphEvents = function () {
+            if (graphEvents) {
+                // Interesting.. why is it not null? Anyway:
+                graphEvents.stop('changed', onGraphChanged);
+                graphEvents = null;
+            }
+        },
+
+        listenToEvents = function () {
+            windowEvents.on('resize', onWindowResized);
+
+            releaseContainerDragManager();
+            containerDrag = Viva.Graph.Utils.dragndrop(container);
             containerDrag.onDrag(function (e, offset) {
                 viewPortOffset.x += offset.x;
                 viewPortOffset.y += offset.y;
@@ -6155,19 +6231,30 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
             graph.forEachNode(listenNodeEvents);
 
-            Viva.Graph.Utils.events(graph).on('changed', function (changes) {
-                var i, change;
-                for (i = 0; i < changes.length; i += 1) {
-                    change = changes[i];
-                    if (change.node) {
-                        processNodeChange(change);
-                    } else if (change.link) {
-                        processLinkChange(change);
-                    }
-                }
+            releaseGraphEvents();
+            graphEvents = Viva.Graph.Utils.events(graph);
+            graphEvents.on('changed', onGraphChanged);
+        },
 
-                resetStable();
+        stopListenToEvents = function () {
+            rendererInitialized = false;
+            releaseGraphEvents();
+            releaseContainerDragManager();
+            windowEvents.stop('resize', onWindowResized);
+            animationTimer.stop();
+
+            graph.forEachLink(function (link) {
+                if (settings.renderLinks) { removeLinkUi(link); }
+                layout.removeLink(link);
             });
+
+            graph.forEachNode(function (node) {
+                releaseNodeEvents(node);
+                removeNodeUi(node);
+            });
+
+            layout.dispose();
+            releaseDom();
         };
 
     return {
@@ -6215,6 +6302,13 @@ Viva.Graph.View.renderer = function (graph, settings) {
         rerender : function () {
             renderGraph();
             return this;
+        },
+
+        /**
+         * Removes this renderer and deallocates all resources/timers
+         */
+        dispose : function () {
+            stopListenToEvents(); // I quit!
         }
     };
 };

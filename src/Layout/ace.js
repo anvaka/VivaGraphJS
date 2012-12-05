@@ -1,7 +1,6 @@
 /**
  * @note: this algorithm is not used in the library due to rounding errors in the
- * power iteration. Still I think it's wroth to keep it in case someone would want
- * to look into its implementation
+ * power iteration. Keeping here for the reference only.
  *
  * @fileOverview Implementation of ACE multiscale graph drawing algorithm.
  * ACE is A Fast Multiscale Eigenvector Computation for Drawing Huge Graphs,
@@ -129,6 +128,13 @@ Viva.Graph.Layout.ace = function (graph, options) {
 
         removeLink : function () {
             // todo: implement me;
+        },
+
+        /**
+         * Request to release all resources
+         */
+        dispose : function () {
+            initializationRequired = true;
         },
 
         getGraphRect : function () {

@@ -370,6 +370,13 @@ Viva.Graph.Layout.gem = function (graph, customSettings) {
 
         removeLink : function (link) {
             // NOP. Just for compliance with renderer;
+        },
+
+        /**
+         * Request to release all resources
+         */
+        dispose : function () {
+            initializationRequired = true;
         }
     };
 };
