@@ -103,7 +103,7 @@ Viva.Graph.Utils.dragndrop = function (element) {
             window.document.onselectstart = prevSelectStart;
             dragObject.ondragstart = prevDragStart;
             dragObject = null;
-            if (end) { end(); }
+            if (end) { end(e); }
         },
 
         handleMouseWheel = function (e) {
