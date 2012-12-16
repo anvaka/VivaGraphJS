@@ -9,6 +9,9 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: I don't really like the way I implemented events. It looks clumsy and
 // hard to understand. Refactor it.
 
+// TODO: This is really painful. Please don't use this class anymore, I will
+// definitely depricate it or update its interface.
+
 /**
  * Allows to start/stop listen to element's events. An element can be arbitrary
  * DOM element, or object with eventuality behavior.
@@ -96,6 +99,15 @@ Viva.Graph.Utils.events = function (element) {
             }
 
             return this;
+        };
+
+        that.removeAllListeners = function () {
+            var eventName, i, handlers;
+            for (eventName in registry) {
+                if (registry.hasOwnProperty(eventName)) {
+                    delete registry[eventName];
+                }
+            }
         };
 
         return that;

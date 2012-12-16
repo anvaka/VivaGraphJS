@@ -310,6 +310,9 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: I don't really like the way I implemented events. It looks clumsy and
 // hard to understand. Refactor it.
 
+// TODO: This is really painful. Please don't use this class anymore, I will
+// definitely depricate it or update its interface.
+
 /**
  * Allows to start/stop listen to element's events. An element can be arbitrary
  * DOM element, or object with eventuality behavior.
@@ -399,6 +402,15 @@ Viva.Graph.Utils.events = function (element) {
             return this;
         };
 
+        that.removeAllListeners = function () {
+            var eventName, i, handlers;
+            for (eventName in registry) {
+                if (registry.hasOwnProperty(eventName)) {
+                    delete registry[eventName];
+                }
+            }
+        };
+
         return that;
     };
 
@@ -447,7 +459,6 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 // TODO: Move to input namespace
 Viva.Graph.Utils.dragndrop = function (element) {
-
     var start,
         drag,
         end,
@@ -542,7 +553,7 @@ Viva.Graph.Utils.dragndrop = function (element) {
             window.document.onselectstart = prevSelectStart;
             dragObject.ondragstart = prevDragStart;
             dragObject = null;
-            if (end) { end(); }
+            if (end) { end(e); }
         },
 
         handleMouseWheel = function (e) {
@@ -5954,6 +5965,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
         cachedToPos = {x : 0, y : 0, node: null},
         cachedNodePos = { x: 0, y: 0},
         windowEvents = Viva.Graph.Utils.events(window),
+        publicEvents = Viva.Graph.Utils.events({}).extend(),
         graphEvents,
         containerDrag,
 
@@ -6227,6 +6239,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 transform.scale = graphics.scale(scaleFactor, scrollPoint);
 
                 renderGraph();
+                publicEvents.fire('scale', transform.scale);
             });
 
             graph.forEachNode(listenNodeEvents);
@@ -6241,6 +6254,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
             releaseGraphEvents();
             releaseContainerDragManager();
             windowEvents.stop('resize', onWindowResized);
+            publicEvents.removeAllListeners();
             animationTimer.stop();
 
             graph.forEachLink(function (link) {
@@ -6309,6 +6323,16 @@ Viva.Graph.View.renderer = function (graph, settings) {
          */
         dispose : function () {
             stopListenToEvents(); // I quit!
+        },
+
+        on : function (eventName, callback) {
+            publicEvents.addEventListener(eventName, callback);
+            return this;
+        },
+
+        off : function (eventName, callback) {
+            publicEvents.removeEventListener(eventName, callback);
+            return this;
         }
     };
 };

@@ -91,6 +91,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
         cachedToPos = {x : 0, y : 0, node: null},
         cachedNodePos = { x: 0, y: 0},
         windowEvents = Viva.Graph.Utils.events(window),
+        publicEvents = Viva.Graph.Utils.events({}).extend(),
         graphEvents,
         containerDrag,
 
@@ -364,6 +365,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 transform.scale = graphics.scale(scaleFactor, scrollPoint);
 
                 renderGraph();
+                publicEvents.fire('scale', transform.scale);
             });
 
             graph.forEachNode(listenNodeEvents);
@@ -378,6 +380,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
             releaseGraphEvents();
             releaseContainerDragManager();
             windowEvents.stop('resize', onWindowResized);
+            publicEvents.removeAllListeners();
             animationTimer.stop();
 
             graph.forEachLink(function (link) {
@@ -446,6 +449,16 @@ Viva.Graph.View.renderer = function (graph, settings) {
          */
         dispose : function () {
             stopListenToEvents(); // I quit!
+        },
+
+        on : function (eventName, callback) {
+            publicEvents.addEventListener(eventName, callback);
+            return this;
+        },
+
+        off : function (eventName, callback) {
+            publicEvents.removeEventListener(eventName, callback);
+            return this;
         }
     };
 };

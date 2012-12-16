@@ -8,7 +8,6 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 // TODO: Move to input namespace
 Viva.Graph.Utils.dragndrop = function (element) {
-
     var start,
         drag,
         end,
