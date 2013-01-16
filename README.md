@@ -56,7 +56,7 @@ renderer.run();
 
 Customization
 ----------------------------------------------------
-VivaGraphJS is all about customization. You can easily change nodes and links appearance, switch layouting algorithm and medium used to display elements of the graph. For example to use CSS-based rendering (instead of default SVG) the following code is required:
+VivaGraphJS is all about customization. You can easily change the appearance of nodes and links. You can also change the layouting algorithm and medium that displays elements of the graph. For example: The following code allows you to use CSS-based rendering, instead of the default SVG.
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -71,7 +71,7 @@ var renderer = Viva.Graph.View.renderer(graph,
 renderer.run();
 ```
 
-`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. To change nodes appearance tell `graphics` how to represent them. Here is an example of graph with six people whom I follow at github:
+`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. To change nodes appearance tell `graphics` how to represent them. Here is an example of graph with six people who I follow at github:
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -120,7 +120,7 @@ The result is:
 
 Tuning layout algorithm
 ----------------------------------------------------
-Graphs vary by their nature. Some graphs has hundreds of nodes and few edges (or links), others connect every node with each other. To get the best layout tuning is usually required.
+Graphs vary by their nature. Some graphs have hundreds of nodes and few edges (or links), somew might connect every node with every other. Tuning the physics often helps get the best layout.
 Consider the following example:
 
 ```javascript
@@ -134,7 +134,7 @@ Graph generators are part of the library, which can produce classic graphs. `gri
 
 ![Grid 3x3 bad](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridBad.png)
 
-Let's tweak original code:
+Let's tweak the original code:
 
 ```javascript
 var graphGenerator = Viva.Graph.generator();
@@ -153,7 +153,7 @@ var renderer = Viva.Graph.View.renderer(graph, {
 renderer.run();
 ```
 
-Now result is much better:
+Now the result is much better:
 
 ![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
 
