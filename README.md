@@ -7,7 +7,7 @@ it supports rendering graphs using WebGL, SVG or CSS formats. Layout algorithms 
 * [Force Directed](http://en.wikipedia.org/wiki/Force-based_algorithms_\(graph_drawing\)) - based on Barnes-Hut
 simulation and optimized for JavaScript language this algorithm gives `N * lg(N) + V` performance per iteration. 
 * [ ![PDF download](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/pdf-icon.gif) GEM](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.9565&rep=rep1&type=pdf) - Graph Embedder
-algorithm created by Arne Frick, Andreas Ludwig and Heiko Mehldau. Estimated compleixity of this algorithm
+algorithm created by Arne Frick, Andreas Ludwig and Heiko Mehldau. Estimated complexity of this algorithm
 is `O(|V|^3)` - though I must have made a mistake somewhere, because force directed algorithm almost
 always produces better results faster. This algorithm is included to demonstrate how
 one can implement a new layout algorithm.
@@ -56,7 +56,7 @@ renderer.run();
 
 Customization
 ----------------------------------------------------
-VivaGraphJS is all about customization. You can easily change nodes and links appearance, switch layouting algorithm and medium used to display elements of the graph. For example to use CSS-based rendering (instead of default SVG) the following code is required:
+VivaGraphJS is all about customization. You can easily change the appearance of nodes and links. You can also change the layouting algorithm and medium that displays elements of the graph. For example: The following code allows you to use CSS-based rendering, instead of the default SVG.
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -71,7 +71,7 @@ var renderer = Viva.Graph.View.renderer(graph,
 renderer.run();
 ```
 
-`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. To change nodes appearance tell `graphics` how to represent them. Here is an example of graph with six people whom I follow at github:
+`graphics` class is responsible for rendering nodes and links on the page. And `renderer` orchestrates the process. To change nodes appearance tell `graphics` how to represent them. Here is an example of graph with six people who I follow at github:
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -120,7 +120,7 @@ The result is:
 
 Tuning layout algorithm
 ----------------------------------------------------
-Graphs vary by their nature. Some graphs has hundreds of nodes and few edges (or links), others connect every node with each other. To get the best layout tuning is usually required.
+Graphs vary by their nature. Some graphs have hundreds of nodes and few edges (or links), some might connect every node with every other. Tuning the physics often helps get the best layout.
 Consider the following example:
 
 ```javascript
@@ -134,7 +134,7 @@ Graph generators are part of the library, which can produce classic graphs. `gri
 
 ![Grid 3x3 bad](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridBad.png)
 
-Let's tweak original code:
+Let's tweak the original code:
 
 ```javascript
 var graphGenerator = Viva.Graph.generator();
@@ -153,7 +153,7 @@ var renderer = Viva.Graph.View.renderer(graph, {
 renderer.run();
 ```
 
-Now result is much better:
+Now the result is much better:
 
 ![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
 
@@ -163,11 +163,11 @@ Tuning layout algorithm is definitely one of the hardest part of using this libr
 
 I need your feedback
 ----------------------------------------------------
-Disclaimer: I wrote this library to learn JavaScript. By no means I pretend to be an expert in the language and choosen approach to design may not be the optimal. I would love to hear your feedback and suggestions. 
+Disclaimer: I wrote this library to learn JavaScript. By no means I pretend to be an expert in the language and chosen approach to design may not be the optimal. I would love to hear your feedback and suggestions. 
 
 Though I implemented this library from scratch, I went through many existing libraries to pick the best (at my view) out of them. If you are evaluating libraries for your project make sure to check them out as well:
 
 * [Dracula Graph Library](https://github.com/strathausen/dracula) - written by [Johann Philipp Strathausen](https://github.com/strathausen) and uses [Raphaël](http://raphaeljs.com/) library to render graphs. Has very simple API.
 * [D3](http://mbostock.github.com/d3/ex/force.html) - one of the best data visualization library in JavaScript world. From [Mike Bostock](https://github.com/mbostock).
 
-My goal is to create highly performant javascript library which serves in the field of graph drawing. To certain extent I ahcieved it. But I have no doubt there is much more to improve here.
+My goal is to create highly performant javascript library, which serves in the field of graph drawing. To certain extent I achieved it. But I have no doubt there is much more to improve here.
