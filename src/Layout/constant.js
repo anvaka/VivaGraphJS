@@ -18,34 +18,35 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
     });
 
     var rand = Viva.random(userSettings.seed),
-        graphRect = new Viva.Graph.Rect(),
+        graphRect = new Viva.Graph.Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
 
         placeNodeCallback = function (node) {
             return new Viva.Graph.Point2d(rand.next(userSettings.maxX), rand.next(userSettings.maxY));
         },
 
+        updateGraphRect = function (node, graphRect) {
+            if (node.position.x < graphRect.x1) { graphRect.x1 = node.position.x; }
+            if (node.position.x > graphRect.x2) { graphRect.x2 = node.position.x; }
+            if (node.position.y < graphRect.y1) { graphRect.y1 = node.position.y; }
+            if (node.position.y > graphRect.y2) { graphRect.y2 = node.position.y; }
+        },
+
+        ensureNodeInitialized = function (node) {
+            if (!node.hasOwnProperty('position')) {
+                node.position = placeNodeCallback(node);
+            }
+            updateGraphRect(node, graphRect);
+        },
+
         updateNodePositions = function () {
-            var x1 = Number.MAX_VALUE,
-                y1 = Number.MAX_VALUE,
-                x2 = Number.MIN_VALUE,
-                y2 = Number.MIN_VALUE;
             if (graph.getNodesCount() === 0) { return; }
 
-            graph.forEachNode(function (node) {
-                if (!node.hasOwnProperty('position')) {
-                    node.position = placeNodeCallback(node);
-                }
+            graphRect.x1 = Number.MAX_VALUE;
+            graphRect.y1 = Number.MAX_VALUE;
+            graphRect.x2 = Number.MIN_VALUE;
+            graphRect.y2 = Number.MIN_VALUE;
 
-                if (node.position.x < x1) { x1 = node.position.x; }
-                if (node.position.x > x2) { x2 = node.position.x; }
-                if (node.position.y < y1) { y1 = node.position.y; }
-                if (node.position.y > y2) { y2 = node.position.y; }
-            });
-
-            graphRect.x1 = x1;
-            graphRect.x2 = x2;
-            graphRect.y1 = y1;
-            graphRect.y2 = y2;
+            graph.forEachNode(ensureNodeInitialized);
         };
 
     return {
@@ -76,7 +77,7 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             return graphRect;
         },
 
-        addNode : function (node) { /* nop */ },
+        addNode : ensureNodeInitialized,
 
         removeNode : function (node) { /* nop */ },
 
