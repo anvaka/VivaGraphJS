@@ -2,8 +2,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.indexOfElementInArray = function (element, array) {

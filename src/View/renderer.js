@@ -3,8 +3,6 @@
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 

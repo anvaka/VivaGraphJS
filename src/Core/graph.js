@@ -4,8 +4,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 /**
  * @namespace Represents a graph data structure.
  *
@@ -42,7 +40,7 @@ Viva.Graph.graph = function () {
         },
 
         // Enter, Exit Mofidication allows bulk graph updates without firing events.
-        enterModification = function (graph) {
+        enterModification = function () {
             suspendEvents += 1;
         },
 

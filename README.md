@@ -6,11 +6,6 @@ it supports rendering graphs using WebGL, SVG or CSS formats. Layout algorithms 
 
 * [Force Directed](http://en.wikipedia.org/wiki/Force-based_algorithms_\(graph_drawing\)) - based on Barnes-Hut
 simulation and optimized for JavaScript language this algorithm gives `N * lg(N) + V` performance per iteration. 
-* [ ![PDF download](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/pdf-icon.gif) GEM](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.9565&rep=rep1&type=pdf) - Graph Embedder
-algorithm created by Arne Frick, Andreas Ludwig and Heiko Mehldau. Estimated complexity of this algorithm
-is `O(|V|^3)` - though I must have made a mistake somewhere, because force directed algorithm almost
-always produces better results faster. This algorithm is included to demonstrate how
-one can implement a new layout algorithm.
 
 Library provides API which tracks graph changes and reflect changes on the rendering surface
 accordingly.
@@ -159,7 +154,18 @@ Now the result is much better:
 
 Tuning layout algorithm is definitely one of the hardest part of using this library. It has to be improved in future to simplify usage. Each of the force directed algorithm parameters are described in the source code.
 
-`TODO: Add more examples and library API to wiki`
+
+Local Build
+-----------
+Run the following script:
+```
+git clone git://github.com/anvaka/VivaGraphJS.git
+cd ./VivaGraphJS
+npm install
+grunt
+```
+The combined/minified code should be stored in ```dist``` folder.
+
 
 I need your feedback
 ----------------------------------------------------

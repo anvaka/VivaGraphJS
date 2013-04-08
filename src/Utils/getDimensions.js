@@ -1,5 +1,3 @@
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.getDimension = function (container) {

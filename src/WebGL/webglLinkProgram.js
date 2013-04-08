@@ -5,9 +5,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Defines UI for links in webgl renderer.
  */
@@ -19,7 +16,8 @@ Viva.Graph.View.webglLinkProgram = function () {
             'varying vec4 color;',
             'void main(void) {',
             '   gl_FragColor = color;',
-            '}'].join('\n'),
+            '}'
+        ].join('\n'),
 
         linksVS = [
             'attribute vec2 a_vertexPos;',
@@ -33,7 +31,8 @@ Viva.Graph.View.webglLinkProgram = function () {
             'void main(void) {',
             '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
             '   color = a_color.abgr;',
-            '}'].join('\n'),
+            '}'
+        ].join('\n'),
 
         program,
         gl,

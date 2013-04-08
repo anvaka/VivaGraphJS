@@ -1,6 +1,3 @@
-/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true */
-
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object

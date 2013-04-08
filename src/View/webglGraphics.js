@@ -3,8 +3,6 @@
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva, Float32Array, window */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -47,7 +45,7 @@ Viva.Graph.View.webglGraphics = function (options) {
 
         linkProgram = Viva.Graph.View.webglLinkProgram(),
         nodeProgram = Viva.Graph.View.webglNodeProgram(),
-
+/*jshint unused: false */
         nodeUIBuilder = function (node) {
             return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
         },
@@ -55,7 +53,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         linkUIBuilder = function (link) {
             return Viva.Graph.View.webglLine(0xb3b3b3ff);
         },
-
+/*jshint unused: true */
         updateTransformUniform = function () {
             linkProgram.updateTransform(transform);
             nodeProgram.updateTransform(transform);
@@ -101,7 +99,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         },
 
         fireRescaled = function (graphics) {
-            graphics.fire('rescaled');
+            graphics.fire("rescaled");
         };
 
     var graphics = {
@@ -117,7 +115,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Otherwise a node representation is returned for the passed parameter.
          */
         node : function (builderCallbackOrNode) {
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
                 return nodeBuilderInternal(builderCallbackOrNode); // create ui for node using current nodeUIBuilder
             }
 
@@ -139,7 +137,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          */
         link : function (builderCallbackOrLink) {
 
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
                 return linkBuilderInternal(builderCallbackOrLink);
             }
 
@@ -204,13 +202,31 @@ Viva.Graph.View.webglGraphics = function (options) {
                 links[srcLinkId].ui.id = srcLinkId;
             }
         },
-
+/*jshint unused: false */
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
         graphCenterChanged : function (x, y) {
             updateSize();
         },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given link of the graph
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        */
+        initLink : function (linkUI) {
+        },
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given node of the graph.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        initNode : function (nodeUI) {
+        },
+/*jshint unused: true */
 
         translateRel : function (dx, dy) {
             transform[12] += (2 * transform[0] * dx / width) / transform[0];
@@ -270,7 +286,7 @@ Viva.Graph.View.webglGraphics = function (options) {
             container.appendChild(graphicsRoot);
 
 
-            gl = graphicsRoot.getContext('experimental-webgl', contextParameters);
+            gl = graphicsRoot.getContext("experimental-webgl", contextParameters);
             if (!gl) {
                 var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
                 window.alert(msg);
@@ -299,7 +315,7 @@ Viva.Graph.View.webglGraphics = function (options) {
             updateTransformUniform();
 
             // Notify the world if someoen waited for update. TODO: should send an event
-            if (typeof initCallback === 'function') {
+            if (typeof initCallback === "function") {
                 initCallback(graphicsRoot);
             }
         },
@@ -320,17 +336,8 @@ Viva.Graph.View.webglGraphics = function (options) {
         */
         isSupported : function () {
             var c = window.document.createElement("canvas"),
-                gl = c && c.getContext && c.getContext('experimental-webgl');
+                gl = c && c.getContext && c.getContext("experimental-webgl");
             return gl;
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given link of the graph
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        */
-        initLink : function (linkUI) {
         },
 
        /**
@@ -356,14 +363,6 @@ Viva.Graph.View.webglGraphics = function (options) {
                 links[linkIdToRemove].ui.id = linkIdToRemove;
             }
         },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given node of the graph.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        initNode : function (nodeUI) { },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
@@ -433,7 +432,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          */
         getGraphicsRoot : function (callbackWhenReady) {
             // todo: should fire an event, instead of having this context.
-            if (typeof callbackWhenReady === 'function') {
+            if (typeof callbackWhenReady === "function") {
                 if (graphicsRoot) {
                     callbackWhenReady(graphicsRoot);
                 } else {

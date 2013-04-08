@@ -1,6 +1,3 @@
-/*global Viva, window */
-/*jslint sloppy: true, vars: true, plusplus: true */
-
 /**
  * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
  *
@@ -70,7 +67,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
                     pos.y = e.clientY;
                 },
 
-                handleMouseUp = function (e) {
+                handleMouseUp = function () {
                     documentEvents.stop('mousemove', handleMouseMove);
                     documentEvents.stop('mouseup', handleMouseUp);
                 },
@@ -213,7 +210,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
         mouseCapture : function (node) {
             mouseCapturedNode = node;
         },
-        releaseMouseCapture : function (node) {
+        releaseMouseCapture : function () {
             mouseCapturedNode = null;
         }
     };

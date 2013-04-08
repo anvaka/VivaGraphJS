@@ -1,15 +1,10 @@
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-
-// TODO: rename all links to edges. Otherwise it's incositent
 var Viva = Viva || {};
 
 Viva.Graph = Viva.Graph || {};
-Viva.Graph.version = '1.0.0.43';/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true */
-
-/** 
+Viva.Graph.version = '0.4.0';/** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
  * properties if their type matches corresponding type in the options object
@@ -210,14 +205,11 @@ Viva.randomIterator = function (array, random) {
         }
     };
 };
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
-
 Viva.BrowserInfo = (function () {
-    if (typeof window === 'undefined' || !window.hasOwnProperty('navigator')) {
+    if (typeof window === "undefined" || !window.hasOwnProperty("navigator")) {
         return {
-            browser : '',
-            version : '0'
+            browser : "",
+            version : "0"
         };
     }
 
@@ -242,8 +234,6 @@ Viva.BrowserInfo = (function () {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
@@ -262,8 +252,6 @@ Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
 
     return -1;
 };
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.getDimension = function (container) {
@@ -303,8 +291,6 @@ Viva.Graph.Utils.findElementPosition = function (obj) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 // TODO: I don't really like the way I implemented events. It looks clumsy and
@@ -347,8 +333,8 @@ Viva.Graph.Utils.events = function (element) {
                 handler,
                 i;
 
-            if (typeof eventName !== 'string') {
-                throw 'Only strings can be used as even type';
+            if (typeof eventName !== "string") {
+                throw "Only strings can be used as even type";
             }
 
             // If an array of handlers exist for this event, then
@@ -366,8 +352,8 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.addEventListener = function (eventName, callback) {
-            if (typeof callback !== 'function') {
-                throw 'Only functions allowed to be callbacks';
+            if (typeof callback !== "function") {
+                throw "Only functions allowed to be callbacks";
             }
 
             var handler = {
@@ -383,8 +369,8 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.removeEventListener = function (eventName, callback) {
-            if (typeof callback !== 'function') {
-                throw 'Only functions allowed to be callbacks';
+            if (typeof callback !== "function") {
+                throw "Only functions allowed to be callbacks";
             }
 
             if (registry.hasOwnProperty(eventName)) {
@@ -403,7 +389,7 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.removeAllListeners = function () {
-            var eventName, i, handlers;
+            var eventName;
             for (eventName in registry) {
                 if (registry.hasOwnProperty(eventName)) {
                     delete registry[eventName];
@@ -435,7 +421,7 @@ Viva.Graph.Utils.events = function (element) {
             if (element.removeEventListener) {
                 element.removeEventListener(eventName, callback, false);
             } else if (element.detachEvent) {
-                element.detachEvent('on' + eventName, callback);
+                element.detachEvent("on" + eventName, callback);
             }
         },
 
@@ -453,8 +439,6 @@ Viva.Graph.Utils.events = function (element) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 // TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 // TODO: Move to input namespace
@@ -643,10 +627,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Input = Viva.Input || {};
-Viva.Input.domInputManager = function (graph, graphics) {
+Viva.Input.domInputManager = function () {
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
@@ -682,9 +664,6 @@ Viva.Input.domInputManager = function (graph, graphics) {
         }
     };
 };
-/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Allows querying graph nodes position at given point.
  *
@@ -705,7 +684,6 @@ Viva.Graph.spatialIndex = function (graph, toleranceOrCheckCallback) {
         getNodeFunction = function (x, y) {
             var foundNode = null;
             graph.forEachNode(function (node) {
-                var pos = node.position;
                 if (preciseCheckCallback(node, x, y)) {
                     foundNode = node;
                     return true;
@@ -743,8 +721,6 @@ Viva.Graph.spatialIndex = function (graph, toleranceOrCheckCallback) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window, global*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 (function () {
@@ -761,7 +737,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     }
 
     if (!global.requestAnimationFrame) {
-        global.requestAnimationFrame = function (callback, element) {
+        global.requestAnimationFrame = function (callback) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
             var id = global.setTimeout(function () { callback(currTime + timeToCall); }, timeToCall);
@@ -780,7 +756,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
      * Timer that fires callback with given interval (in ms) until
      * callback returns true;
      */
-    Viva.Graph.Utils.timer = function (callback, interval) {
+    Viva.Graph.Utils.timer = function (callback) {
         var intervalId,
             stopTimer = function () {
                 global.cancelAnimationFrame(intervalId);
@@ -809,10 +785,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
             }
         };
     };
-}());/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
-
-Viva.Graph.geom = function () {
+}());Viva.Graph.geom = function () {
 
     return {
         // function from Graphics GEM to determine lines intersection:
@@ -997,10 +970,7 @@ Viva.Graph.geom = function () {
             return s;
         }
     };
-};/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-/**
+};/**
  * Very generic rectangle. 
  */
 Viva.Graph.Rect = function (x1, y1, x2, y2) {
@@ -1040,8 +1010,6 @@ Viva.Graph.Link = function (fromId, toId, data) {
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 /**
  * @namespace Represents a graph data structure.
  *
@@ -1078,7 +1046,7 @@ Viva.Graph.graph = function () {
         },
 
         // Enter, Exit Mofidication allows bulk graph updates without firing events.
-        enterModification = function (graph) {
+        enterModification = function () {
             suspendEvents += 1;
         },
 
@@ -1442,219 +1410,11 @@ Viva.Graph.graph = function () {
 
     return graphPart;
 };/**
- * @fileOverview Contains collection of graph generators.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Graph.generator = function () {
-
-    return {
-        /**
-         * Generates complete graph Kn.
-         *
-         * @param n represents number of nodes in the complete graph.
-         */
-        complete : function (n) {
-            if (!n || n < 1) {
-                throw { message: 'At least two nodes expected for complete graph' };
-            }
-
-            var g = Viva.Graph.graph(),
-                i,
-                j;
-
-            g.Name = "Complete K" + n;
-
-            for (i = 0; i < n; ++i) {
-                for (j = i + 1; j < n; ++j) {
-                    if (i !== j) {
-                        g.addLink(i, j);
-                    }
-                }
-            }
-
-            return g;
-        },
-
-        /**
-         * Generates complete bipartite graph K n,m. Each node in the
-         * first partition is connected to all nodes in the second partition.
-         *
-         * @param n represents number of nodes in the first graph partition
-         * @param m represents number of nodes in the second graph partition
-         */
-        completeBipartite : function (n, m) {
-            if (!n || !m || n < 0 || m < 0) {
-                throw { message: 'Graph dimensions are invalid. Number of nodes in each partition should be greate than 0' };
-            }
-
-            var g = Viva.Graph.graph(),
-                i,
-                j;
-
-            g.Name = "Complete K " + n + "," + m;
-            for (i = 0; i < n; ++i) {
-                for (j = n; j < n + m; ++j) {
-                    g.addLink(i, j);
-                }
-            }
-
-            return g;
-        },
-        /**
-         * Generates a graph in a form of a ladder with n steps.
-         *
-         * @param n number of steps in the ladder.
-         */
-        ladder : function (n) {
-            if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
-            }
-
-            var g = Viva.Graph.graph(),
-                i;
-            g.Name = "Ladder graph " + n;
-
-            for (i = 0; i < n - 1; ++i) {
-                g.addLink(i, i + 1);
-                // first row
-                g.addLink(n + i, n + i + 1);
-                // second row
-                g.addLink(i, n + i);
-                // ladder's step
-            }
-
-            g.addLink(n - 1, 2 * n - 1);
-            // last step in the ladder;
-
-            return g;
-        },
-
-        /**
-         * Generates a graph in a form of a circular ladder with n steps.
-         *
-         * @param n number of steps in the ladder.
-         */
-        circularLadder : function (n) {
-            if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
-            }
-
-            var g = this.ladder(n);
-            g.Name = "Circular ladder graph " + n;
-
-            g.addLink(0, n - 1);
-            g.addLink(n, 2 * n - 1);
-            return g;
-        },
-        /**
-         * Generates a graph in a form of a grid with n rows and m columns.
-         *
-         * @param n number of rows in the graph.
-         * @param m number of columns in the graph.
-         */
-        grid: function (n, m) {
-            var g = Viva.Graph.graph(),
-                i,
-                j;
-            g.Name = "Grid graph " + n + "x" + m;
-            for (i = 0; i < n; ++i) {
-                for (j = 0; j < m; ++j) {
-                    var node = i + j * n;
-                    if (i > 0) { g.addLink(node, i - 1 + j * n); }
-                    if (j > 0) { g.addLink(node, i + (j - 1) * n); }
-                }
-            }
-
-            return g;
-        },
-
-        path: function (n) {
-            if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
-            }
-
-            var g = Viva.Graph.graph(),
-                i;
-            g.Name = "Path graph " + n;
-            g.addNode(0);
-
-            for (i = 1; i < n; ++i) {
-                g.addLink(i - 1, i);
-            }
-
-            return g;
-        },
-
-        lollipop: function (m, n) {
-            if (!n || n < 0 || !m || m < 0) {
-                throw { message: 'Invalid number of nodes' };
-            }
-
-            var g = this.complete(m),
-                i;
-            g.Name = "Lollipop graph. Head x Path " + m + "x" + n;
-
-            for (i = 0; i < n; ++i) {
-                g.addLink(m + i - 1, m + i);
-            }
-
-            return g;
-        },
-
-        /**
-         * Creates balanced binary tree with n levels.
-         */
-        balancedBinTree: function (n) {
-            var g = Viva.Graph.graph(),
-                count = Math.pow(2, n),
-                level;
-            g.Name = "Balanced bin tree graph " + n;
-
-            for (level = 1; level < count; ++level) {
-                var root = level,
-                    left = root * 2,
-                    right = root * 2 + 1;
-
-                g.addLink(root, left);
-                g.addLink(root, right);
-            }
-
-            return g;
-        },
-        /**
-         * Generates a graph with n nodes and 0 links.
-         *
-         * @param n number of nodes in the graph.
-         */
-        randomNoLinks : function (n) {
-            if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
-            }
-
-            var g = Viva.Graph.graph(),
-                i;
-            g.Name = "Random graph, no Links: " + n;
-            for (i = 0; i < n; ++i) {
-                g.addNode(i);
-            }
-
-            return g;
-        }
-    };
-};
-/**
  * @fileOverview Contains collection of primitve operations under graph.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.operations = function () {
 
     return {
@@ -1677,517 +1437,6 @@ Viva.Graph.operations = function () {
         }
     };
 };
-/**
- * @fileOverview Centrality calcuation algorithms.
- * 
- * @see http://en.wikipedia.org/wiki/Centrality
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Graph.centrality = function () {
-    var singleSourceShortestPath = function (graph, node, oriented) {
-            // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
-            // sorry about cryptic names.
-            var P = {}, // predcessors lists. 
-                S = [],
-                sigma = {},
-                d = {},
-                Q = [node.id],
-                v,
-                dV,
-                sigmaV,
-                processNode = function (w) {
-                    // w found for the first time?
-                    if (!d.hasOwnProperty(w.id)) {
-                        Q.push(w.id);
-                        d[w.id] = dV + 1;
-                    }
-                    // Shortest path to w via v?
-                    if (d[w.id] === dV + 1) {
-                        sigma[w.id] += sigmaV;
-                        P[w.id].push(v);
-                    }
-                };
-
-            graph.forEachNode(function (t) {
-                P[t.id] = [];
-                sigma[t.id] = 0;
-            });
-
-            d[node.id] = 0;
-            sigma[node.id] = 1;
-
-            while (Q.length) { // Using BFS to find shortest paths
-                v = Q.shift();
-                dV = d[v];
-                sigmaV = sigma[v];
-
-                S.push(v);
-                graph.forEachLinkedNode(v, processNode, oriented);
-            }
-
-            return {
-                S : S,
-                P : P,
-                sigma : sigma
-            };
-        },
-
-        accumulate = function (betweenness, shortestPath, s) {
-            var delta = {},
-                S = shortestPath.S,
-                i,
-                w,
-                coeff,
-                pW,
-                v;
-
-            for (i = 0; i < S.length; i += 1) {
-                delta[S[i]] = 0;
-            }
-
-            // S returns vertices in order of non-increasing distance from s
-            while (S.length) {
-                w = S.pop();
-                coeff = (1 + delta[w]) / shortestPath.sigma[w];
-                pW = shortestPath.P[w];
-
-                for (i = 0; i < pW.length; i += 1) {
-                    v = pW[i];
-                    delta[v] += shortestPath.sigma[v] * coeff;
-                }
-
-                if (w !== s) {
-                    betweenness[w] += delta[w];
-                }
-            }
-        },
-
-        sortBetweennes = function (b) {
-            var sorted = [],
-                key;
-            for (key in b) {
-                if (b.hasOwnProperty(key)) {
-                    sorted.push({ key : key, value : b[key]});
-                }
-            }
-
-            return sorted.sort(function (x, y) { return y.value - x.value; });
-        };
-
-    return {
-
-        /**
-         * Compute the shortest-path betweenness centrality for all nodes in a graph.
-         * 
-         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs 
-         * shortest paths that pass through `n`. Runtime O(n * v) for non-weighted graphs.
-         *
-         * @see http://en.wikipedia.org/wiki/Centrality#Betweenness_centrality
-         * 
-         * @see A Faster Algorithm for Betweenness Centrality. 
-         *      Ulrik Brandes, Journal of Mathematical Sociology 25(2):163-177, 2001.
-         *      http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
-         * 
-         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness 
-         *      Centrality and their Generic Computation.
-         *      Social Networks 30(2):136-145, 2008.
-         *      http://www.inf.uni-konstanz.de/algo/publications/b-vspbc-08.pdf
-         * 
-         * @see Ulrik Brandes and Christian Pich: Centrality Estimation in Large Networks.
-         *      International Journal of Bifurcation and Chaos 17(7):2303-2318, 2007.
-         *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
-         * 
-         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
-         * @param oriented - identifies how to treat the graph
-         */
-        betweennessCentrality : function (graph, oriented) {
-            var betweennes = {},
-                shortestPath;
-            graph.forEachNode(function (node) {
-                betweennes[node.id] = 0;
-            });
-
-            graph.forEachNode(function (node) {
-                shortestPath = singleSourceShortestPath(graph, node);
-                accumulate(betweennes, shortestPath, node);
-            });
-
-            return sortBetweennes(betweennes);
-        },
-
-        /**
-         * Calculates graph nodes degree centrality (in/out or both).
-         * 
-         * @see http://en.wikipedia.org/wiki/Centrality#Degree_centrality
-         * 
-         * @param graph for which we are calculating centrality.
-         * @param kind optional parameter. Valid values are
-         *   'in'  - calculate in-degree centrality
-         *   'out' - calculate out-degree centrality
-         *         - if it's not set generic degree centrality is calculated
-         */
-        degreeCentrality : function (graph, kind) {
-            var calcDegFunction,
-                sortedDegrees = [],
-                result = [],
-                degree;
-
-            kind = (kind || 'both').toLowerCase();
-            if (kind === 'in') {
-                calcDegFunction = function (links, nodeId) {
-                    var total = 0,
-                        i;
-                    for (i = 0; i < links.length; i += 1) {
-                        total += (links[i].toId === nodeId) ? 1 : 0;
-                    }
-                    return total;
-                };
-            } else if (kind === 'out') {
-                calcDegFunction = function (links, nodeId) {
-                    var total = 0,
-                        i;
-                    for (i = 0; i < links.length; i += 1) {
-                        total += (links[i].fromId === nodeId) ? 1 : 0;
-                    }
-                    return total;
-                };
-            } else if (kind === 'both') {
-                calcDegFunction = function (links, nodeId) {
-                    return links.length;
-                };
-            } else {
-                throw 'Expected centrality degree kind is: in, out or both';
-            }
-
-            graph.forEachNode(function (node) {
-                var links = graph.getLinks(node.id),
-                    nodeDeg = calcDegFunction(links, node.id);
-
-                if (!sortedDegrees.hasOwnProperty(nodeDeg)) {
-                    sortedDegrees[nodeDeg] = [node.id];
-                } else {
-                    sortedDegrees[nodeDeg].push(node.id);
-                }
-            });
-
-            for (degree in sortedDegrees) {
-                if (sortedDegrees.hasOwnProperty(degree)) {
-                    var nodes = sortedDegrees[degree],
-                        j;
-                    if (nodes) {
-                        for (j = 0; j < nodes.length; ++j) {
-                            result.unshift({key : nodes[j], value : parseInt(degree, 10)});
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-    };
-};/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-Viva.Graph._community = {};
-
-/**
- * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
- * Jierui Xie and Boleslaw K. Szymanski.
- *
- * @see http://arxiv.org/pdf/1109.5720v3.pdf
- * @see https://sites.google.com/site/communitydetectionslpa/
- */
-Viva.Graph._community.slpaAlgorithm = function (graph, T, r) {
-    T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
-    r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
-
-    var random = Viva.random(1331782216905),
-        shuffleRandom = Viva.random('Greeting goes to you, ', 'dear reader'),
-
-        calculateCommunities = function (nodeMemory, threshold) {
-            var communities = [];
-            nodeMemory.forEachUniqueWord(function (word, count) {
-                if (count > threshold) {
-                    communities.push({name : word, probability : count / T });
-                } else {
-                    return true; // stop enumeration, nothing more popular after this word.
-                }
-            });
-
-            return communities;
-        },
-
-        init = function (graph) {
-            var algoNodes = [];
-            graph.forEachNode(function (node) {
-                var memory = Viva.Graph._community.occuranceMap(random);
-                memory.add(node.id);
-
-                node.slpa = { memory : memory  };
-                algoNodes.push(node.id);
-            });
-
-            return algoNodes;
-        },
-
-        evaluate = function (graph, nodes) {
-            var shuffle = Viva.randomIterator(nodes, shuffleRandom),
-                t,
-
-               /**
-                * One iteration of SLPA.
-                */
-                processNode = function (nodeId) {
-                    var listner = graph.getNode(nodeId),
-                        saidWords = Viva.Graph._community.occuranceMap(random);
-
-                    graph.forEachLinkedNode(nodeId, function (speakerNode) {
-                        var word = speakerNode.slpa.memory.getRandomWord();
-                        saidWords.add(word);
-                    });
-
-                    // selecting the most popular label from what it observed in the current step
-                    var heard = saidWords.getMostPopularFair();
-                    listner.slpa.memory.add(heard);
-                };
-
-            for (t = 0; t < T - 1; ++t) { // -1 is because one 'step' was during init phase
-                shuffle.forEach(processNode);
-            }
-        },
-
-        postProcess = function (graph) {
-            var communities = {};
-
-            graph.forEachNode(function (node) {
-                var nodeCommunities = calculateCommunities(node.slpa.memory, r * T),
-                    i;
-
-                for (i = 0; i < nodeCommunities.length; ++i) {
-                    var communityName = nodeCommunities[i].name;
-                    if (communities.hasOwnProperty(communityName)) {
-                        communities[communityName].push(node.id);
-                    } else {
-                        communities[communityName] = [node.id];
-                    }
-                }
-
-                node.communities = nodeCommunities; // TODO: I doesn't look right to augment node's properties. No?
-
-                // Speaking of memory. Node memory created by slpa is really expensive. Release it:
-                node.slpa = null;
-                delete node.slpa;
-            });
-
-            return communities;
-        };
-
-    return {
-
-        /**
-         * Executes SLPA algorithm. The function returns dictionary of discovered communities:
-         * {
-         *     'communityName1' : [nodeId1, nodeId2, .., nodeIdN],
-         *     'communityName2' : [nodeIdK1, nodeIdK2, .., nodeIdKN],
-         *     ...
-         * };
-         *
-         * After algorithm is done each node is also augmented with new property 'communities':
-         *
-         * node.communities = [
-         *      {name: 'communityName1', probability: 0.78},
-         *      {name: 'communityName2', probability: 0.63},
-         *     ...
-         * ];
-         *
-         * 'probability' is always higher than 'r' parameter and denotes level of confidence
-         * with which we think node belongs to community.
-         *
-         * Runtime is O(T * m), where m is total number of edges, and T - number of algorithm iterations.
-         *
-         */
-        run : function () {
-            var nodes = init(graph);
-
-            evaluate(graph, nodes);
-
-            return postProcess(graph);
-        }
-    };
-};
-
-/**
- * A data structure which serves as node memory during SLPA execution. The main idea is to
- * simplify operations on memory such as
- *  - add word to memory,
- *  - get random word from memory, with probablity proportional to word occurrence in the memory
- *  - get the most popular word in memory
- *
- * TODO: currently this structure is extremely inefficient in terms of memory. I think it could be
- * optimized.
- */
-Viva.Graph._community.occuranceMap = function (random) {
-    random = random || Viva.random();
-
-    var wordsCount = {},
-        allWords = [],
-        dirtyPopularity = false,
-        uniqueWords = [],
-
-        rebuildPopularityArray = function () {
-            var key;
-
-            uniqueWords.length = 0;
-            for (key in wordsCount) {
-                if (wordsCount.hasOwnProperty(key)) {
-                    uniqueWords.push(key);
-                }
-            }
-
-            uniqueWords.sort(function (x, y) {
-                var result = wordsCount[y] - wordsCount[x];
-                if (result) {
-                    return result;
-                }
-
-                // Not only number of occurances matters but order of keys also does.
-                // for ... in implementation in different browsers results in different
-                // order, and if we want to have same categories accross all browsers
-                // we should order words by key names too:
-                if (x < y) { return -1; }
-                if (x > y) { return 1; }
-
-                return 0;
-            });
-        },
-
-        ensureUniqueWordsUpdated = function () {
-            if (dirtyPopularity) {
-                rebuildPopularityArray();
-                dirtyPopularity = false;
-            }
-        };
-
-    return {
-
-        /**
-         * Adds a new word to the collection of words.
-         */
-        add : function (word) {
-            word = String(word);
-            if (wordsCount.hasOwnProperty(word)) {
-                wordsCount[word] += 1;
-            } else {
-                wordsCount[word] = 1;
-            }
-
-            allWords.push(word);
-            dirtyPopularity = true;
-        },
-
-        /**
-         * Gets number of occurances for a given word. If word is not present in the dictionary
-         * zero is returned.
-         */
-        getWordCount : function (word) {
-            return wordsCount[word] || 0;
-        },
-
-        /**
-         * Gets the most popular word in the map. If multiple words are at the same position
-         * random word among them is choosen.
-         *
-         */
-        getMostPopularFair : function () {
-            if (allWords.length === 1) {
-                return allWords[0]; // optimizes speed for simple case.
-            }
-
-            ensureUniqueWordsUpdated();
-
-            var maxCount = 0,
-                i;
-
-            for (i = 1; i < uniqueWords.length; ++i) {
-                if (wordsCount[uniqueWords[i - 1]] !== wordsCount[uniqueWords[i]]) {
-                    break; // other words are less popular... not interested.
-                } else {
-                    maxCount += 1;
-                }
-            }
-
-            maxCount += 1;  // to include upper bound. i.e. random words between [0, maxCount] (not [0, maxCount) ).
-            return uniqueWords[random.next(maxCount)];
-        },
-
-        /**
-         * Selects a random word from map with probability proportional
-         * to the occurrence frequency of words.
-         */
-        getRandomWord : function () {
-            if (allWords.length === 0) {
-                throw 'The occurance map is empty. Cannot get empty word';
-            }
-
-            return allWords[random.next(allWords.length)];
-        },
-
-        /**
-         * Enumerates all unique words in the map, and calls
-         *  callback(word, occuranceCount) function on each word. Callback
-         * can return true value to stop enumeration.
-         *
-         * Note: enumeration is guaranteed in to run in decreasing order.
-         */
-        forEachUniqueWord : function (callback) {
-            if (typeof callback !== 'function') {
-                throw 'Function callback is expected to enumerate all words';
-            }
-            var i;
-
-            ensureUniqueWordsUpdated();
-
-            for (i = 0; i < uniqueWords.length; ++i) {
-                var word = uniqueWords[i],
-                    count = wordsCount[word];
-
-                var stop = callback(word, count);
-                if (stop) {
-                    break;
-                }
-            }
-        }
-    };
-};/**
- * @fileOverview Community structure detection algorithms
- * 
- * @see http://en.wikipedia.org/wiki/Community_structure
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-Viva.Graph.community = function () {
-    return {
-        /**
-         * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
-         * Jierui Xie and Boleslaw K. Szymanski. 
-         * 
-         * @see http://arxiv.org/pdf/1109.5720v3.pdf
-         * @see https://sites.google.com/site/communitydetectionslpa/ 
-         */
-        slpa : function (graph, T, r) {
-            var algorithm = Viva.Graph._community.slpaAlgorithm(graph, T, r);
-            return algorithm.run();
-        }
-    };
-};/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 Viva.Graph.Physics.Vector = function (x, y) {
@@ -2261,9 +1510,6 @@ Viva.Graph.Physics.QuadTreeNode = function () {
     this.x2 = 0;
     this.y2 = 0;
 };
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 /**
@@ -2311,9 +1557,6 @@ Viva.Graph.Physics.eulerIntegrator = function () {
         }
     };
 };
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * This is Barnes Hut simulation algorithm. Implementation
  * is adopted to non-recursive solution, since certain browsers
@@ -2615,9 +1858,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
             return {gravity : gravity, theta : theta};
         }
     };
-};/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-Viva.Graph.Physics.dragForce = function (options) {
+};Viva.Graph.Physics.dragForce = function (options) {
     if (!options) {
         options = {};
     }
@@ -2643,9 +1884,6 @@ Viva.Graph.Physics.dragForce = function (options) {
         }
     };
 };
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.Physics.springForce = function (currentOptions) {
     currentOptions = Viva.lazyExtend(currentOptions, {
         length : 50,
@@ -2692,8 +1930,6 @@ Viva.Graph.Physics.springForce = function (currentOptions) {
         }
     };
 };
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 /**
@@ -2856,8 +2092,10 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
             springForces.push(force);
         }
     };
-};/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
+};// I don't like to suppress this, but I'm afraid 'force_directed_body'
+// could already be used by someone. Don't want to break it now.
+/* jshint camelcase:false */
+
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 Viva.Graph.Layout.forceDirected = function (graph, settings) {
@@ -2913,7 +2151,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
 
         graphRect = new Viva.Graph.Rect(),
 
-        random = Viva.random('ted.com', 103, 114, 101, 97, 116),
+        random = Viva.random("ted.com", 103, 114, 101, 97, 116),
 
         getBestNodePosition = function (node) {
             // TODO: Initial position could be picked better, e.g. take into
@@ -3183,9 +2421,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             return dragForce.options().coeff;
         }
     };
-};/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-Viva.Graph.Layout = Viva.Graph.Layout || {};
+};Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 /**
  * Does not really perform any layouting algorithm but is compliant
@@ -3201,7 +2437,8 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         maxY : 1024,
         seed : 'Deterministic randomness made me do this'
     });
-
+    // This class simply follows API, it does not use some of the arguments:
+    /*jshint unused: false */
     var rand = Viva.random(userSettings.seed),
         graphRect = new Viva.Graph.Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
 
@@ -3308,2578 +2545,6 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Graph.View = Viva.Graph.View || {};
-
-/**
- * Performs css-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
- *
- * NOTE: Most likely I will remove this graphics engine due to superior svg support.
- * In certain cases it doesn't work and require further imporvments:
- *  * does not properly work for dragging.
- *  * does not support scaling.
- *  * does not support IE versions prior to IE9.
- *
- */
-Viva.Graph.View.cssGraphics = function () {
-    var container, // Where graph will be rendered
-        OLD_IE = 'OLD_IE',
-        offsetX,
-        offsetY,
-        scaleX = 1,
-        scaleY = 1,
-
-        transformName = (function () {
-			var browserName = Viva.BrowserInfo.browser,
-                prefix,
-                version;
-
-            switch (browserName) {
-            case 'mozilla':
-                prefix = 'Moz';
-                break;
-            case 'webkit':
-                prefix = 'webkit';
-                break;
-            case 'opera':
-                prefix = 'O';
-                break;
-            case 'msie':
-                version = Viva.BrowserInfo.version.split(".")[0];
-                if (version > 8) {
-                    prefix = 'ms';
-                } else {
-                    return OLD_IE;
-                }
-                break;
-            }
-
-            if (prefix) { // CSS3
-                return prefix + 'Transform';
-            }
-            // Unknown browser
-            return null;
-        }()),
-
-       /**
-        * Returns a function (ui, x, y, angleRad).
-        *
-        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
-        * and position it to 'x' 'y' coordinates.
-        *
-        * Operation works in most modern browsers that support transform css style
-        * and IE.
-        * */
-        positionLink = (function () {
-            if (transformName === OLD_IE) { // This is old IE, use filters
-                return function (ui, x, y, angleRad) {
-                    var cos = Math.cos(angleRad),
-                        sin = Math.sin(angleRad);
-
-                    // IE 6, 7 and 8 are screwed up when it comes to transforms;
-                    // I could not find justification for their choice of "floating"
-                    // matrix transform origin. The following ugly code was written
-                    // out of complete dispair.
-                    if (angleRad < 0) {
-                        angleRad = 2 * Math.PI + angleRad;
-                    }
-
-                    if (angleRad < Math.PI / 2) {
-                        ui.style.left = x + 'px';
-                        ui.style.top = y + 'px';
-                    } else if (angleRad < Math.PI) {
-                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                        ui.style.top = y;
-                    } else if (angleRad < (Math.PI + Math.PI / 2)) {
-                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
-                        ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
-                    } else {
-                        ui.style.left = x;
-                        ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
-                    }
-                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
-                };
-            }
-
-            if (transformName) { // Modern CSS3 browser
-                return function (ui, x, y, angleRad) {
-                    ui.style.left = x + 'px';
-                    ui.style.top = y + 'px';
-
-                    ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
-                    ui.style[transformName + 'Origin'] = 'left';
-                };
-            }
-
-            return function (ui, x, y, angleRad) {
-                // Don't know how to rotate links in other browsers.
-            };
-        }()),
-
-        nodeBuilder = function (node) {
-            var nodeUI = window.document.createElement('div');
-            nodeUI.setAttribute('class', 'node');
-            return nodeUI;
-        },
-
-        nodePositionCallback = function (nodeUI, pos) {
-            // TODO: Remove magic 5. It should be half of the width or height of the node.
-            nodeUI.style.left = pos.x - 5 + 'px';
-            nodeUI.style.top = pos.y - 5 + 'px';
-        },
-
-        linkPositionCallback = function (linkUI, fromPos, toPos) {
-            var dx = fromPos.x - toPos.x,
-                dy = fromPos.y - toPos.y,
-                length = Math.sqrt(dx * dx + dy * dy);
-
-            linkUI.style.height = '1px';
-            linkUI.style.width = length + 'px';
-
-            positionLink(linkUI, toPos.x, toPos.y, Math.atan2(dy, dx));
-        },
-
-        linkBuilder = function (link) {
-            var linkUI = window.document.createElement('div');
-            linkUI.setAttribute('class', 'link');
-
-            return linkUI;
-        },
-
-        updateTransform = function () {
-            if (container) {
-                if (transformName && transformName !== OLD_IE) {
-                    var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
-                    container.style[transformName] = transform;
-                } else {
-                    throw 'Not implemented. TODO: Implement OLD_IE Filter based transform';
-                }
-            }
-        };
-
-    return {
-        /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
-         *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
-         */
-        node : function (builderCallbackOrNode) {
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
-                return nodeBuilder(builderCallbackOrNode);
-            }
-
-            nodeBuilder = builderCallbackOrNode;
-
-            return this;
-        },
-
-        /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
-         *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
-         */
-        link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
-                return linkBuilder(builderCallbackOrLink);
-            }
-
-            linkBuilder = builderCallbackOrLink;
-            return this;
-        },
-
-        /**
-         * Default input manager listens to DOM events to process nodes drag-n-drop
-         */
-        inputManager : Viva.Input.domInputManager,
-
-        /**
-         * Sets translate operation that should be applied to all nodes and links.
-         */
-        graphCenterChanged : function (x, y) {
-            offsetX = x;
-            offsetY = y;
-            updateTransform();
-        },
-
-        translateRel : function (dx, dy) {
-            offsetX += dx;
-            offsetY += dy;
-            updateTransform();
-        },
-
-        scale : function (x, y) {
-            // TODO: implement me
-            return 1;
-        },
-
-        resetScale : function () {
-            // TODO: implement me
-            return this;
-        },
-
-        /**
-         * Called every before renderer starts rendering.
-         */
-        beginRender : function () {},
-
-        /**
-         * Called every time when renderer finishes one step of rendering.
-         */
-        endRender : function () {},
-        /**
-         * Allows to override default position setter for the node with a new
-         * function. newPlaceCallback(node, position) is function which
-         * is used by updateNode().
-         */
-        placeNode : function (newPlaceCallback) {
-            nodePositionCallback = newPlaceCallback;
-            return this;
-        },
-
-        placeLink : function (newPlaceLinkCallback) {
-            linkPositionCallback = newPlaceLinkCallback;
-            return this;
-        },
-
-        /**
-         * Called by Viva.Graph.View.renderer to let concrete graphic output
-         * providers prepare to render.
-         */
-        init : function (parentContainer) {
-            container = parentContainer;
-            updateTransform();
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given link of the graph
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        */
-        initLink : function (linkUI) {
-            if (container.childElementCount > 0) {
-                container.insertBefore(linkUI, container.firstChild);
-            } else {
-                container.appendChild(linkUI);
-            }
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove link from rendering surface.
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        **/
-        releaseLink : function (linkUI) {
-            container.removeChild(linkUI);
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given node of the graph.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        initNode : function (nodeUI) {
-            container.appendChild(nodeUI);
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove node from rendering surface.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        releaseNode : function (nodeUI) {
-            container.removeChild(nodeUI);
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given node to recommended position pos {x, y};
-        */
-        updateNodePosition : function (node, pos) {
-            nodePositionCallback(node, pos);
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given link of the graph
-        */
-        updateLinkPosition : function (link, fromPos, toPos) {
-            linkPositionCallback(link, fromPos, toPos);
-        }
-    };
-};
-/**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
-
-/**
- * Simple wrapper over svg object model API, to shorten the usage syntax.
- */
-Viva.Graph.svg = function (element) {
-    var svgns = "http://www.w3.org/2000/svg",
-        xlinkns = 'http://www.w3.org/1999/xlink',
-        svgElement = element;
-
-    if (typeof element === 'string') {
-        svgElement = window.document.createElementNS(svgns, element);
-    }
-
-    if (svgElement.vivagraph_augmented) { return svgElement; }
-
-    svgElement.vivagraph_augmented = true;
-
-    // Augment svg element (TODO: it's not safe - what if some function already exists on the prototype?):
-
-    /**
-     * Gets an svg attribute from an element if value is not specified.
-     * OR sets a new value to the given attribute.
-     *
-     * @param name - svg attribute name;
-     * @param value - value to be set;
-     *
-     * @returns svg element if both name and value are specified; or value of the given attribute
-     * if value parameter is missing.
-     */
-    svgElement.attr = function (name, value) {
-        if (arguments.length === 2) {
-            if (value !== null) {
-                svgElement.setAttributeNS(null, name, value);
-            } else {
-                svgElement.removeAttributeNS(null, name);
-            }
-
-            return svgElement;
-        }
-
-        return svgElement.getAttributeNS(null, name);
-    };
-
-    svgElement.append = function (element) {
-        var child = Viva.Graph.svg(element);
-        svgElement.appendChild(child);
-        return child;
-    };
-
-    svgElement.text = function (textContent) {
-        if (typeof textContent !== 'undefined') {
-            svgElement.textContent = textContent;
-            return svgElement;
-        }
-        return svgElement.textContent;
-    };
-
-    svgElement.link = function (target) {
-        if (arguments.length) {
-            svgElement.setAttributeNS(xlinkns, 'xlink:href', target);
-            return svgElement;
-        }
-
-        return svgElement.getAttributeNS(xlinkns, 'xlink:href');
-    };
-
-    svgElement.children = function (selector) {
-        var wrapped_children = [],
-            children_count = svgElement.childNodes.length,
-            i,
-            j;
-
-        if (selector === undefined && svgElement.hasChildNodes()) {
-            for (i = 0; i < children_count; i++) {
-                wrapped_children.push(Viva.Graph.svg(svgElement.childNodes[i]));
-            }
-        } else if (typeof selector === 'string') {
-            var class_selector = (selector[0] === '.'),
-                id_selector    = (selector[0] === '#'),
-                tag_selector   = !class_selector && !id_selector;
-
-            for (i = 0; i < children_count; i++) {
-                var el = svgElement.childNodes[i];
-
-                // pass comments, text nodes etc.
-                if (el.nodeType === 1) {
-                    var classes = el.attr('class'),
-                        id = el.attr('id'),
-                        tagName = el.nodeName;
-
-                    if (class_selector && classes) {
-                        classes = classes.replace(/\s+/g, ' ').split(' ');
-                        for (j = 0; j < classes.length; j++) {
-                            if (class_selector && classes[j] === selector.substr(1)) {
-                                wrapped_children.push(Viva.Graph.svg(el));
-                                break;
-                            }
-                        }
-                    } else if (id_selector && id === selector.substr(1)) {
-                        wrapped_children.push(Viva.Graph.svg(el));
-                        break;
-                    } else if (tag_selector && tagName === selector) {
-                        wrapped_children.push(Viva.Graph.svg(el));
-                    }
-
-                    wrapped_children = wrapped_children.concat(Viva.Graph.svg(el).children(selector));
-                }
-            }
-
-            if (id_selector && wrapped_children.length === 1) {
-                return wrapped_children[0];
-            }
-        }
-
-        return wrapped_children;
-    };
-
-    return svgElement;
-};
-/**
- * @fileOverview Defines a graph renderer that uses SVG based drawings.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-Viva.Graph.View = Viva.Graph.View || {};
-
-/**
- * Performs svg-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
- */
-Viva.Graph.View.svgGraphics = function () {
-    var svgContainer,
-        svgRoot,
-        offsetX,
-        offsetY,
-        actualScale = 1,
-
-        nodeBuilder = function (node) {
-            return Viva.Graph.svg('rect')
-                     .attr('width', 10)
-                     .attr('height', 10)
-                     .attr('fill', '#00a2e8');
-        },
-
-        nodePositionCallback = function (nodeUI, pos) {
-            // TODO: Remove magic 5. It should be halfo of the width or height of the node.
-            nodeUI.attr("x", pos.x - 5)
-                  .attr("y", pos.y - 5);
-        },
-
-        linkBuilder = function (link) {
-            return Viva.Graph.svg('line')
-                              .attr('stroke', '#999');
-        },
-
-        linkPositionCallback = function (linkUI, fromPos, toPos) {
-            linkUI.attr("x1", fromPos.x)
-                  .attr("y1", fromPos.y)
-                  .attr("x2", toPos.x)
-                  .attr("y2", toPos.y);
-        },
-
-        fireRescaled = function (graphics) {
-            // TODO: maybe we shall copy changes?
-            graphics.fire('rescaled');
-        },
-
-        updateTransform = function () {
-            if (svgContainer) {
-                var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
-                svgContainer.attr('transform', transform);
-            }
-        };
-
-    var graphics = {
-        /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
-         *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
-         */
-        node : function (builderCallbackOrNode) {
-
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
-                return nodeBuilder(builderCallbackOrNode);
-            }
-
-            nodeBuilder = builderCallbackOrNode;
-
-            return this;
-        },
-
-        /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
-         *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
-         */
-        link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
-                return linkBuilder(builderCallbackOrLink);
-            }
-
-            linkBuilder = builderCallbackOrLink;
-            return this;
-        },
-
-        /**
-         * Allows to override default position setter for the node with a new
-         * function. newPlaceCallback(nodeUI, position) is function which
-         * is used by updateNodePosition().
-         */
-        placeNode : function (newPlaceCallback) {
-            nodePositionCallback = newPlaceCallback;
-            return this;
-        },
-
-        placeLink : function (newPlaceLinkCallback) {
-            linkPositionCallback = newPlaceLinkCallback;
-            return this;
-        },
-
-        /**
-         * Called every before renderer starts rendering.
-         */
-        beginRender : function () {},
-
-        /**
-         * Called every time when renderer finishes one step of rendering.
-         */
-        endRender : function () {},
-
-        /**
-         * Sets translate operation that should be applied to all nodes and links.
-         */
-        graphCenterChanged : function (x, y) {
-            offsetX = x;
-            offsetY = y;
-            updateTransform();
-        },
-
-        /**
-         * Default input manager listens to DOM events to process nodes drag-n-drop
-         */
-        inputManager : Viva.Input.domInputManager,
-
-        translateRel : function (dx, dy) {
-            var p = svgRoot.createSVGPoint(),
-                t = svgContainer.getCTM(),
-                origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
-
-            p.x = dx;
-            p.y = dy;
-
-            p = p.matrixTransform(t.inverse());
-            p.x = (p.x - origin.x) * t.a;
-            p.y = (p.y - origin.y) * t.d;
-
-            t.e += p.x;
-            t.f += p.y;
-
-            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            svgContainer.attr('transform', transform);
-        },
-
-        scale : function (scaleFactor, scrollPoint) {
-            var p = svgRoot.createSVGPoint();
-            p.x = scrollPoint.x;
-            p.y = scrollPoint.y;
-
-            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
-
-            // Compute new scale matrix in current mouse position
-            var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
-                t = svgContainer.getCTM().multiply(k);
-
-            actualScale = t.a;
-            offsetX = t.e;
-            offsetY = t.f;
-            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            svgContainer.attr('transform', transform);
-
-            fireRescaled(this);
-            return actualScale;
-        },
-
-        resetScale : function () {
-            actualScale = 1;
-            var transform = 'matrix(1, 0, 0, 1, 0, 0)';
-            svgContainer.attr('transform', transform);
-            fireRescaled(this);
-            return this;
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render.
-        */
-        init : function (container) {
-            svgRoot = Viva.Graph.svg("svg");
-
-            svgContainer = Viva.Graph.svg("g")
-                 .attr('buffered-rendering', 'dynamic');
-
-            svgRoot.appendChild(svgContainer);
-            container.appendChild(svgRoot);
-            updateTransform();
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider release occupied resources.
-        */
-        release : function (container) {
-            if (svgRoot && container) {
-                container.removeChild(svgRoot);
-            }
-        },
-
-        /**
-         * Called by Viva.Graph.View.renderer to let concrete graphic output
-         * provider prepare to render given link of the graph
-         *
-         * @param linkUI visual representation of the link created by link() execution.
-         */
-        initLink : function (linkUI) {
-            if (!linkUI) { return; }
-            if (svgContainer.childElementCount > 0) {
-                svgContainer.insertBefore(linkUI, svgContainer.firstChild);
-            } else {
-                svgContainer.appendChild(linkUI);
-            }
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove link from rendering surface.
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        **/
-        releaseLink : function (linkUI) {
-            svgContainer.removeChild(linkUI);
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given node of the graph.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        initNode : function (nodeUI) {
-            svgContainer.appendChild(nodeUI);
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove node from rendering surface.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        releaseNode : function (nodeUI) {
-            svgContainer.removeChild(nodeUI);
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given node UI to recommended position pos {x, y};
-        */
-        updateNodePosition : function (nodeUI, pos) {
-            nodePositionCallback(nodeUI, pos);
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given link of the graph. Pos objects are {x, y};
-        */
-        updateLinkPosition : function (link, fromPos, toPos) {
-            linkPositionCallback(link, fromPos, toPos);
-        },
-
-        /**
-         * Returns root svg element.
-         *
-         * Note: This is internal method specific to this renderer
-         * TODO: Rename this to getGraphicsRoot() to be uniform accross graphics classes
-         */
-        getSvgRoot : function () {
-            return svgRoot;
-        }
-    };
-
-    // Let graphics fire events before we return it to the caller.
-    Viva.Graph.Utils.events(graphics).extend();
-
-    return graphics;
-};
-/**
- * @fileOverview I used this class to render links UI within
- * node. Lesser SVG elements is proven to improve performance
- * but I'm not happy with the code result here. Probably this class
- * will be removed from future versions.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Graph.View.svgNodeFactory = function (graph) {
-    var highlightColor = 'orange',
-        defaultColor = '#999',
-        geom = Viva.Graph.geom(),
-
-        attachCustomContent = function (nodeUI, node) {
-            nodeUI.size = {w: 10, h: 10};
-            nodeUI.append('rect')
-                .attr('width', nodeUI.size.w)
-                .attr('height', nodeUI.size.h)
-                .attr('stroke', 'orange')
-                .attr('fill', 'orange');
-        },
-
-        nodeSize = function (nodeUI) {
-            return nodeUI.size;
-        };
-
-
-    return {
-        node : function (node) {
-            var nodeUI = Viva.Graph.svg('g');
-
-            attachCustomContent(nodeUI, node);
-            nodeUI.nodeId = node.id;
-            return nodeUI;
-        },
-
-        link : function (link) {
-            var fromNode = graph.getNode(link.fromId),
-                nodeUI = fromNode && fromNode.ui;
-
-            if (nodeUI && !nodeUI.linksContainer) {
-                var nodeLinks = Viva.Graph.svg('path')
-                                    .attr('stroke', defaultColor);
-                nodeUI.linksContainer = nodeLinks;
-                return nodeLinks;
-            }
-
-            return null;
-        },
-
-        /**
-         * Sets a callback function for custom nodes contnet.
-         * @param conentCreator(nodeUI, node) - callback function which returns a node content UI.
-         *  Image, for example.
-         * @param sizeProvider(nodeUI) - a callback function which accepts nodeUI returned by
-         *  contentCreator and returns it's custom rectangular size.
-         *
-         */
-        customContent : function (contentCreator, sizeProvider) {
-            if (typeof contentCreator !== 'function'
-                    || typeof sizeProvider !== 'function') {
-                throw 'Two functions expected: contentCreator(nodeUI, node) and size(nodeUI)';
-            }
-
-            attachCustomContent = contentCreator;
-            nodeSize = sizeProvider;
-        },
-
-        placeNode : function (nodeUI, fromNodePos) {
-            var linksPath = '',
-                fromNodeSize = nodeSize(nodeUI);
-
-            graph.forEachLinkedNode(nodeUI.nodeId, function (linkedNode, link) {
-                if (!linkedNode.position || !linkedNode.ui) {
-                    return; // not yet defined - ignore.
-                }
-
-                if (linkedNode.ui === nodeUI) {
-                    return; // incoming link - ignore;
-                }
-                if (link.fromId !== nodeUI.nodeId) {
-                    return; // we process only outgoing links.
-                }
-
-                var toNodeSize = nodeSize(linkedNode.ui),
-                    toNodePos = linkedNode.position;
-
-                var from = geom.intersectRect(
-                        fromNodePos.x - fromNodeSize.w / 2, // left
-                        fromNodePos.y - fromNodeSize.h / 2, // top
-                        fromNodePos.x + fromNodeSize.w / 2, // right
-                        fromNodePos.y + fromNodeSize.h / 2, // bottom
-                        fromNodePos.x,
-                        fromNodePos.y,
-                        toNodePos.x,
-                        toNodePos.y
-                    ) || fromNodePos;
-
-                var to = geom.intersectRect(
-                        toNodePos.x - toNodeSize.w / 2, // left
-                        toNodePos.y - toNodeSize.h / 2, // top
-                        toNodePos.x + toNodeSize.w / 2, // right
-                        toNodePos.y + toNodeSize.h / 2, // bottom
-                        toNodePos.x,
-                        toNodePos.y,
-                        fromNodePos.x,
-                        fromNodePos.y
-                    ) || toNodePos;
-
-                linksPath += 'M' + Math.round(from.x) + ' ' + Math.round(from.y) +
-                             'L' + Math.round(to.x) + ' ' + Math.round(to.y);
-            });
-
-            nodeUI.attr("transform",
-                        "translate(" + (fromNodePos.x - fromNodeSize.w / 2) + ", " +
-                         (fromNodePos.y - fromNodeSize.h / 2) + ")");
-            if (linksPath !== '' && nodeUI.linksContainer) {
-                nodeUI.linksContainer.attr("d", linksPath);
-            }
-        }
-
-    };
-};
-/**
- * @fileOverview Utility functions for webgl rendering.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*jslint sloppy: true, vars: true, plusplus: true */
-/*global Viva, window, Float32Array*/
-
-Viva.Graph.webgl = function (gl) {
-    var createShader = function (shaderText, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, shaderText);
-            gl.compileShader(shader);
-
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                var msg = gl.getShaderInfoLog(shader);
-                window.alert(msg);
-                throw msg;
-            }
-
-            return shader;
-        };
-
-    return {
-        createProgram : function (vertexShaderSrc, fragmentShaderSrc) {
-            var program = gl.createProgram(),
-                vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER),
-                fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
-
-            gl.attachShader(program, vs);
-            gl.attachShader(program, fs);
-            gl.linkProgram(program);
-
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                var msg = gl.getShaderInfoLog(program);
-                window.alert(msg);
-                throw msg;
-            }
-
-            return program;
-        },
-
-        extendArray : function (buffer, itemsInBuffer, elementsPerItem) {
-            if ((itemsInBuffer  + 1) * elementsPerItem > buffer.length) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
-                extendedArray.set(buffer);
-
-                return extendedArray;
-            }
-
-            return buffer;
-        },
-
-        copyArrayPart : function (array, to, from, elementsCount) {
-            var i;
-            for (i = 0; i < elementsCount; ++i) {
-                array[to + i] = array[from + i];
-            }
-        },
-
-        swapArrayPart : function (array, from, to, elementsCount) {
-            var i;
-            for (i = 0; i < elementsCount; ++i) {
-                var tmp = array[from + i];
-                array[from + i] = array[to + i];
-                array[to + i] = tmp;
-            }
-        },
-
-        getLocations : function (program, uniformOrAttributeNames) {
-            var foundLocations = {},
-                i;
-            for (i = 0; i < uniformOrAttributeNames.length; ++i) {
-                var name = uniformOrAttributeNames[i],
-                    location = -1;
-                if (name.indexOf('a_') === 0) {
-                    location = gl.getAttribLocation(program, name);
-                    if (location === -1) {
-                        throw "Program doesn't have required attribute: " + name;
-                    }
-
-                    foundLocations[name.slice(2)] = location;
-                } else if (name.indexOf('u_') === 0) {
-                    location = gl.getUniformLocation(program, name);
-                    if (location === null) {
-                        throw "Program doesn't have required uniform: " + name;
-                    }
-
-                    foundLocations[name.slice(2)] = location;
-                } else {
-                    throw "Couldn't figure out your intent. All uniforms should start with 'u_' prefix, and attributes with 'a_'";
-                }
-            }
-
-            return foundLocations;
-        },
-
-        context : gl
-    };
-};
-/**
- * @fileOverview Defines a model objects to represents graph rendering
- * primitives in webglGraphics.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true,regexp:true */
-
-Viva.Graph.View.WebglUtils = function () { };
-
-/**
- * Parses various color strings and returns color value used in webgl shaders.
- */
-Viva.Graph.View.WebglUtils.prototype.parseColor = function (color) {
-    var parsedColor = 0x009ee8ff;
-
-    if (typeof color === 'string' && color) {
-        if (color.length === 4) { // #rgb
-            color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
-        }
-        if (color.length === 9) { // #rrggbbaa
-            parsedColor = parseInt(color.substr(1), 16);
-        } else if (color.length === 7) { // or #rrggbb.
-            parsedColor = (parseInt(color.substr(1), 16) << 8) | 0xff;
-        } else {
-            throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
-        }
-    } else if (typeof color === 'number') {
-        parsedColor = color;
-    }
-
-    return parsedColor;
-};
-
-Viva.Graph.View._webglUtil = new Viva.Graph.View.WebglUtils(); // reuse this instance internally.
-
-/**
- * Defines a webgl line. This class has no rendering logic at all,
- * it's just passed to corresponding shader and the shader should
- * figure out how to render it.
- *
- * @see Viva.Graph.View.webglLinkShader.position
- */
-Viva.Graph.View.webglLine = function (color) {
-    return {
-        /**
-         * Gets or sets color of the line. If you set this property externally
-         * make sure it always come as integer of 0xRRGGBBAA format
-         */
-        color : Viva.Graph.View._webglUtil.parseColor(color)
-    };
-};
-
-/**
- * Can be used as a callback in the webglGraphics.node() function, to
- * create a custom looking node.
- *
- * @param size - size of the node in pixels.
- * @param color - color of the node in '#rrggbbaa' or '#rgb' format.
- */
-Viva.Graph.View.webglSquare = function (size, color) {
-    return {
-        /**
-         * Gets or sets size of the sqare side.
-         */
-        size : typeof size === 'number' ? size : 10,
-
-        /**
-         * Gets or sets color of the square.
-         */
-        color : Viva.Graph.View._webglUtil.parseColor(color)
-    };
-};
-
-/**
- * Represents a model for image.
- */
-Viva.Graph.View.webglImage = function (size, src) {
-    return {
-        /**
-         * Gets texture index where current image is placed.s
-         */
-        _texture : 0,
-
-        /**
-         * Gets offset in the texture where current image is placed.
-         */
-        _offset : 0,
-
-        /**
-         * Gets size of the square with the image.
-         */
-        size : typeof size === 'number' ? size : 32,
-
-        /**
-         * Source of the image. If image is comming not from your domain
-         * certain origin restrictions applies.
-         * See http://www.khronos.org/registry/webgl/specs/latest/#4.2 for more details.
-         */
-        src  : src
-    };
-};/**
- * @fileOverview Defines a naive form of nodes for webglGraphics class.
- * This form allows to change color of node. Shape of nodes is rectangular.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-/**
- * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
- */
-Viva.Graph.View.webglNodeProgram = function () {
-    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y, size, color
-        // x, y, z - floats, color = uint.
-        BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
-        nodesFS = [
-            'precision mediump float;',
-            'varying vec4 color;',
-
-            'void main(void) {',
-            '   gl_FragColor = color;',
-            '}'].join('\n'),
-        nodesVS = [
-            'attribute vec3 a_vertexPos;',
-            'attribute vec4 a_color;',
-            'uniform vec2 u_screenSize;',
-            'uniform mat4 u_transform;',
-            'varying vec4 color;',
-
-            'void main(void) {',
-            '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
-            '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
-            '   color = a_color.abgr;',
-            '}'].join('\n'),
-
-        program,
-        gl,
-        buffer,
-        locations,
-        utils,
-        storage = new ArrayBuffer(16 * BYTES_PER_NODE),
-        positions = new Float32Array(storage),
-        colors = new Uint32Array(storage),
-        nodesCount = 0,
-        width,
-        height,
-        transform,
-        sizeDirty,
-
-        ensureEnoughStorage = function () {
-            if ((nodesCount + 1) * BYTES_PER_NODE >= storage.byteLength) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
-                    extendedPositions = new Float32Array(extendedStorage),
-                    extendedColors = new Uint32Array(extendedStorage);
-
-                extendedColors.set(colors); // should be enough to copy just one view.
-                positions = extendedPositions;
-                colors = extendedColors;
-                storage = extendedStorage;
-            }
-        };
-
-    return {
-        load : function (glContext) {
-            gl = glContext;
-            utils = Viva.Graph.webgl(glContext);
-
-            program = utils.createProgram(nodesVS, nodesFS);
-            gl.useProgram(program);
-            locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
-
-            gl.enableVertexAttribArray(locations.vertexPos);
-            gl.enableVertexAttribArray(locations.color);
-
-            buffer = gl.createBuffer();
-        },
-
-        /**
-         * Updates position of node in the buffer of nodes.
-         *
-         * @param idx - index of current node.
-         * @param pos - new position of the node.
-         */
-        position : function (nodeUI, pos) {
-            var idx = nodeUI.id,
-                offset = idx * ATTRIBUTES_PER_PRIMITIVE;
-
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
-
-            colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;
-        },
-
-        updateTransform : function (newTransform) {
-            sizeDirty = true;
-            transform = newTransform;
-        },
-
-        updateSize : function (w, h) {
-            width = w;
-            height = h;
-            sizeDirty = true;
-        },
-
-        createNode : function (node) {
-            ensureEnoughStorage();
-            nodesCount += 1;
-        },
-
-        removeNode : function (node) {
-            if (nodesCount > 0) { nodesCount -= 1; }
-
-            if (node.id < nodesCount && nodesCount > 0) {
-                // we can use colors as a 'view' into array array buffer.
-                utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-        },
-
-        replaceProperties : function (replacedNode, newNode) {},
-
-        render : function () {
-            gl.useProgram(program);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
-
-            if (sizeDirty) {
-                sizeDirty = false;
-                gl.uniformMatrix4fv(locations.transform, false, transform);
-                gl.uniform2f(locations.screenSize, width, height);
-            }
-
-            gl.vertexAttribPointer(locations.vertexPos, 3, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
-            gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 3 * 4);
-
-            gl.drawArrays(gl.POINTS, 0, nodesCount);
-        }
-    };
-};/**
- * @fileOverview Defines a naive form of links for webglGraphics class.
- * This form allows to change color of links.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-/**
- * Defines UI for links in webgl renderer.
- */
-Viva.Graph.View.webglLinkProgram = function () {
-    var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
-        BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
-        linksFS = [
-            'precision mediump float;',
-            'varying vec4 color;',
-            'void main(void) {',
-            '   gl_FragColor = color;',
-            '}'].join('\n'),
-
-        linksVS = [
-            'attribute vec2 a_vertexPos;',
-            'attribute vec4 a_color;',
-
-            'uniform vec2 u_screenSize;',
-            'uniform mat4 u_transform;',
-
-            'varying vec4 color;',
-
-            'void main(void) {',
-            '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
-            '   color = a_color.abgr;',
-            '}'].join('\n'),
-
-        program,
-        gl,
-        buffer,
-        utils,
-        locations,
-        linksCount = 0,
-        frontLinkId, // used to track z-index of links.
-        storage = new ArrayBuffer(16 * BYTES_PER_LINK),
-        positions = new Float32Array(storage),
-        colors = new Uint32Array(storage),
-        width,
-        height,
-        transform,
-        sizeDirty,
-
-        ensureEnoughStorage = function () {
-            // TODO: this is a duplicate of webglNodeProgram code. Extract it to webgl.js
-            if ((linksCount+1)*BYTES_PER_LINK > storage.byteLength) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
-                    extendedPositions = new Float32Array(extendedStorage),
-                    extendedColors = new Uint32Array(extendedStorage);
-
-                extendedColors.set(colors); // should be enough to copy just one view.
-                positions = extendedPositions;
-                colors = extendedColors;
-                storage = extendedStorage;
-            }
-        };
-
-    return {
-        load : function (glContext) {
-            gl = glContext;
-            utils = Viva.Graph.webgl(glContext);
-
-            program = utils.createProgram(linksVS, linksFS);
-            gl.useProgram(program);
-            locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
-
-            gl.enableVertexAttribArray(locations.vertexPos);
-            gl.enableVertexAttribArray(locations.color);
-
-            buffer = gl.createBuffer();
-        },
-
-        position: function (linkUi, fromPos, toPos) {
-            var linkIdx = linkUi.id,
-                offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE;
-            positions[offset] = fromPos.x;
-            positions[offset + 1] = fromPos.y;
-            colors[offset + 2] = linkUi.color;
-
-            positions[offset + 3] = toPos.x;
-            positions[offset + 4] = toPos.y;
-            colors[offset + 5] = linkUi.color;
-        },
-
-        createLink : function (ui) {
-            ensureEnoughStorage();
-
-            linksCount += 1;
-            frontLinkId = ui.id;
-        },
-
-        removeLink : function (ui) {
-            if (linksCount > 0) { linksCount -= 1; }
-            // swap removed link with the last link. This will give us O(1) performance for links removal:
-            if (ui.id < linksCount && linksCount > 0) {
-                // using colors as a view to array buffer is okay here.
-                utils.copyArrayPart(colors, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-        },
-
-        updateTransform : function (newTransform) {
-            sizeDirty = true;
-            transform = newTransform;
-        },
-
-        updateSize : function (w, h) {
-            width = w;
-            height = h;
-            sizeDirty = true;
-        },
-
-        render : function () {
-            gl.useProgram(program);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
-
-            if (sizeDirty) {
-                sizeDirty = false;
-                gl.uniformMatrix4fv(locations.transform, false, transform);
-                gl.uniform2f(locations.screenSize, width, height);
-            }
-
-            gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-            gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
-
-            gl.drawArrays(gl.LINES, 0, linksCount * 2);
-
-            frontLinkId = linksCount - 1;
-        },
-
-        bringToFront : function (link) {
-            if (frontLinkId > link.id) {
-                utils.swapArrayPart(positions, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-            if (frontLinkId > 0) {
-                frontLinkId -= 1;
-            }
-        },
-
-        getFrontLinkId : function () {
-            return frontLinkId;
-        }
-    };
-};
-/**
- * @fileOverview Defines an image nodes for webglGraphics class.
- * Shape of nodes is sqare.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva, Float32Array, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-/**
- * Single texture in the webglAtlas.
- */
-Viva.Graph.View.Texture = function (size) {
-    this.canvas = window.document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.isDirty = false;
-    this.canvas.width = this.canvas.height = size;
-};
-
-/**
- * My naive implementation of textures atlas. It allows clients to load
- * multimple images into atlas and get canvas representing all of them.
- *
- * @param tilesPerTexture - indicates how many images can be loaded to one
- *          texture of the atlas. If number of loaded images exceeds this
- *          parameter a new canvas will be created.
- */
-Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
-    var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
-        tileSize = tilesPerRow,
-        lastLoadedIdx = 1,
-        loadedImages = {},
-        dirtyTimeoutId,
-        skipedDirty = 0,
-        textures = [],
-        trackedUrls = [],
-        that,
-
-        findNearestPowerOf2 = function (n) {
-            // TODO: probably don't need this anymore
-            // http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
-            n = n << 0; // make it integer
-            n = n - 1;
-            n = n | (n >> 1);
-            n = n | (n >> 2);
-            n = n | (n >> 4);
-            n = n | (n >> 8);
-            n = n | (n >> 16);
-            return n + 1;
-        },
-        isPowerOf2 = function (n) {
-            return (n & (n - 1)) === 0;
-        },
-        createTexture = function () {
-            var texture = new Viva.Graph.View.Texture(tilesPerRow * tileSize);
-            textures.push(texture);
-        },
-        getTileCoordinates = function (absolutePosition) {
-            var textureNumber = (absolutePosition / tilesPerTexture) << 0,
-                localTileNumber =  (absolutePosition % tilesPerTexture),
-                row = (localTileNumber / tilesPerRow) << 0,
-                col = (localTileNumber % tilesPerRow);
-
-            return {textureNumber : textureNumber, row : row, col: col};
-        },
-        markDirtyNow = function () {
-            that.isDirty = true;
-            skipedDirty = 0;
-            dirtyTimeoutId = null;
-        },
-        markDirty = function () {
-            // delay this call, since it results in texture reload
-            if (dirtyTimeoutId) {
-                window.clearTimeout(dirtyTimeoutId);
-                skipedDirty += 1;
-                dirtyTimeoutId = null;
-            }
-
-            if (skipedDirty > 10) {
-                markDirtyNow();
-            } else {
-                dirtyTimeoutId = window.setTimeout(markDirtyNow, 400);
-            }
-        },
-
-        copy = function (from, to) {
-            var fromCanvas = textures[from.textureNumber].canvas,
-                toCtx = textures[to.textureNumber].ctx,
-                x = to.col * tileSize,
-                y = to.row * tileSize;
-
-            toCtx.drawImage(fromCanvas, from.col * tileSize, from.row * tileSize, tileSize, tileSize, x, y, tileSize, tileSize);
-            textures[from.textureNumber].isDirty = true;
-            textures[to.textureNumber].isDirty = true;
-        },
-
-        drawAt = function (tileNumber, img, callback) {
-            var tilePosition = getTileCoordinates(tileNumber),
-                coordinates = { offset : tileNumber };
-
-            if (tilePosition.textureNumber >= textures.length) {
-                createTexture();
-            }
-            var currentTexture = textures[tilePosition.textureNumber];
-
-            currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
-            trackedUrls[tileNumber] = img.src;
-
-            loadedImages[img.src] = coordinates;
-            currentTexture.isDirty = true;
-
-            callback(coordinates);
-        };
-
-    if (!isPowerOf2(tilesPerTexture)) {
-        throw 'Tiles per texture should be power of two.';
-    }
-
-    // this is the return object
-    that = {
-        /**
-         * indicates whether atlas has changed texture in it. If true then
-         * some of the textures has isDirty flag set as well.
-         */
-        isDirty : false,
-
-        /**
-         * Clears any signs of atlas changes.
-         */
-        clearDirty : function () {
-            var i;
-            this.isDirty = false;
-            for (i = 0; i < textures.length; ++i) {
-                textures[i].isDirty = false;
-            }
-        },
-
-        /**
-         * Removes given url from colleciton of tiles in the atlas.
-         */
-        remove : function (imgUrl) {
-            var coordinates = loadedImages[imgUrl];
-            if (!coordinates) { return false; }
-            delete loadedImages[imgUrl];
-            lastLoadedIdx -= 1;
-
-
-            if (lastLoadedIdx === coordinates.offset) {
-                return true; // Ignore if it's last image in the whole set.
-            }
-
-            var tileToRemove = getTileCoordinates(coordinates.offset),
-                lastTileInSet = getTileCoordinates(lastLoadedIdx);
-
-            copy(lastTileInSet, tileToRemove);
-
-            var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
-            replacedOffset.offset = coordinates.offset;
-            trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
-
-            markDirty();
-            return true;
-        },
-
-        /**
-         * Gets all textures in the atlas.
-         */
-        getTextures : function () {
-            return textures; // I trust you...
-        },
-
-        /**
-         * Gets coordinates of the given image in the atlas. Coordinates is an object:
-         * {offset : int } - where offset is an absolute position of the image in the
-         * atlas.
-         *
-         * Absolute means it can be larger than tilesPerTexture parameter, and in that
-         * case clients should get next texture in getTextures() collection.
-         */
-        getCoordinates : function (imgUrl) {
-            return loadedImages[imgUrl];
-        },
-
-        /**
-         * Asynchronously Loads the image to the atlas. Cross-domain security
-         * limitation applies.
-         */
-        load : function (imgUrl, callback) {
-            if (loadedImages.hasOwnProperty(imgUrl)) {
-                callback(loadedImages[imgUrl]);
-            } else {
-                var img = new window.Image(),
-                    imgId = lastLoadedIdx,
-                    that = this;
-
-                lastLoadedIdx += 1;
-                img.crossOrigin = "anonymous";
-                img.onload = function () {
-                    markDirty();
-                    drawAt(imgId, img, callback);
-                };
-
-                img.src = imgUrl;
-            }
-        }
-    };
-
-    return that;
-};
-
-/**
- * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
- */
-Viva.Graph.View.webglImageNodeProgram = function () {
-    var ATTRIBUTES_PER_PRIMITIVE = 18,
-        nodesFS = [
-            'precision mediump float;',
-            'varying vec4 color;',
-            'varying vec3 vTextureCoord;',
-            'uniform sampler2D u_sampler0;',
-            'uniform sampler2D u_sampler1;',
-            'uniform sampler2D u_sampler2;',
-            'uniform sampler2D u_sampler3;',
-
-            'void main(void) {',
-            '   if (vTextureCoord.z == 0.) {',
-            '     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 1.) {',
-            '     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 2.) {',
-            '     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 3.) {',
-            '     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);',
-            '   } else { gl_FragColor = vec4(0, 1, 0, 1); }',
-            '}'].join('\n'),
-
-        nodesVS = [
-            'attribute vec2 a_vertexPos;',
-
-            'attribute float a_customAttributes;',
-            'uniform vec2 u_screenSize;',
-            'uniform mat4 u_transform;',
-            'uniform float u_tilesPerTexture;',
-            'varying vec3 vTextureCoord;',
-
-            'void main(void) {',
-            '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);',
-            'float corner = mod(a_customAttributes, 4.);',
-            'float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);',
-            'float tilesPerRow = sqrt(u_tilesPerTexture);',
-            'float tileSize = 1./tilesPerRow;',
-            'float tileColumn = mod(tileIndex, tilesPerRow);',
-            'float tileRow = floor(tileIndex/tilesPerRow);',
-
-            'if(corner == 0.0) {',
-            '  vTextureCoord.xy = vec2(0, 1);',
-            '} else if(corner == 1.0) {',
-            '  vTextureCoord.xy = vec2(1, 1);',
-            '} else if(corner == 2.0) {',
-            '  vTextureCoord.xy = vec2(0, 0);',
-            '} else {',
-            '  vTextureCoord.xy = vec2(1, 0);',
-            '}',
-
-            'vTextureCoord *= tileSize;',
-            'vTextureCoord.x += tileColumn * tileSize;',
-            'vTextureCoord.y += tileRow * tileSize;',
-            'vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);',
-            '}'].join('\n'),
-
-        tilesPerTexture = 1024, // TODO: Get based on max texture size
-        atlas,
-        customPrimitiveType;
-
-    var program,
-        gl,
-        buffer,
-        utils,
-        locations,
-        nodesCount = 0,
-        texture,
-        nodes = new Float32Array(64),
-        width,
-        height,
-        transform,
-        sizeDirty,
-
-        refreshTexture = function (texture, idx) {
-            if (texture.nativeObject) {
-                gl.deleteTexture(texture.nativeObject);
-            }
-
-            var nativeObject = gl.createTexture();
-            gl.activeTexture(gl['TEXTURE' + idx]);
-            gl.bindTexture(gl.TEXTURE_2D, nativeObject);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.uniform1i(locations['sampler' + idx], idx);
-
-            texture.nativeObject = nativeObject;
-        },
-
-        ensureAtlasTextureUpdated = function () {
-            if (atlas.isDirty) {
-                var textures = atlas.getTextures(),
-                    i;
-                for (i = 0; i < textures.length; ++i) {
-                    if (textures[i].isDirty || !textures[i].nativeObject) {
-                        refreshTexture(textures[i], i);
-                    }
-                }
-
-                atlas.clearDirty();
-            }
-        };
-
-    return {
-        load : function (glContext) {
-            gl = glContext;
-            utils = Viva.Graph.webgl(glContext);
-
-            atlas = new Viva.Graph.View.webglAtlas(tilesPerTexture);
-
-            program = utils.createProgram(nodesVS, nodesFS);
-            gl.useProgram(program);
-            locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform', 'u_sampler0', 'u_sampler1', 'u_sampler2', 'u_sampler3', 'u_tilesPerTexture']);
-
-            gl.uniform1f(locations.tilesPerTexture, tilesPerTexture);
-
-            gl.enableVertexAttribArray(locations.vertexPos);
-            gl.enableVertexAttribArray(locations.customAttributes);
-
-            buffer = gl.createBuffer();
-        },
-
-        /**
-         * Updates position of current node in the buffer of nodes.
-         *
-         * @param idx - index of current node.
-         * @param pos - new position of the node.
-         */
-        position : function (nodeUI, pos) {
-            var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
-            /*jslint white:true*/
-            nodes[idx] = pos.x - nodeUI.size; nodes[idx + 1] = pos.y - nodeUI.size; nodes[idx + 2] = nodeUI._offset * 4;
-            nodes[idx + 3] = pos.x + nodeUI.size; nodes[idx + 4] = pos.y - nodeUI.size; nodes[idx + 5] = nodeUI._offset * 4 + 1;
-            nodes[idx + 6] = pos.x - nodeUI.size; nodes[idx + 7] = pos.y + nodeUI.size; nodes[idx + 8] = nodeUI._offset * 4 + 2;
-
-            nodes[idx + 9] = pos.x - nodeUI.size; nodes[idx + 10] = pos.y + nodeUI.size; nodes[idx + 11] = nodeUI._offset * 4 + 2;
-            nodes[idx + 12] = pos.x + nodeUI.size; nodes[idx + 13] = pos.y - nodeUI.size; nodes[idx + 14] = nodeUI._offset * 4 + 1;
-            nodes[idx + 15] = pos.x + nodeUI.size; nodes[idx + 16] = pos.y + nodeUI.size; nodes[idx + 17] = nodeUI._offset * 4 + 3;
-        },
-
-        createNode : function (ui) {
-            nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
-            nodesCount += 1;
-
-            var coordinates = atlas.getCoordinates(ui.src);
-            if (coordinates) {
-                ui._offset = coordinates.offset;
-            } else {
-                ui._offset = 0;
-                // Image is not yet loaded into the atlas. Reload it:
-                atlas.load(ui.src, function (coordinates) {
-                    ui._offset = coordinates.offset;
-                });
-            }
-        },
-
-        removeNode : function (nodeUI) {
-            if (nodesCount > 0) { nodesCount -= 1; }
-
-            if (nodeUI.id < nodesCount && nodesCount > 0) {
-                if (nodeUI.src) {
-                    atlas.remove(nodeUI.src);
-                }
-
-                utils.copyArrayPart(nodes, nodeUI.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-        },
-
-        replaceProperties : function (replacedNode, newNode) {
-            newNode._offset = replacedNode._offset;
-        },
-
-        updateTransform : function (newTransform) {
-            sizeDirty = true;
-            transform = newTransform;
-        },
-
-        updateSize : function (w, h) {
-            width = w;
-            height = h;
-            sizeDirty = true;
-        },
-
-        render : function () {
-            gl.useProgram(program);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
-
-            if (sizeDirty) {
-                sizeDirty = false;
-                gl.uniformMatrix4fv(locations.transform, false, transform);
-                gl.uniform2f(locations.screenSize, width, height);
-            }
-
-            gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-            gl.vertexAttribPointer(locations.customAttributes, 1, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
-
-            ensureAtlasTextureUpdated();
-
-            gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
-        }
-    };
-};/**
- * @fileOverview Defines a graph renderer that uses WebGL based drawings.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-/*global Viva, Float32Array, window */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Graph.View = Viva.Graph.View || {};
-
-/**
- * Performs webgl-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
- *
- * @param options - to customize graphics  behavior. Currently supported parameter
- *  enableBlending - true by default, allows to use transparency in node/links colors.
- *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
- *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
- */
-
-Viva.Graph.View.webglGraphics = function (options) {
-    options = Viva.lazyExtend(options, {
-        enableBlending : true,
-        preserveDrawingBuffer : false,
-        clearColor: false,
-        clearColorValue : {
-            r : 1,
-            g : 1,
-            b : 1,
-            a : 1
-        }
-    });
-
-    var container,
-        graphicsRoot,
-        gl,
-        width,
-        height,
-        nodesCount = 0,
-        linksCount = 0,
-        transform,
-        userPlaceNodeCallback,
-        userPlaceLinkCallback,
-        nodes = [],
-        links = [],
-        initCallback,
-
-        linkProgram = Viva.Graph.View.webglLinkProgram(),
-        nodeProgram = Viva.Graph.View.webglNodeProgram(),
-
-        nodeUIBuilder = function (node) {
-            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
-        },
-
-        linkUIBuilder = function (link) {
-            return Viva.Graph.View.webglLine(0xb3b3b3ff);
-        },
-
-        updateTransformUniform = function () {
-            linkProgram.updateTransform(transform);
-            nodeProgram.updateTransform(transform);
-        },
-
-        resetScaleInternal = function () {
-            transform = [1, 0, 0, 0,
-                        0, 1, 0, 0,
-                        0, 0, 1, 0,
-                        0, 0, 0, 1];
-        },
-
-        updateSize = function () {
-            if (container && graphicsRoot) {
-                width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
-                height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
-                if (gl) { gl.viewport(0, 0, width, height); }
-                if (linkProgram) { linkProgram.updateSize(width / 2, height / 2); }
-                if (nodeProgram) { nodeProgram.updateSize(width / 2, height / 2); }
-            }
-        },
-
-        nodeBuilderInternal = function (node) {
-            var nodeId = nodesCount++,
-                ui = nodeUIBuilder(node);
-            ui.id = nodeId;
-
-            nodeProgram.createNode(ui);
-
-            nodes[nodeId] = node;
-            return ui;
-        },
-
-        linkBuilderInternal = function (link) {
-            var linkId = linksCount++,
-                ui = linkUIBuilder(link);
-            ui.id = linkId;
-
-            linkProgram.createLink(ui);
-
-            links[linkId] = link;
-            return ui;
-        },
-
-        fireRescaled = function (graphics) {
-            graphics.fire('rescaled');
-        };
-
-    var graphics = {
-        /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
-         *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
-         */
-        node : function (builderCallbackOrNode) {
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
-                return nodeBuilderInternal(builderCallbackOrNode); // create ui for node using current nodeUIBuilder
-            }
-
-            nodeUIBuilder = builderCallbackOrNode; // else replace ui builder with provided function.
-
-            return this;
-        },
-
-        /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
-         *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
-         *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
-         */
-        link : function (builderCallbackOrLink) {
-
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
-                return linkBuilderInternal(builderCallbackOrLink);
-            }
-
-            linkUIBuilder = builderCallbackOrLink;
-            return this;
-        },
-
-        /**
-         * Allows to override default position setter for the node with a new
-         * function. newPlaceCallback(nodeUI, position) is function which
-         * is used by updateNodePosition().
-         */
-        placeNode : function (newPlaceCallback) {
-            userPlaceNodeCallback = newPlaceCallback;
-            return this;
-        },
-
-        placeLink : function (newPlaceLinkCallback) {
-            userPlaceLinkCallback = newPlaceLinkCallback;
-            return this;
-        },
-
-        /**
-         * Custom input manager listens to mouse events to process nodes drag-n-drop inside WebGL canvas
-         */
-        inputManager : Viva.Input.webglInputManager,
-
-        /**
-         * Called every time before renderer starts rendering.
-         */
-        beginRender : function () {
-            // this function could be replaced by this.init, 
-            // based on user options.
-        },
-
-        /**
-         * Called every time when renderer finishes one step of rendering.
-         */
-        endRender : function () {
-            if (linksCount > 0) {
-                linkProgram.render();
-            }
-            if (nodesCount > 0) {
-                nodeProgram.render();
-            }
-        },
-
-        bringLinkToFront : function (linkUI) {
-            var frontLinkId = linkProgram.getFrontLinkId(),
-                srcLinkId,
-                temp;
-
-            linkProgram.bringToFront(linkUI);
-
-            if (frontLinkId > linkUI.id) {
-                srcLinkId = linkUI.id;
-
-                temp = links[frontLinkId];
-                links[frontLinkId] = links[srcLinkId];
-                links[frontLinkId].ui.id = frontLinkId;
-                links[srcLinkId] = temp;
-                links[srcLinkId].ui.id = srcLinkId;
-            }
-        },
-
-        /**
-         * Sets translate operation that should be applied to all nodes and links.
-         */
-        graphCenterChanged : function (x, y) {
-            updateSize();
-        },
-
-        translateRel : function (dx, dy) {
-            transform[12] += (2 * transform[0] * dx / width) / transform[0];
-            transform[13] -= (2 * transform[5] * dy / height) / transform[5];
-            updateTransformUniform();
-        },
-
-        scale : function (scaleFactor, scrollPoint) {
-            // Transform scroll point to clip-space coordinates:
-            var cx = 2 * scrollPoint.x / width - 1,
-                cy = 1 - (2 * scrollPoint.y) / height;
-
-            cx -= transform[12];
-            cy -= transform[13];
-
-            transform[12] += cx * (1 - scaleFactor);
-            transform[13] += cy * (1 - scaleFactor);
-
-            transform[0] *= scaleFactor;
-            transform[5] *= scaleFactor;
-
-            updateTransformUniform();
-            fireRescaled(this);
-
-            return transform[0];
-        },
-
-        resetScale : function () {
-            resetScaleInternal();
-
-            if (gl) {
-                updateSize();
-                // TODO: what is this?
-                // gl.useProgram(linksProgram);
-                // gl.uniform2f(linksProgram.screenSize, width, height);
-                updateTransformUniform();
-            }
-            return this;
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render.
-        */
-        init : function (c) {
-            var contextParameters = {};
-
-            if (options.preserveDrawingBuffer) {
-                contextParameters.preserveDrawingBuffer = true;
-            }
-
-            container = c;
-
-            graphicsRoot = window.document.createElement("canvas");
-            updateSize();
-            resetScaleInternal();
-            container.appendChild(graphicsRoot);
-
-
-            gl = graphicsRoot.getContext('experimental-webgl', contextParameters);
-            if (!gl) {
-                var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
-                window.alert(msg);
-                throw msg;
-            }
-            if (options.enableBlending) {
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-                gl.enable(gl.BLEND);
-            }
-            if (options.clearColor) {
-                var color = options.clearColorValue;
-                gl.clearColor(color.r, color.g, color.b, color.a);
-                // TODO: not the best way, really. Should come up with something better
-                // what if we need more updates inisde beginRender, like depth buffer?
-                this.beginRender = function () {
-                    gl.clear(gl.COLOR_BUFFER_BIT);
-                };
-            }
-
-            linkProgram.load(gl);
-            linkProgram.updateSize(width / 2, height / 2);
-
-            nodeProgram.load(gl);
-            nodeProgram.updateSize(width / 2, height / 2);
-
-            updateTransformUniform();
-
-            // Notify the world if someoen waited for update. TODO: should send an event
-            if (typeof initCallback === 'function') {
-                initCallback(graphicsRoot);
-            }
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider release occupied resources.
-        */
-        release : function (container) {
-            if (graphicsRoot && container) {
-                container.removeChild(graphicsRoot);
-                // TODO: anything else?
-            }
-        },
-
-       /**
-        * Checks whether webgl is supported by this browser.
-        */
-        isSupported : function () {
-            var c = window.document.createElement("canvas"),
-                gl = c && c.getContext && c.getContext('experimental-webgl');
-            return gl;
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given link of the graph
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        */
-        initLink : function (linkUI) {
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove link from rendering surface.
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        **/
-        releaseLink : function (linkToRemove) {
-            if (linksCount > 0) { linksCount -= 1; }
-
-            linkProgram.removeLink(linkToRemove);
-
-            var linkIdToRemove = linkToRemove.id;
-            if (linkIdToRemove < linksCount) {
-                if (linksCount === 0 || linksCount === linkIdToRemove) {
-                    return; // no more links or removed link is the last one.
-                }
-
-                // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
-                // so that renderer will pass proper id in updateLinkPosition.
-                links[linkIdToRemove] = links[linksCount];
-                links[linkIdToRemove].ui.id = linkIdToRemove;
-            }
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given node of the graph.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        initNode : function (nodeUI) { },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider remove node from rendering surface.
-        *
-        * @param nodeUI visual representation of the node created by node() execution.
-        **/
-        releaseNode : function (nodeUI) {
-            if (nodesCount > 0) { nodesCount -= 1; }
-
-            nodeProgram.removeNode(nodeUI);
-
-            if (nodeUI.id < nodesCount) {
-                var nodeIdToRemove = nodeUI.id;
-                if (nodesCount === 0 || nodesCount === nodeIdToRemove) {
-                    return; // no more nodes or removed node is the last in the list.
-                }
-
-                var lastNode = nodes[nodesCount],
-                    replacedNode = nodes[nodeIdToRemove];
-
-                nodes[nodeIdToRemove] = lastNode;
-                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
-
-                // Since concrete shaders may cache properties in the ui element
-                // we are letting them to make this swap (e.g. image node shader
-                // uses this approach to update node's offset in the atlas)
-                nodeProgram.replaceProperties(replacedNode.ui, lastNode.ui);
-            }
-        },
-
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given node UI to recommended position pos {x, y};
-        */
-        updateNodePosition : function (nodeUI, pos) {
-            // WebGL coordinate system is different. Would be better
-            // to have this transform in the shader code, but it would
-            // require every shader to be updated..
-            pos.y = -pos.y;
-            if (userPlaceNodeCallback) {
-                userPlaceNodeCallback(nodeUI, pos);
-            }
-
-            nodeProgram.position(nodeUI, pos);
-        },
-
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given link of the graph. Pos objects are {x, y};
-        */
-        updateLinkPosition : function (link, fromPos, toPos) {
-            // WebGL coordinate system is different. Would be better
-            // to have this transform in the shader code, but it would
-            // require every shader to be updated..
-            fromPos.y = -fromPos.y;
-            toPos.y = -toPos.y;
-            if (userPlaceLinkCallback) {
-                userPlaceLinkCallback(link, fromPos, toPos);
-            }
-
-            linkProgram.position(link, fromPos, toPos);
-        },
-
-        /**
-         * Returns root element which hosts graphics.
-         */
-        getGraphicsRoot : function (callbackWhenReady) {
-            // todo: should fire an event, instead of having this context.
-            if (typeof callbackWhenReady === 'function') {
-                if (graphicsRoot) {
-                    callbackWhenReady(graphicsRoot);
-                } else {
-                    initCallback = callbackWhenReady;
-                }
-            }
-            return graphicsRoot;
-        },
-
-        /**
-         * Updates default shader which renders nodes
-         *
-         * @param newProgram to use for nodes.
-         */
-        setNodeProgram : function (newProgram) {
-            if (!gl && newProgram) {
-                // Nothing created yet. Just set shader to the new one
-                // and let initialization logic take care about the rest.
-                nodeProgram = newProgram;
-            } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
-                // TODO: unload old shader and reinit.
-            }
-        },
-
-        /**
-         * Updates default shader which renders links
-         *
-         * @param newProgram to use for links.
-         */
-        setLinkProgram : function (newProgram) {
-            if (!gl && newProgram) {
-                // Nothing created yet. Just set shader to the new one
-                // and let initialization logic take care about the rest.
-                linkProgram = newProgram;
-            } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
-                // TODO: unload old shader and reinit.
-            }
-        },
-        getGraphCoordinates : function (graphicsRootPos) {
-            // TODO: could be a problem when container has margins?
-            // to save memory we modify incoming parameter:
-            // point in clipspace coordinates:
-            graphicsRootPos.x = 2 * graphicsRootPos.x / width - 1;
-            graphicsRootPos.y = 1 - (2 * graphicsRootPos.y) / height;
-            // apply transform:
-            graphicsRootPos.x = (graphicsRootPos.x - transform[12]) / transform[0];
-            graphicsRootPos.y = (graphicsRootPos.y - transform[13]) / transform[5];
-            // now transform to graph coordinates:
-            graphicsRootPos.x *= width / 2;
-            graphicsRootPos.y *= -height / 2;
-
-            return graphicsRootPos;
-        }
-    };
-
-    // Let graphics fire events before we return it to the caller.
-    Viva.Graph.Utils.events(graphics).extend();
-
-    return graphics;
-};/*global Viva, window */
-/*jslint sloppy: true, vars: true, plusplus: true */
-
-/**
- * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
- *
- * @param {Viva.Graph.View.webglGraphics} webglGraphics
- * @param {Viva.Graph.graph} graph
- */
-Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
-    if (webglGraphics.webglInputEvents) {
-        // Don't listen twice, if we are already attached to this graphics:
-        return webglGraphics.webglInputEvents;
-    }
-
-    var preciseCheck = function (node, x, y) {
-            if (node.ui && node.ui.size) {
-                var pos = node.position,
-                    half = node.ui.size;
-
-                return pos.x - half < x && x < pos.x + half &&
-                       pos.y - half < y && y < pos.y + half;
-            }
-
-            return true;
-        },
-        mouseCapturedNode = null,
-
-        spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
-        mouseEnterCallback = [],
-        mouseLeaveCallback = [],
-        mouseDownCallback = [],
-        mouseUpCallback = [],
-        mouseMoveCallback = [],
-        clickCallback = [],
-        dblClickCallback = [],
-        documentEvents = Viva.Graph.Utils.events(window.document),
-        prevSelectStart,
-        boundRect,
-
-        stopPropagation = function (e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            } else {
-                e.cancelBubble = true;
-            }
-        },
-
-        handleDisabledEvent = function (e) {
-            stopPropagation(e);
-            return false;
-        },
-
-        invoke = function (callbacksChain, args) {
-            var i, stopPropagation;
-            for (i = 0; i < callbacksChain.length; i += 1) {
-                stopPropagation = callbacksChain[i].apply(undefined, args);
-                if (stopPropagation) { return true; }
-            }
-        },
-
-        startListen = function (root) {
-            var pos = {x : 0, y : 0},
-                lastFound = null,
-                lastClickTime = +new Date(),
-
-                handleMouseMove = function (e) {
-                    invoke(mouseMoveCallback, [lastFound, e]);
-                    pos.x = e.clientX;
-                    pos.y = e.clientY;
-                },
-
-                handleMouseUp = function (e) {
-                    documentEvents.stop('mousemove', handleMouseMove);
-                    documentEvents.stop('mouseup', handleMouseUp);
-                },
-
-                updateBoundRect = function () {
-                    boundRect = root.getBoundingClientRect();
-                };
-
-            window.addEventListener('resize', updateBoundRect);
-            updateBoundRect();
-
-            // mouse move inside container serves only to track mouse enter/leave events.
-            root.addEventListener('mousemove',
-                function (e) {
-                    if (mouseCapturedNode) {
-                        return;
-                    }
-
-                    var cancelBubble = false,
-                        node;
-
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-
-                    webglGraphics.getGraphCoordinates(pos);
-                    node = spatialIndex.getNodeAt(pos.x, pos.y);
-
-                    if (node && lastFound !== node) {
-                        lastFound = node;
-                        cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
-                    } else if (node === null && lastFound !== node) {
-                        cancelBubble = cancelBubble || invoke(mouseLeaveCallback, [lastFound]);
-                        lastFound = null;
-                    }
-
-                    if (cancelBubble) { stopPropagation(e); }
-                });
-
-            root.addEventListener('mousedown',
-                function (e) {
-                    var cancelBubble = false,
-                        args;
-
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-                    webglGraphics.getGraphCoordinates(pos);
-
-                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
-                    if (args[0]) {
-                        cancelBubble = invoke(mouseDownCallback, args);
-                        // we clicked on a node. Following drag should be handled on document events:
-                        documentEvents.on('mousemove', handleMouseMove);
-                        documentEvents.on('mouseup', handleMouseUp);
-
-                        prevSelectStart = window.document.onselectstart;
-
-                        window.document.onselectstart = handleDisabledEvent;
-
-                        lastFound = args[0];
-                    } else {
-                        lastFound = null;
-                    }
-                    if (cancelBubble) { stopPropagation(e); }
-                });
-
-            root.addEventListener('mouseup',
-                function (e) {
-                    var clickTime = +new Date(),
-                        args;
-
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-                    webglGraphics.getGraphCoordinates(pos);
-
-                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
-                    if (args[0]) {
-                        window.document.onselectstart = prevSelectStart;
-
-                        if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
-                            invoke(dblClickCallback, args);
-                        } else {
-                            invoke(clickCallback, args);
-                        }
-                        lastClickTime = clickTime;
-
-                        if (invoke(mouseUpCallback, args)) {
-                            stopPropagation(e);
-                        }
-                    }
-                });
-        };
-
-    // webgl may not be initialized at this point. Pass callback
-    // to start listen after graphics root is ready.
-    webglGraphics.getGraphicsRoot(startListen);
-
-    webglGraphics.webglInputEvents = {
-        mouseEnter : function (callback) {
-            if (typeof callback === 'function') {
-                mouseEnterCallback.push(callback);
-            }
-            return this;
-        },
-        mouseLeave : function (callback) {
-            if (typeof callback === 'function') {
-                mouseLeaveCallback.push(callback);
-            }
-            return this;
-        },
-        mouseDown : function (callback) {
-            if (typeof callback === 'function') {
-                mouseDownCallback.push(callback);
-            }
-            return this;
-        },
-        mouseUp : function (callback) {
-            if (typeof callback === 'function') {
-                mouseUpCallback.push(callback);
-            }
-            return this;
-        },
-        mouseMove : function (callback) {
-            if (typeof callback === 'function') {
-                mouseMoveCallback.push(callback);
-            }
-            return this;
-        },
-        click : function (callback) {
-            if (typeof callback === 'function') {
-                clickCallback.push(callback);
-            }
-            return this;
-        },
-        dblClick : function (callback) {
-            if (typeof callback === 'function') {
-                dblClickCallback.push(callback);
-            }
-            return this;
-        },
-        mouseCapture : function (node) {
-            mouseCapturedNode = node;
-        },
-        releaseMouseCapture : function (node) {
-            mouseCapturedNode = null;
-        }
-    };
-
-    return webglGraphics.webglInputEvents;
-};
-/**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
-Viva.Input = Viva.Input || {};
-Viva.Input.webglInputManager = function (graph, graphics) {
-    var inputEvents = Viva.Graph.webglInputEvents(graphics, graph),
-        draggedNode = null,
-        internalHandlers = {},
-        pos = {x : 0, y : 0};
-
-    inputEvents.mouseDown(function (node, e) {
-        draggedNode = node;
-        pos.x = e.clientX;
-        pos.y = e.clientY;
-
-        inputEvents.mouseCapture(draggedNode);
-
-        var handlers = internalHandlers[node.ui.id];
-        if (handlers && handlers.onStart) {
-            handlers.onStart(e, pos);
-        }
-
-        return true;
-    }).mouseUp(function (node) {
-        inputEvents.releaseMouseCapture(draggedNode);
-
-        draggedNode = null;
-        var handlers = internalHandlers[node.ui.id];
-        if (handlers && handlers.onStop) {
-            handlers.onStop();
-        }
-        return true;
-    }).mouseMove(function (node, e) {
-        if (draggedNode) {
-            var handlers = internalHandlers[draggedNode.ui.id];
-            if (handlers && handlers.onDrag) {
-                handlers.onDrag(e, {x : e.clientX - pos.x, y : e.clientY - pos.y });
-            }
-
-            pos.x = e.clientX;
-            pos.y = e.clientY;
-            return true;
-        }
-    });
-
-    return {
-        /**
-         * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
-         * graphics we may listen to DOM events, whereas for WebGL we graphics
-         * should provide custom eventing mechanism.
-         *
-         * @param node - to be monitored.
-         * @param handlers - object with set of three callbacks:
-         *   onStart: function(),
-         *   onDrag: function(e, offset),
-         *   onStop: function()
-         */
-        bindDragNDrop : function (node, handlers) {
-            internalHandlers[node.ui.id] = handlers;
-        }
-    };
-};
-/**
- * @fileOverview Defines a graph renderer that uses CSS based drawings.
- *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -6337,9 +3002,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
         }
     };
 };
-/*global Viva, JSON*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.serializer = function () {
     var checkJSON = function () {
             if (typeof JSON === 'undefined' || !JSON.stringify || !JSON.parse) {
@@ -6436,6 +3098,3259 @@ Viva.Graph.serializer = function () {
             }
 
             return graph;
+        }
+    };
+};
+/**
+ * @fileOverview Centrality calcuation algorithms.
+ * 
+ * @see http://en.wikipedia.org/wiki/Centrality
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.centrality = function () {
+    var singleSourceShortestPath = function (graph, node, oriented) {
+            // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
+            // sorry about cryptic names.
+            var P = {}, // predcessors lists. 
+                S = [],
+                sigma = {},
+                d = {},
+                Q = [node.id],
+                v,
+                dV,
+                sigmaV,
+                processNode = function (w) {
+                    // w found for the first time?
+                    if (!d.hasOwnProperty(w.id)) {
+                        Q.push(w.id);
+                        d[w.id] = dV + 1;
+                    }
+                    // Shortest path to w via v?
+                    if (d[w.id] === dV + 1) {
+                        sigma[w.id] += sigmaV;
+                        P[w.id].push(v);
+                    }
+                };
+
+            graph.forEachNode(function (t) {
+                P[t.id] = [];
+                sigma[t.id] = 0;
+            });
+
+            d[node.id] = 0;
+            sigma[node.id] = 1;
+
+            while (Q.length) { // Using BFS to find shortest paths
+                v = Q.shift();
+                dV = d[v];
+                sigmaV = sigma[v];
+
+                S.push(v);
+                graph.forEachLinkedNode(v, processNode, oriented);
+            }
+
+            return {
+                S : S,
+                P : P,
+                sigma : sigma
+            };
+        },
+
+        accumulate = function (betweenness, shortestPath, s) {
+            var delta = {},
+                S = shortestPath.S,
+                i,
+                w,
+                coeff,
+                pW,
+                v;
+
+            for (i = 0; i < S.length; i += 1) {
+                delta[S[i]] = 0;
+            }
+
+            // S returns vertices in order of non-increasing distance from s
+            while (S.length) {
+                w = S.pop();
+                coeff = (1 + delta[w]) / shortestPath.sigma[w];
+                pW = shortestPath.P[w];
+
+                for (i = 0; i < pW.length; i += 1) {
+                    v = pW[i];
+                    delta[v] += shortestPath.sigma[v] * coeff;
+                }
+
+                if (w !== s) {
+                    betweenness[w] += delta[w];
+                }
+            }
+        },
+
+        sortBetweennes = function (b) {
+            var sorted = [],
+                key;
+            for (key in b) {
+                if (b.hasOwnProperty(key)) {
+                    sorted.push({ key : key, value : b[key]});
+                }
+            }
+
+            return sorted.sort(function (x, y) { return y.value - x.value; });
+        };
+
+    return {
+
+        /**
+         * Compute the shortest-path betweenness centrality for all nodes in a graph.
+         * 
+         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs 
+         * shortest paths that pass through `n`. Runtime O(n * v) for non-weighted graphs.
+         *
+         * @see http://en.wikipedia.org/wiki/Centrality#Betweenness_centrality
+         * 
+         * @see A Faster Algorithm for Betweenness Centrality. 
+         *      Ulrik Brandes, Journal of Mathematical Sociology 25(2):163-177, 2001.
+         *      http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
+         * 
+         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness 
+         *      Centrality and their Generic Computation.
+         *      Social Networks 30(2):136-145, 2008.
+         *      http://www.inf.uni-konstanz.de/algo/publications/b-vspbc-08.pdf
+         * 
+         * @see Ulrik Brandes and Christian Pich: Centrality Estimation in Large Networks.
+         *      International Journal of Bifurcation and Chaos 17(7):2303-2318, 2007.
+         *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
+         * 
+         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
+         */
+        betweennessCentrality : function (graph) {
+            var betweennes = {},
+                shortestPath;
+            graph.forEachNode(function (node) {
+                betweennes[node.id] = 0;
+            });
+
+            graph.forEachNode(function (node) {
+                shortestPath = singleSourceShortestPath(graph, node);
+                accumulate(betweennes, shortestPath, node);
+            });
+
+            return sortBetweennes(betweennes);
+        },
+
+        /**
+         * Calculates graph nodes degree centrality (in/out or both).
+         * 
+         * @see http://en.wikipedia.org/wiki/Centrality#Degree_centrality
+         * 
+         * @param graph for which we are calculating centrality.
+         * @param kind optional parameter. Valid values are
+         *   'in'  - calculate in-degree centrality
+         *   'out' - calculate out-degree centrality
+         *         - if it's not set generic degree centrality is calculated
+         */
+        degreeCentrality : function (graph, kind) {
+            var calcDegFunction,
+                sortedDegrees = [],
+                result = [],
+                degree;
+
+            kind = (kind || 'both').toLowerCase();
+            if (kind === 'in') {
+                calcDegFunction = function (links, nodeId) {
+                    var total = 0,
+                        i;
+                    for (i = 0; i < links.length; i += 1) {
+                        total += (links[i].toId === nodeId) ? 1 : 0;
+                    }
+                    return total;
+                };
+            } else if (kind === 'out') {
+                calcDegFunction = function (links, nodeId) {
+                    var total = 0,
+                        i;
+                    for (i = 0; i < links.length; i += 1) {
+                        total += (links[i].fromId === nodeId) ? 1 : 0;
+                    }
+                    return total;
+                };
+            } else if (kind === 'both') {
+                calcDegFunction = function (links) {
+                    return links.length;
+                };
+            } else {
+                throw 'Expected centrality degree kind is: in, out or both';
+            }
+
+            graph.forEachNode(function (node) {
+                var links = graph.getLinks(node.id),
+                    nodeDeg = calcDegFunction(links, node.id);
+
+                if (!sortedDegrees.hasOwnProperty(nodeDeg)) {
+                    sortedDegrees[nodeDeg] = [node.id];
+                } else {
+                    sortedDegrees[nodeDeg].push(node.id);
+                }
+            });
+
+            for (degree in sortedDegrees) {
+                if (sortedDegrees.hasOwnProperty(degree)) {
+                    var nodes = sortedDegrees[degree],
+                        j;
+                    if (nodes) {
+                        for (j = 0; j < nodes.length; ++j) {
+                            result.unshift({key : nodes[j], value : parseInt(degree, 10)});
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+    };
+};/**
+ * @fileOverview Community structure detection algorithms
+ * 
+ * @see http://en.wikipedia.org/wiki/Community_structure
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.community = function () {
+    return {
+        /**
+         * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
+         * Jierui Xie and Boleslaw K. Szymanski. 
+         * 
+         * @see http://arxiv.org/pdf/1109.5720v3.pdf
+         * @see https://sites.google.com/site/communitydetectionslpa/ 
+         */
+        slpa : function (graph, T, r) {
+            var algorithm = Viva.Graph._community.slpaAlgorithm(graph, T, r);
+            return algorithm.run();
+        }
+    };
+};Viva.Graph._community = {};
+
+/**
+ * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
+ * Jierui Xie and Boleslaw K. Szymanski.
+ *
+ * @see http://arxiv.org/pdf/1109.5720v3.pdf
+ * @see https://sites.google.com/site/communitydetectionslpa/
+ */
+Viva.Graph._community.slpaAlgorithm = function (graph, T, r) {
+    T = T || 100; // number of evaluation iterations. Should be at least 20. Influence memory consumption by O(n * T);
+    r = r || 0.3; // community threshold on scale from 0 to 1. Value greater than 0.5 result in disjoint communities.
+
+    var random = Viva.random(1331782216905),
+        shuffleRandom = Viva.random('Greeting goes to you, ', 'dear reader'),
+
+        calculateCommunities = function (nodeMemory, threshold) {
+            var communities = [];
+            nodeMemory.forEachUniqueWord(function (word, count) {
+                if (count > threshold) {
+                    communities.push({name : word, probability : count / T });
+                } else {
+                    return true; // stop enumeration, nothing more popular after this word.
+                }
+            });
+
+            return communities;
+        },
+
+        init = function (graph) {
+            var algoNodes = [];
+            graph.forEachNode(function (node) {
+                var memory = Viva.Graph._community.occuranceMap(random);
+                memory.add(node.id);
+
+                node.slpa = { memory : memory  };
+                algoNodes.push(node.id);
+            });
+
+            return algoNodes;
+        },
+
+        evaluate = function (graph, nodes) {
+            var shuffle = Viva.randomIterator(nodes, shuffleRandom),
+                t,
+
+               /**
+                * One iteration of SLPA.
+                */
+                processNode = function (nodeId) {
+                    var listner = graph.getNode(nodeId),
+                        saidWords = Viva.Graph._community.occuranceMap(random);
+
+                    graph.forEachLinkedNode(nodeId, function (speakerNode) {
+                        var word = speakerNode.slpa.memory.getRandomWord();
+                        saidWords.add(word);
+                    });
+
+                    // selecting the most popular label from what it observed in the current step
+                    var heard = saidWords.getMostPopularFair();
+                    listner.slpa.memory.add(heard);
+                };
+
+            for (t = 0; t < T - 1; ++t) { // -1 is because one 'step' was during init phase
+                shuffle.forEach(processNode);
+            }
+        },
+
+        postProcess = function (graph) {
+            var communities = {};
+
+            graph.forEachNode(function (node) {
+                var nodeCommunities = calculateCommunities(node.slpa.memory, r * T),
+                    i;
+
+                for (i = 0; i < nodeCommunities.length; ++i) {
+                    var communityName = nodeCommunities[i].name;
+                    if (communities.hasOwnProperty(communityName)) {
+                        communities[communityName].push(node.id);
+                    } else {
+                        communities[communityName] = [node.id];
+                    }
+                }
+
+                node.communities = nodeCommunities; // TODO: I doesn't look right to augment node's properties. No?
+
+                // Speaking of memory. Node memory created by slpa is really expensive. Release it:
+                node.slpa = null;
+                delete node.slpa;
+            });
+
+            return communities;
+        };
+
+    return {
+
+        /**
+         * Executes SLPA algorithm. The function returns dictionary of discovered communities:
+         * {
+         *     'communityName1' : [nodeId1, nodeId2, .., nodeIdN],
+         *     'communityName2' : [nodeIdK1, nodeIdK2, .., nodeIdKN],
+         *     ...
+         * };
+         *
+         * After algorithm is done each node is also augmented with new property 'communities':
+         *
+         * node.communities = [
+         *      {name: 'communityName1', probability: 0.78},
+         *      {name: 'communityName2', probability: 0.63},
+         *     ...
+         * ];
+         *
+         * 'probability' is always higher than 'r' parameter and denotes level of confidence
+         * with which we think node belongs to community.
+         *
+         * Runtime is O(T * m), where m is total number of edges, and T - number of algorithm iterations.
+         *
+         */
+        run : function () {
+            var nodes = init(graph);
+
+            evaluate(graph, nodes);
+
+            return postProcess(graph);
+        }
+    };
+};
+
+/**
+ * A data structure which serves as node memory during SLPA execution. The main idea is to
+ * simplify operations on memory such as
+ *  - add word to memory,
+ *  - get random word from memory, with probablity proportional to word occurrence in the memory
+ *  - get the most popular word in memory
+ *
+ * TODO: currently this structure is extremely inefficient in terms of memory. I think it could be
+ * optimized.
+ */
+Viva.Graph._community.occuranceMap = function (random) {
+    random = random || Viva.random();
+
+    var wordsCount = {},
+        allWords = [],
+        dirtyPopularity = false,
+        uniqueWords = [],
+
+        rebuildPopularityArray = function () {
+            var key;
+
+            uniqueWords.length = 0;
+            for (key in wordsCount) {
+                if (wordsCount.hasOwnProperty(key)) {
+                    uniqueWords.push(key);
+                }
+            }
+
+            uniqueWords.sort(function (x, y) {
+                var result = wordsCount[y] - wordsCount[x];
+                if (result) {
+                    return result;
+                }
+
+                // Not only number of occurances matters but order of keys also does.
+                // for ... in implementation in different browsers results in different
+                // order, and if we want to have same categories accross all browsers
+                // we should order words by key names too:
+                if (x < y) { return -1; }
+                if (x > y) { return 1; }
+
+                return 0;
+            });
+        },
+
+        ensureUniqueWordsUpdated = function () {
+            if (dirtyPopularity) {
+                rebuildPopularityArray();
+                dirtyPopularity = false;
+            }
+        };
+
+    return {
+
+        /**
+         * Adds a new word to the collection of words.
+         */
+        add : function (word) {
+            word = String(word);
+            if (wordsCount.hasOwnProperty(word)) {
+                wordsCount[word] += 1;
+            } else {
+                wordsCount[word] = 1;
+            }
+
+            allWords.push(word);
+            dirtyPopularity = true;
+        },
+
+        /**
+         * Gets number of occurances for a given word. If word is not present in the dictionary
+         * zero is returned.
+         */
+        getWordCount : function (word) {
+            return wordsCount[word] || 0;
+        },
+
+        /**
+         * Gets the most popular word in the map. If multiple words are at the same position
+         * random word among them is choosen.
+         *
+         */
+        getMostPopularFair : function () {
+            if (allWords.length === 1) {
+                return allWords[0]; // optimizes speed for simple case.
+            }
+
+            ensureUniqueWordsUpdated();
+
+            var maxCount = 0,
+                i;
+
+            for (i = 1; i < uniqueWords.length; ++i) {
+                if (wordsCount[uniqueWords[i - 1]] !== wordsCount[uniqueWords[i]]) {
+                    break; // other words are less popular... not interested.
+                } else {
+                    maxCount += 1;
+                }
+            }
+
+            maxCount += 1;  // to include upper bound. i.e. random words between [0, maxCount] (not [0, maxCount) ).
+            return uniqueWords[random.next(maxCount)];
+        },
+
+        /**
+         * Selects a random word from map with probability proportional
+         * to the occurrence frequency of words.
+         */
+        getRandomWord : function () {
+            if (allWords.length === 0) {
+                throw 'The occurance map is empty. Cannot get empty word';
+            }
+
+            return allWords[random.next(allWords.length)];
+        },
+
+        /**
+         * Enumerates all unique words in the map, and calls
+         *  callback(word, occuranceCount) function on each word. Callback
+         * can return true value to stop enumeration.
+         *
+         * Note: enumeration is guaranteed in to run in decreasing order.
+         */
+        forEachUniqueWord : function (callback) {
+            if (typeof callback !== 'function') {
+                throw 'Function callback is expected to enumerate all words';
+            }
+            var i;
+
+            ensureUniqueWordsUpdated();
+
+            for (i = 0; i < uniqueWords.length; ++i) {
+                var word = uniqueWords[i],
+                    count = wordsCount[word];
+
+                var stop = callback(word, count);
+                if (stop) {
+                    break;
+                }
+            }
+        }
+    };
+};/**
+ * @fileOverview Contains collection of graph generators.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.generator = function () {
+
+    return {
+        /**
+         * Generates complete graph Kn.
+         *
+         * @param n represents number of nodes in the complete graph.
+         */
+        complete : function (n) {
+            if (!n || n < 1) {
+                throw { message: "At least two nodes expected for complete graph" };
+            }
+
+            var g = Viva.Graph.graph(),
+                i,
+                j;
+
+            g.Name = "Complete K" + n;
+
+            for (i = 0; i < n; ++i) {
+                for (j = i + 1; j < n; ++j) {
+                    if (i !== j) {
+                        g.addLink(i, j);
+                    }
+                }
+            }
+
+            return g;
+        },
+
+        /**
+         * Generates complete bipartite graph K n,m. Each node in the
+         * first partition is connected to all nodes in the second partition.
+         *
+         * @param n represents number of nodes in the first graph partition
+         * @param m represents number of nodes in the second graph partition
+         */
+        completeBipartite : function (n, m) {
+            if (!n || !m || n < 0 || m < 0) {
+                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greate than 0" };
+            }
+
+            var g = Viva.Graph.graph(),
+                i,
+                j;
+
+            g.Name = "Complete K " + n + "," + m;
+            for (i = 0; i < n; ++i) {
+                for (j = n; j < n + m; ++j) {
+                    g.addLink(i, j);
+                }
+            }
+
+            return g;
+        },
+        /**
+         * Generates a graph in a form of a ladder with n steps.
+         *
+         * @param n number of steps in the ladder.
+         */
+        ladder : function (n) {
+            if (!n || n < 0) {
+                throw { message: "Invalid number of nodes" };
+            }
+
+            var g = Viva.Graph.graph(),
+                i;
+            g.Name = "Ladder graph " + n;
+
+            for (i = 0; i < n - 1; ++i) {
+                g.addLink(i, i + 1);
+                // first row
+                g.addLink(n + i, n + i + 1);
+                // second row
+                g.addLink(i, n + i);
+                // ladder"s step
+            }
+
+            g.addLink(n - 1, 2 * n - 1);
+            // last step in the ladder;
+
+            return g;
+        },
+
+        /**
+         * Generates a graph in a form of a circular ladder with n steps.
+         *
+         * @param n number of steps in the ladder.
+         */
+        circularLadder : function (n) {
+            if (!n || n < 0) {
+                throw { message: "Invalid number of nodes" };
+            }
+
+            var g = this.ladder(n);
+            g.Name = "Circular ladder graph " + n;
+
+            g.addLink(0, n - 1);
+            g.addLink(n, 2 * n - 1);
+            return g;
+        },
+        /**
+         * Generates a graph in a form of a grid with n rows and m columns.
+         *
+         * @param n number of rows in the graph.
+         * @param m number of columns in the graph.
+         */
+        grid: function (n, m) {
+            var g = Viva.Graph.graph(),
+                i,
+                j;
+            g.Name = "Grid graph " + n + "x" + m;
+            for (i = 0; i < n; ++i) {
+                for (j = 0; j < m; ++j) {
+                    var node = i + j * n;
+                    if (i > 0) { g.addLink(node, i - 1 + j * n); }
+                    if (j > 0) { g.addLink(node, i + (j - 1) * n); }
+                }
+            }
+
+            return g;
+        },
+
+        path: function (n) {
+            if (!n || n < 0) {
+                throw { message: "Invalid number of nodes" };
+            }
+
+            var g = Viva.Graph.graph(),
+                i;
+            g.Name = "Path graph " + n;
+            g.addNode(0);
+
+            for (i = 1; i < n; ++i) {
+                g.addLink(i - 1, i);
+            }
+
+            return g;
+        },
+
+        lollipop: function (m, n) {
+            if (!n || n < 0 || !m || m < 0) {
+                throw { message: "Invalid number of nodes" };
+            }
+
+            var g = this.complete(m),
+                i;
+            g.Name = "Lollipop graph. Head x Path " + m + "x" + n;
+
+            for (i = 0; i < n; ++i) {
+                g.addLink(m + i - 1, m + i);
+            }
+
+            return g;
+        },
+
+        /**
+         * Creates balanced binary tree with n levels.
+         */
+        balancedBinTree: function (n) {
+            var g = Viva.Graph.graph(),
+                count = Math.pow(2, n),
+                level;
+            g.Name = "Balanced bin tree graph " + n;
+
+            for (level = 1; level < count; ++level) {
+                var root = level,
+                    left = root * 2,
+                    right = root * 2 + 1;
+
+                g.addLink(root, left);
+                g.addLink(root, right);
+            }
+
+            return g;
+        },
+        /**
+         * Generates a graph with n nodes and 0 links.
+         *
+         * @param n number of nodes in the graph.
+         */
+        randomNoLinks : function (n) {
+            if (!n || n < 0) {
+                throw { message: "Invalid number of nodes" };
+            }
+
+            var g = Viva.Graph.graph(),
+                i;
+            g.Name = "Random graph, no Links: " + n;
+            for (i = 0; i < n; ++i) {
+                g.addNode(i);
+            }
+
+            return g;
+        }
+    };
+};
+/**
+ * @fileOverview Defines a graph renderer that uses CSS based drawings.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+// The file tries to conform generic interface:
+/*jshint unused: false */
+
+Viva.Graph.View = Viva.Graph.View || {};
+
+/**
+ * Performs css-based graph rendering. This module does not perform
+ * layout, but only visualizes nodes and edeges of the graph.
+ *
+ * NOTE: Most likely I will remove this graphics engine due to superior svg support.
+ * In certain cases it doesn't work and require further imporvments:
+ *  * does not properly work for dragging.
+ *  * does not support scaling.
+ *  * does not support IE versions prior to IE9.
+ *
+ */
+Viva.Graph.View.cssGraphics = function () {
+    var container, // Where graph will be rendered
+        OLD_IE = "OLD_IE",
+        offsetX,
+        offsetY,
+        scaleX = 1,
+        scaleY = 1,
+
+        transformName = (function () {
+			var browserName = Viva.BrowserInfo.browser,
+                prefix,
+                version;
+
+            switch (browserName) {
+            case "mozilla":
+                prefix = "Moz";
+                break;
+            case "webkit":
+                prefix = "webkit";
+                break;
+            case "opera":
+                prefix = "O";
+                break;
+            case "msie":
+                version = Viva.BrowserInfo.version.split(".")[0];
+                if (version > 8) {
+                    prefix = "ms";
+                } else {
+                    return OLD_IE;
+                }
+                break;
+            }
+
+            if (prefix) { // CSS3
+                return prefix + "Transform";
+            }
+            // Unknown browser
+            return null;
+        }()),
+
+       /**
+        * Returns a function (ui, x, y, angleRad).
+        *
+        * The function attempts to rotate "ui" dom element on "angleRad" radians
+        * and position it to "x" "y" coordinates.
+        *
+        * Operation works in most modern browsers that support transform css style
+        * and IE.
+        * */
+        positionLink = (function () {
+            if (transformName === OLD_IE) { // This is old IE, use filters
+                return function (ui, x, y, angleRad) {
+                    var cos = Math.cos(angleRad),
+                        sin = Math.sin(angleRad);
+
+                    // IE 6, 7 and 8 are screwed up when it comes to transforms;
+                    // I could not find justification for their choice of "floating"
+                    // matrix transform origin. The following ugly code was written
+                    // out of complete dispair.
+                    if (angleRad < 0) {
+                        angleRad = 2 * Math.PI + angleRad;
+                    }
+
+                    if (angleRad < Math.PI / 2) {
+                        ui.style.left = x + "px";
+                        ui.style.top = y + "px";
+                    } else if (angleRad < Math.PI) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y;
+                    } else if (angleRad < (Math.PI + Math.PI / 2)) {
+                        ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
+                        ui.style.top = y + (ui.clientWidth) * Math.sin(Math.PI - angleRad);
+                    } else {
+                        ui.style.left = x;
+                        ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
+                    }
+                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\"auto expand\"," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
+                };
+            }
+
+            if (transformName) { // Modern CSS3 browser
+                return function (ui, x, y, angleRad) {
+                    ui.style.left = x + "px";
+                    ui.style.top = y + "px";
+
+                    ui.style[transformName] = "rotate(" + angleRad + "rad)";
+                    ui.style[transformName + "Origin"] = "left";
+                };
+            }
+
+            return function (ui, x, y, angleRad) {
+                // Don't know how to rotate links in other browsers.
+            };
+        }()),
+
+        nodeBuilder = function (node) {
+            var nodeUI = window.document.createElement("div");
+            nodeUI.setAttribute("class", "node");
+            return nodeUI;
+        },
+
+        nodePositionCallback = function (nodeUI, pos) {
+            // TODO: Remove magic 5. It should be half of the width or height of the node.
+            nodeUI.style.left = pos.x - 5 + "px";
+            nodeUI.style.top = pos.y - 5 + "px";
+        },
+
+        linkPositionCallback = function (linkUI, fromPos, toPos) {
+            var dx = fromPos.x - toPos.x,
+                dy = fromPos.y - toPos.y,
+                length = Math.sqrt(dx * dx + dy * dy);
+
+            linkUI.style.height = "1px";
+            linkUI.style.width = length + "px";
+
+            positionLink(linkUI, toPos.x, toPos.y, Math.atan2(dy, dx));
+        },
+
+        linkBuilder = function (link) {
+            var linkUI = window.document.createElement("div");
+            linkUI.setAttribute("class", "link");
+
+            return linkUI;
+        },
+
+        updateTransform = function () {
+            if (container) {
+                if (transformName && transformName !== OLD_IE) {
+                    var transform = "matrix(" + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                    container.style[transformName] = transform;
+                } else {
+                    throw "Not implemented. TODO: Implement OLD_IE Filter based transform";
+                }
+            }
+        };
+
+    return {
+        /**
+         * Sets the collback that creates node representation or creates a new node
+         * presentation if builderCallbackOrNode is not a function.
+         *
+         * @param builderCallbackOrNode a callback function that accepts graph node
+         * as a parameter and must return an element representing this node. OR
+         * if it's not a function it's treated as a node to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
+         * Otherwise a node representation is returned for the passed parameter.
+         */
+        node : function (builderCallbackOrNode) {
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
+                return nodeBuilder(builderCallbackOrNode);
+            }
+
+            nodeBuilder = builderCallbackOrNode;
+
+            return this;
+        },
+
+        /**
+         * Sets the collback that creates link representation or creates a new link
+         * presentation if builderCallbackOrLink is not a function.
+         *
+         * @param builderCallbackOrLink a callback function that accepts graph link
+         * as a parameter and must return an element representing this link. OR
+         * if it's not a function it's treated as a link to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
+         * Otherwise a link representation is returned for the passed parameter.
+         */
+        link : function (builderCallbackOrLink) {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
+                return linkBuilder(builderCallbackOrLink);
+            }
+
+            linkBuilder = builderCallbackOrLink;
+            return this;
+        },
+
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop
+         */
+        inputManager : Viva.Input.domInputManager,
+
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        graphCenterChanged : function (x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
+        },
+
+        translateRel : function (dx, dy) {
+            offsetX += dx;
+            offsetY += dy;
+            updateTransform();
+        },
+
+        scale : function (x, y) {
+            // TODO: implement me
+            return 1;
+        },
+
+        resetScale : function () {
+            // TODO: implement me
+            return this;
+        },
+
+        /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function () {},
+
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function () {},
+        /**
+         * Allows to override default position setter for the node with a new
+         * function. newPlaceCallback(node, position) is function which
+         * is used by updateNode().
+         */
+        placeNode : function (newPlaceCallback) {
+            nodePositionCallback = newPlaceCallback;
+            return this;
+        },
+
+        placeLink : function (newPlaceLinkCallback) {
+            linkPositionCallback = newPlaceLinkCallback;
+            return this;
+        },
+
+        /**
+         * Called by Viva.Graph.View.renderer to let concrete graphic output
+         * providers prepare to render.
+         */
+        init : function (parentContainer) {
+            container = parentContainer;
+            updateTransform();
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given link of the graph
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        */
+        initLink : function (linkUI) {
+            if (container.childElementCount > 0) {
+                container.insertBefore(linkUI, container.firstChild);
+            } else {
+                container.appendChild(linkUI);
+            }
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove link from rendering surface.
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        **/
+        releaseLink : function (linkUI) {
+            container.removeChild(linkUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given node of the graph.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        initNode : function (nodeUI) {
+            container.appendChild(nodeUI);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove node from rendering surface.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        releaseNode : function (nodeUI) {
+            container.removeChild(nodeUI);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given node to recommended position pos {x, y};
+        */
+        updateNodePosition : function (node, pos) {
+            nodePositionCallback(node, pos);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given link of the graph
+        */
+        updateLinkPosition : function (link, fromPos, toPos) {
+            linkPositionCallback(link, fromPos, toPos);
+        }
+    };
+};
+/**
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/**
+ * Simple wrapper over svg object model API, to shorten the usage syntax.
+ */
+Viva.Graph.svg = function (element) {
+    var svgns = "http://www.w3.org/2000/svg",
+        xlinkns = "http://www.w3.org/1999/xlink",
+        svgElement = element;
+
+    if (typeof element === "string") {
+        svgElement = window.document.createElementNS(svgns, element);
+    }
+
+    if (svgElement.vivagraphAugmented) {
+        return svgElement;
+    }
+
+    svgElement.vivagraphAugmented = true;
+
+    // Augment svg element (TODO: it's not safe - what if some function already exists on the prototype?):
+
+    /**
+     * Gets an svg attribute from an element if value is not specified.
+     * OR sets a new value to the given attribute.
+     *
+     * @param name - svg attribute name;
+     * @param value - value to be set;
+     *
+     * @returns svg element if both name and value are specified; or value of the given attribute
+     * if value parameter is missing.
+     */
+    svgElement.attr = function (name, value) {
+        if (arguments.length === 2) {
+            if (value !== null) {
+                svgElement.setAttributeNS(null, name, value);
+            } else {
+                svgElement.removeAttributeNS(null, name);
+            }
+
+            return svgElement;
+        }
+
+        return svgElement.getAttributeNS(null, name);
+    };
+
+    svgElement.append = function (element) {
+        var child = Viva.Graph.svg(element);
+        svgElement.appendChild(child);
+        return child;
+    };
+
+    svgElement.text = function (textContent) {
+        if (typeof textContent !== "undefined") {
+            svgElement.textContent = textContent;
+            return svgElement;
+        }
+        return svgElement.textContent;
+    };
+
+    svgElement.link = function (target) {
+        if (arguments.length) {
+            svgElement.setAttributeNS(xlinkns, "xlink:href", target);
+            return svgElement;
+        }
+
+        return svgElement.getAttributeNS(xlinkns, "xlink:href");
+    };
+
+    svgElement.children = function (selector) {
+        var wrappedChildren = [],
+            childrenCount = svgElement.childNodes.length,
+            i,
+            j;
+
+        if (selector === undefined && svgElement.hasChildNodes()) {
+            for (i = 0; i < childrenCount; i++) {
+                wrappedChildren.push(Viva.Graph.svg(svgElement.childNodes[i]));
+            }
+        } else if (typeof selector === "string") {
+            var classSelector = (selector[0] === "."),
+                idSelector    = (selector[0] === "#"),
+                tagSelector   = !classSelector && !idSelector;
+
+            for (i = 0; i < childrenCount; i++) {
+                var el = svgElement.childNodes[i];
+
+                // pass comments, text nodes etc.
+                if (el.nodeType === 1) {
+                    var classes = el.attr("class"),
+                        id = el.attr("id"),
+                        tagName = el.nodeName;
+
+                    if (classSelector && classes) {
+                        classes = classes.replace(/\s+/g, " ").split(" ");
+                        for (j = 0; j < classes.length; j++) {
+                            if (classSelector && classes[j] === selector.substr(1)) {
+                                wrappedChildren.push(Viva.Graph.svg(el));
+                                break;
+                            }
+                        }
+                    } else if (idSelector && id === selector.substr(1)) {
+                        wrappedChildren.push(Viva.Graph.svg(el));
+                        break;
+                    } else if (tagSelector && tagName === selector) {
+                        wrappedChildren.push(Viva.Graph.svg(el));
+                    }
+
+                    wrappedChildren = wrappedChildren.concat(Viva.Graph.svg(el).children(selector));
+                }
+            }
+
+            if (idSelector && wrappedChildren.length === 1) {
+                return wrappedChildren[0];
+            }
+        }
+
+        return wrappedChildren;
+    };
+
+    return svgElement;
+};
+/**
+ * @fileOverview Defines a graph renderer that uses SVG based drawings.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.View = Viva.Graph.View || {};
+
+/**
+ * Performs svg-based graph rendering. This module does not perform
+ * layout, but only visualizes nodes and edeges of the graph.
+ */
+Viva.Graph.View.svgGraphics = function () {
+    var svgContainer,
+        svgRoot,
+        offsetX,
+        offsetY,
+        actualScale = 1,
+/*jshint unused: false */
+        nodeBuilder = function (node) {
+            return Viva.Graph.svg("rect")
+                     .attr("width", 10)
+                     .attr("height", 10)
+                     .attr("fill", "#00a2e8");
+        },
+
+        nodePositionCallback = function (nodeUI, pos) {
+            // TODO: Remove magic 5. It should be halfo of the width or height of the node.
+            nodeUI.attr("x", pos.x - 5)
+                  .attr("y", pos.y - 5);
+        },
+
+        linkBuilder = function (link) {
+            return Viva.Graph.svg("line")
+                              .attr("stroke", "#999");
+        },
+
+        linkPositionCallback = function (linkUI, fromPos, toPos) {
+            linkUI.attr("x1", fromPos.x)
+                  .attr("y1", fromPos.y)
+                  .attr("x2", toPos.x)
+                  .attr("y2", toPos.y);
+        },
+
+        fireRescaled = function (graphics) {
+            // TODO: maybe we shall copy changes?
+            graphics.fire("rescaled");
+        },
+
+        updateTransform = function () {
+            if (svgContainer) {
+                var transform = "matrix(" + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
+                svgContainer.attr("transform", transform);
+            }
+        };
+
+    var graphics = {
+        /**
+         * Sets the collback that creates node representation or creates a new node
+         * presentation if builderCallbackOrNode is not a function.
+         *
+         * @param builderCallbackOrNode a callback function that accepts graph node
+         * as a parameter and must return an element representing this node. OR
+         * if it's not a function it's treated as a node to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
+         * Otherwise a node representation is returned for the passed parameter.
+         */
+        node : function (builderCallbackOrNode) {
+
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
+                return nodeBuilder(builderCallbackOrNode);
+            }
+
+            nodeBuilder = builderCallbackOrNode;
+
+            return this;
+        },
+
+        /**
+         * Sets the collback that creates link representation or creates a new link
+         * presentation if builderCallbackOrLink is not a function.
+         *
+         * @param builderCallbackOrLink a callback function that accepts graph link
+         * as a parameter and must return an element representing this link. OR
+         * if it's not a function it's treated as a link to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
+         * Otherwise a link representation is returned for the passed parameter.
+         */
+        link : function (builderCallbackOrLink) {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
+                return linkBuilder(builderCallbackOrLink);
+            }
+
+            linkBuilder = builderCallbackOrLink;
+            return this;
+        },
+
+        /**
+         * Allows to override default position setter for the node with a new
+         * function. newPlaceCallback(nodeUI, position) is function which
+         * is used by updateNodePosition().
+         */
+        placeNode : function (newPlaceCallback) {
+            nodePositionCallback = newPlaceCallback;
+            return this;
+        },
+
+        placeLink : function (newPlaceLinkCallback) {
+            linkPositionCallback = newPlaceLinkCallback;
+            return this;
+        },
+
+        /**
+         * Called every before renderer starts rendering.
+         */
+        beginRender : function () {},
+
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function () {},
+
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        graphCenterChanged : function (x, y) {
+            offsetX = x;
+            offsetY = y;
+            updateTransform();
+        },
+
+        /**
+         * Default input manager listens to DOM events to process nodes drag-n-drop
+         */
+        inputManager : Viva.Input.domInputManager,
+
+        translateRel : function (dx, dy) {
+            var p = svgRoot.createSVGPoint(),
+                t = svgContainer.getCTM(),
+                origin = svgRoot.createSVGPoint().matrixTransform(t.inverse());
+
+            p.x = dx;
+            p.y = dy;
+
+            p = p.matrixTransform(t.inverse());
+            p.x = (p.x - origin.x) * t.a;
+            p.y = (p.y - origin.y) * t.d;
+
+            t.e += p.x;
+            t.f += p.y;
+
+            var transform = "matrix(" + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr("transform", transform);
+        },
+
+        scale : function (scaleFactor, scrollPoint) {
+            var p = svgRoot.createSVGPoint();
+            p.x = scrollPoint.x;
+            p.y = scrollPoint.y;
+
+            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
+
+            // Compute new scale matrix in current mouse position
+            var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
+                t = svgContainer.getCTM().multiply(k);
+
+            actualScale = t.a;
+            offsetX = t.e;
+            offsetY = t.f;
+            var transform = "matrix(" + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr("transform", transform);
+
+            fireRescaled(this);
+            return actualScale;
+        },
+
+        resetScale : function () {
+            actualScale = 1;
+            var transform = "matrix(1, 0, 0, 1, 0, 0)";
+            svgContainer.attr("transform", transform);
+            fireRescaled(this);
+            return this;
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render.
+        */
+        init : function (container) {
+            svgRoot = Viva.Graph.svg("svg");
+
+            svgContainer = Viva.Graph.svg("g")
+                 .attr("buffered-rendering", "dynamic");
+
+            svgRoot.appendChild(svgContainer);
+            container.appendChild(svgRoot);
+            updateTransform();
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (svgRoot && container) {
+                container.removeChild(svgRoot);
+            }
+        },
+
+        /**
+         * Called by Viva.Graph.View.renderer to let concrete graphic output
+         * provider prepare to render given link of the graph
+         *
+         * @param linkUI visual representation of the link created by link() execution.
+         */
+        initLink : function (linkUI) {
+            if (!linkUI) { return; }
+            if (svgContainer.childElementCount > 0) {
+                svgContainer.insertBefore(linkUI, svgContainer.firstChild);
+            } else {
+                svgContainer.appendChild(linkUI);
+            }
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove link from rendering surface.
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        **/
+        releaseLink : function (linkUI) {
+            svgContainer.removeChild(linkUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given node of the graph.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        initNode : function (nodeUI) {
+            svgContainer.appendChild(nodeUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove node from rendering surface.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        releaseNode : function (nodeUI) {
+            svgContainer.removeChild(nodeUI);
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given node UI to recommended position pos {x, y};
+        */
+        updateNodePosition : function (nodeUI, pos) {
+            nodePositionCallback(nodeUI, pos);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given link of the graph. Pos objects are {x, y};
+        */
+        updateLinkPosition : function (link, fromPos, toPos) {
+            linkPositionCallback(link, fromPos, toPos);
+        },
+
+        /**
+         * Returns root svg element.
+         *
+         * Note: This is internal method specific to this renderer
+         * TODO: Rename this to getGraphicsRoot() to be uniform accross graphics classes
+         */
+        getSvgRoot : function () {
+            return svgRoot;
+        }
+    };
+
+    // Let graphics fire events before we return it to the caller.
+    Viva.Graph.Utils.events(graphics).extend();
+
+    return graphics;
+};
+/**
+ * @fileOverview I used this class to render links UI within
+ * node. Lesser SVG elements is proven to improve performance
+ * but I'm not happy with the code result here. Probably this class
+ * will be removed from future versions.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.View.svgNodeFactory = function (graph) {
+    var defaultColor = "#999",
+        geom = Viva.Graph.geom(),
+
+        attachCustomContent = function (nodeUI) {
+            nodeUI.size = {w: 10, h: 10};
+            nodeUI.append("rect")
+                .attr("width", nodeUI.size.w)
+                .attr("height", nodeUI.size.h)
+                .attr("stroke", "orange")
+                .attr("fill", "orange");
+        },
+
+        nodeSize = function (nodeUI) {
+            return nodeUI.size;
+        };
+
+
+    return {
+        node : function (node) {
+            var nodeUI = Viva.Graph.svg("g");
+
+            attachCustomContent(nodeUI, node);
+            nodeUI.nodeId = node.id;
+            return nodeUI;
+        },
+
+        link : function (link) {
+            var fromNode = graph.getNode(link.fromId),
+                nodeUI = fromNode && fromNode.ui;
+
+            if (nodeUI && !nodeUI.linksContainer) {
+                var nodeLinks = Viva.Graph.svg("path")
+                                    .attr("stroke", defaultColor);
+                nodeUI.linksContainer = nodeLinks;
+                return nodeLinks;
+            }
+
+            return null;
+        },
+
+        /**
+         * Sets a callback function for custom nodes contnet.
+         * @param conentCreator(nodeUI, node) - callback function which returns a node content UI.
+         *  Image, for example.
+         * @param sizeProvider(nodeUI) - a callback function which accepts nodeUI returned by
+         *  contentCreator and returns it"s custom rectangular size.
+         *
+         */
+        customContent : function (contentCreator, sizeProvider) {
+            if (typeof contentCreator !== "function" ||
+                typeof sizeProvider !== "function") {
+                throw "Two functions expected: contentCreator(nodeUI, node) and size(nodeUI)";
+            }
+
+            attachCustomContent = contentCreator;
+            nodeSize = sizeProvider;
+        },
+
+        placeNode : function (nodeUI, fromNodePos) {
+            var linksPath = "",
+                fromNodeSize = nodeSize(nodeUI);
+
+            graph.forEachLinkedNode(nodeUI.nodeId, function (linkedNode, link) {
+                if (!linkedNode.position || !linkedNode.ui) {
+                    return; // not yet defined - ignore.
+                }
+
+                if (linkedNode.ui === nodeUI) {
+                    return; // incoming link - ignore;
+                }
+                if (link.fromId !== nodeUI.nodeId) {
+                    return; // we process only outgoing links.
+                }
+
+                var toNodeSize = nodeSize(linkedNode.ui),
+                    toNodePos = linkedNode.position;
+
+                var from = geom.intersectRect(
+                        fromNodePos.x - fromNodeSize.w / 2, // left
+                        fromNodePos.y - fromNodeSize.h / 2, // top
+                        fromNodePos.x + fromNodeSize.w / 2, // right
+                        fromNodePos.y + fromNodeSize.h / 2, // bottom
+                        fromNodePos.x,
+                        fromNodePos.y,
+                        toNodePos.x,
+                        toNodePos.y
+                    ) || fromNodePos;
+
+                var to = geom.intersectRect(
+                        toNodePos.x - toNodeSize.w / 2, // left
+                        toNodePos.y - toNodeSize.h / 2, // top
+                        toNodePos.x + toNodeSize.w / 2, // right
+                        toNodePos.y + toNodeSize.h / 2, // bottom
+                        toNodePos.x,
+                        toNodePos.y,
+                        fromNodePos.x,
+                        fromNodePos.y
+                    ) || toNodePos;
+
+                linksPath += "M" + Math.round(from.x) + " " + Math.round(from.y) +
+                             "L" + Math.round(to.x) + " " + Math.round(to.y);
+            });
+
+            nodeUI.attr("transform",
+                        "translate(" + (fromNodePos.x - fromNodeSize.w / 2) + ", " +
+                         (fromNodePos.y - fromNodeSize.h / 2) + ")");
+            if (linksPath !== "" && nodeUI.linksContainer) {
+                nodeUI.linksContainer.attr("d", linksPath);
+            }
+        }
+
+    };
+};
+/**
+ * @fileOverview Utility functions for webgl rendering.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.webgl = function (gl) {
+    var createShader = function (shaderText, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, shaderText);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                var msg = gl.getShaderInfoLog(shader);
+                window.alert(msg);
+                throw msg;
+            }
+
+            return shader;
+        };
+
+    return {
+        createProgram : function (vertexShaderSrc, fragmentShaderSrc) {
+            var program = gl.createProgram(),
+                vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER),
+                fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
+
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                var msg = gl.getShaderInfoLog(program);
+                window.alert(msg);
+                throw msg;
+            }
+
+            return program;
+        },
+
+        extendArray : function (buffer, itemsInBuffer, elementsPerItem) {
+            if ((itemsInBuffer  + 1) * elementsPerItem > buffer.length) {
+                // Every time we run out of space create new array twice bigger.
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
+                extendedArray.set(buffer);
+
+                return extendedArray;
+            }
+
+            return buffer;
+        },
+
+        copyArrayPart : function (array, to, from, elementsCount) {
+            var i;
+            for (i = 0; i < elementsCount; ++i) {
+                array[to + i] = array[from + i];
+            }
+        },
+
+        swapArrayPart : function (array, from, to, elementsCount) {
+            var i;
+            for (i = 0; i < elementsCount; ++i) {
+                var tmp = array[from + i];
+                array[from + i] = array[to + i];
+                array[to + i] = tmp;
+            }
+        },
+
+        getLocations : function (program, uniformOrAttributeNames) {
+            var foundLocations = {},
+                i;
+            for (i = 0; i < uniformOrAttributeNames.length; ++i) {
+                var name = uniformOrAttributeNames[i],
+                    location = -1;
+                if (name.indexOf("a_") === 0) {
+                    location = gl.getAttribLocation(program, name);
+                    if (location === -1) {
+                        throw "Program doesn't have required attribute: " + name;
+                    }
+
+                    foundLocations[name.slice(2)] = location;
+                } else if (name.indexOf("u_") === 0) {
+                    location = gl.getUniformLocation(program, name);
+                    if (location === null) {
+                        throw "Program doesn't have required uniform: " + name;
+                    }
+
+                    foundLocations[name.slice(2)] = location;
+                } else {
+                    throw "Couldn't figure out your intent. All uniforms should start with 'u_' prefix, and attributes with 'a_'";
+                }
+            }
+
+            return foundLocations;
+        },
+
+        context : gl
+    };
+};
+/**
+ * @fileOverview Defines a model objects to represents graph rendering
+ * primitives in webglGraphics.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.View.WebglUtils = function () { };
+
+/**
+ * Parses various color strings and returns color value used in webgl shaders.
+ */
+Viva.Graph.View.WebglUtils.prototype.parseColor = function (color) {
+    var parsedColor = 0x009ee8ff;
+
+    if (typeof color === 'string' && color) {
+        if (color.length === 4) { // #rgb
+            color = color.replace(/([^#])/g, '$1$1'); // duplicate each letter except first #.
+        }
+        if (color.length === 9) { // #rrggbbaa
+            parsedColor = parseInt(color.substr(1), 16);
+        } else if (color.length === 7) { // or #rrggbb.
+            parsedColor = (parseInt(color.substr(1), 16) << 8) | 0xff;
+        } else {
+            throw 'Color expected in hex format with preceding "#". E.g. #00ff00. Got value: ' + color;
+        }
+    } else if (typeof color === 'number') {
+        parsedColor = color;
+    }
+
+    return parsedColor;
+};
+
+Viva.Graph.View._webglUtil = new Viva.Graph.View.WebglUtils(); // reuse this instance internally.
+
+/**
+ * Defines a webgl line. This class has no rendering logic at all,
+ * it's just passed to corresponding shader and the shader should
+ * figure out how to render it.
+ *
+ * @see Viva.Graph.View.webglLinkShader.position
+ */
+Viva.Graph.View.webglLine = function (color) {
+    return {
+        /**
+         * Gets or sets color of the line. If you set this property externally
+         * make sure it always come as integer of 0xRRGGBBAA format
+         */
+        color : Viva.Graph.View._webglUtil.parseColor(color)
+    };
+};
+
+/**
+ * Can be used as a callback in the webglGraphics.node() function, to
+ * create a custom looking node.
+ *
+ * @param size - size of the node in pixels.
+ * @param color - color of the node in '#rrggbbaa' or '#rgb' format.
+ */
+Viva.Graph.View.webglSquare = function (size, color) {
+    return {
+        /**
+         * Gets or sets size of the sqare side.
+         */
+        size : typeof size === 'number' ? size : 10,
+
+        /**
+         * Gets or sets color of the square.
+         */
+        color : Viva.Graph.View._webglUtil.parseColor(color)
+    };
+};
+
+/**
+ * Represents a model for image.
+ */
+Viva.Graph.View.webglImage = function (size, src) {
+    return {
+        /**
+         * Gets texture index where current image is placed.s
+         */
+        _texture : 0,
+
+        /**
+         * Gets offset in the texture where current image is placed.
+         */
+        _offset : 0,
+
+        /**
+         * Gets size of the square with the image.
+         */
+        size : typeof size === 'number' ? size : 32,
+
+        /**
+         * Source of the image. If image is comming not from your domain
+         * certain origin restrictions applies.
+         * See http://www.khronos.org/registry/webgl/specs/latest/#4.2 for more details.
+         */
+        src  : src
+    };
+};/**
+ * @fileOverview Defines a naive form of nodes for webglGraphics class.
+ * This form allows to change color of node. Shape of nodes is rectangular.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/**
+ * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
+ */
+Viva.Graph.View.webglNodeProgram = function () {
+    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y, size, color
+        // x, y, z - floats, color = uint.
+        BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
+        nodesFS = [
+            'precision mediump float;',
+            'varying vec4 color;',
+
+            'void main(void) {',
+            '   gl_FragColor = color;',
+            '}'
+        ].join('\n'),
+        nodesVS = [
+            'attribute vec3 a_vertexPos;',
+            'attribute vec4 a_color;',
+            'uniform vec2 u_screenSize;',
+            'uniform mat4 u_transform;',
+            'varying vec4 color;',
+
+            'void main(void) {',
+            '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
+            '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
+            '   color = a_color.abgr;',
+            '}'
+        ].join('\n'),
+
+        program,
+        gl,
+        buffer,
+        locations,
+        utils,
+        storage = new ArrayBuffer(16 * BYTES_PER_NODE),
+        positions = new Float32Array(storage),
+        colors = new Uint32Array(storage),
+        nodesCount = 0,
+        width,
+        height,
+        transform,
+        sizeDirty,
+
+        ensureEnoughStorage = function () {
+            if ((nodesCount + 1) * BYTES_PER_NODE >= storage.byteLength) {
+                // Every time we run out of space create new array twice bigger.
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                    extendedPositions = new Float32Array(extendedStorage),
+                    extendedColors = new Uint32Array(extendedStorage);
+
+                extendedColors.set(colors); // should be enough to copy just one view.
+                positions = extendedPositions;
+                colors = extendedColors;
+                storage = extendedStorage;
+            }
+        };
+
+    return {
+        load : function (glContext) {
+            gl = glContext;
+            utils = Viva.Graph.webgl(glContext);
+
+            program = utils.createProgram(nodesVS, nodesFS);
+            gl.useProgram(program);
+            locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
+
+            gl.enableVertexAttribArray(locations.vertexPos);
+            gl.enableVertexAttribArray(locations.color);
+
+            buffer = gl.createBuffer();
+        },
+
+        /**
+         * Updates position of node in the buffer of nodes.
+         *
+         * @param idx - index of current node.
+         * @param pos - new position of the node.
+         */
+        position : function (nodeUI, pos) {
+            var idx = nodeUI.id;
+
+            positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
+            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
+
+            colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;
+        },
+
+        updateTransform : function (newTransform) {
+            sizeDirty = true;
+            transform = newTransform;
+        },
+
+        updateSize : function (w, h) {
+            width = w;
+            height = h;
+            sizeDirty = true;
+        },
+
+        removeNode : function (node) {
+            if (nodesCount > 0) { nodesCount -= 1; }
+
+            if (node.id < nodesCount && nodesCount > 0) {
+                // we can use colors as a 'view' into array array buffer.
+                utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+            }
+        },
+/*jshint unused:false */
+        createNode : function (node) {
+            ensureEnoughStorage();
+            nodesCount += 1;
+        },
+
+        replaceProperties : function (replacedNode, newNode) {},
+/*jshint unused:true */
+
+        render : function () {
+            gl.useProgram(program);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
+
+            if (sizeDirty) {
+                sizeDirty = false;
+                gl.uniformMatrix4fv(locations.transform, false, transform);
+                gl.uniform2f(locations.screenSize, width, height);
+            }
+
+            gl.vertexAttribPointer(locations.vertexPos, 3, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
+            gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 3 * 4);
+
+            gl.drawArrays(gl.POINTS, 0, nodesCount);
+        }
+    };
+};/**
+ * @fileOverview Defines a naive form of links for webglGraphics class.
+ * This form allows to change color of links.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/**
+ * Defines UI for links in webgl renderer.
+ */
+Viva.Graph.View.webglLinkProgram = function () {
+    var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
+        BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
+        linksFS = [
+            'precision mediump float;',
+            'varying vec4 color;',
+            'void main(void) {',
+            '   gl_FragColor = color;',
+            '}'
+        ].join('\n'),
+
+        linksVS = [
+            'attribute vec2 a_vertexPos;',
+            'attribute vec4 a_color;',
+
+            'uniform vec2 u_screenSize;',
+            'uniform mat4 u_transform;',
+
+            'varying vec4 color;',
+
+            'void main(void) {',
+            '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0.0, 1.0);',
+            '   color = a_color.abgr;',
+            '}'
+        ].join('\n'),
+
+        program,
+        gl,
+        buffer,
+        utils,
+        locations,
+        linksCount = 0,
+        frontLinkId, // used to track z-index of links.
+        storage = new ArrayBuffer(16 * BYTES_PER_LINK),
+        positions = new Float32Array(storage),
+        colors = new Uint32Array(storage),
+        width,
+        height,
+        transform,
+        sizeDirty,
+
+        ensureEnoughStorage = function () {
+            // TODO: this is a duplicate of webglNodeProgram code. Extract it to webgl.js
+            if ((linksCount+1)*BYTES_PER_LINK > storage.byteLength) {
+                // Every time we run out of space create new array twice bigger.
+                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                    extendedPositions = new Float32Array(extendedStorage),
+                    extendedColors = new Uint32Array(extendedStorage);
+
+                extendedColors.set(colors); // should be enough to copy just one view.
+                positions = extendedPositions;
+                colors = extendedColors;
+                storage = extendedStorage;
+            }
+        };
+
+    return {
+        load : function (glContext) {
+            gl = glContext;
+            utils = Viva.Graph.webgl(glContext);
+
+            program = utils.createProgram(linksVS, linksFS);
+            gl.useProgram(program);
+            locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
+
+            gl.enableVertexAttribArray(locations.vertexPos);
+            gl.enableVertexAttribArray(locations.color);
+
+            buffer = gl.createBuffer();
+        },
+
+        position: function (linkUi, fromPos, toPos) {
+            var linkIdx = linkUi.id,
+                offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE;
+            positions[offset] = fromPos.x;
+            positions[offset + 1] = fromPos.y;
+            colors[offset + 2] = linkUi.color;
+
+            positions[offset + 3] = toPos.x;
+            positions[offset + 4] = toPos.y;
+            colors[offset + 5] = linkUi.color;
+        },
+
+        createLink : function (ui) {
+            ensureEnoughStorage();
+
+            linksCount += 1;
+            frontLinkId = ui.id;
+        },
+
+        removeLink : function (ui) {
+            if (linksCount > 0) { linksCount -= 1; }
+            // swap removed link with the last link. This will give us O(1) performance for links removal:
+            if (ui.id < linksCount && linksCount > 0) {
+                // using colors as a view to array buffer is okay here.
+                utils.copyArrayPart(colors, ui.id * ATTRIBUTES_PER_PRIMITIVE, linksCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+            }
+        },
+
+        updateTransform : function (newTransform) {
+            sizeDirty = true;
+            transform = newTransform;
+        },
+
+        updateSize : function (w, h) {
+            width = w;
+            height = h;
+            sizeDirty = true;
+        },
+
+        render : function () {
+            gl.useProgram(program);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
+
+            if (sizeDirty) {
+                sizeDirty = false;
+                gl.uniformMatrix4fv(locations.transform, false, transform);
+                gl.uniform2f(locations.screenSize, width, height);
+            }
+
+            gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+            gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
+
+            gl.drawArrays(gl.LINES, 0, linksCount * 2);
+
+            frontLinkId = linksCount - 1;
+        },
+
+        bringToFront : function (link) {
+            if (frontLinkId > link.id) {
+                utils.swapArrayPart(positions, link.id * ATTRIBUTES_PER_PRIMITIVE, frontLinkId * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+            }
+            if (frontLinkId > 0) {
+                frontLinkId -= 1;
+            }
+        },
+
+        getFrontLinkId : function () {
+            return frontLinkId;
+        }
+    };
+};
+/**
+ * @fileOverview Defines an image nodes for webglGraphics class.
+ * Shape of nodes is sqare.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+/**
+ * Single texture in the webglAtlas.
+ */
+Viva.Graph.View.Texture = function (size) {
+    this.canvas = window.document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.isDirty = false;
+    this.canvas.width = this.canvas.height = size;
+};
+
+/**
+ * My naive implementation of textures atlas. It allows clients to load
+ * multimple images into atlas and get canvas representing all of them.
+ *
+ * @param tilesPerTexture - indicates how many images can be loaded to one
+ *          texture of the atlas. If number of loaded images exceeds this
+ *          parameter a new canvas will be created.
+ */
+Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
+    var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
+        tileSize = tilesPerRow,
+        lastLoadedIdx = 1,
+        loadedImages = {},
+        dirtyTimeoutId,
+        skipedDirty = 0,
+        textures = [],
+        trackedUrls = [],
+        that,
+
+        isPowerOf2 = function (n) {
+            return (n & (n - 1)) === 0;
+        },
+        createTexture = function () {
+            var texture = new Viva.Graph.View.Texture(tilesPerRow * tileSize);
+            textures.push(texture);
+        },
+        getTileCoordinates = function (absolutePosition) {
+            var textureNumber = (absolutePosition / tilesPerTexture) << 0,
+                localTileNumber =  (absolutePosition % tilesPerTexture),
+                row = (localTileNumber / tilesPerRow) << 0,
+                col = (localTileNumber % tilesPerRow);
+
+            return {textureNumber : textureNumber, row : row, col: col};
+        },
+        markDirtyNow = function () {
+            that.isDirty = true;
+            skipedDirty = 0;
+            dirtyTimeoutId = null;
+        },
+        markDirty = function () {
+            // delay this call, since it results in texture reload
+            if (dirtyTimeoutId) {
+                window.clearTimeout(dirtyTimeoutId);
+                skipedDirty += 1;
+                dirtyTimeoutId = null;
+            }
+
+            if (skipedDirty > 10) {
+                markDirtyNow();
+            } else {
+                dirtyTimeoutId = window.setTimeout(markDirtyNow, 400);
+            }
+        },
+
+        copy = function (from, to) {
+            var fromCanvas = textures[from.textureNumber].canvas,
+                toCtx = textures[to.textureNumber].ctx,
+                x = to.col * tileSize,
+                y = to.row * tileSize;
+
+            toCtx.drawImage(fromCanvas, from.col * tileSize, from.row * tileSize, tileSize, tileSize, x, y, tileSize, tileSize);
+            textures[from.textureNumber].isDirty = true;
+            textures[to.textureNumber].isDirty = true;
+        },
+
+        drawAt = function (tileNumber, img, callback) {
+            var tilePosition = getTileCoordinates(tileNumber),
+                coordinates = { offset : tileNumber };
+
+            if (tilePosition.textureNumber >= textures.length) {
+                createTexture();
+            }
+            var currentTexture = textures[tilePosition.textureNumber];
+
+            currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
+            trackedUrls[tileNumber] = img.src;
+
+            loadedImages[img.src] = coordinates;
+            currentTexture.isDirty = true;
+
+            callback(coordinates);
+        };
+
+    if (!isPowerOf2(tilesPerTexture)) {
+        throw "Tiles per texture should be power of two.";
+    }
+
+    // this is the return object
+    that = {
+        /**
+         * indicates whether atlas has changed texture in it. If true then
+         * some of the textures has isDirty flag set as well.
+         */
+        isDirty : false,
+
+        /**
+         * Clears any signs of atlas changes.
+         */
+        clearDirty : function () {
+            var i;
+            this.isDirty = false;
+            for (i = 0; i < textures.length; ++i) {
+                textures[i].isDirty = false;
+            }
+        },
+
+        /**
+         * Removes given url from colleciton of tiles in the atlas.
+         */
+        remove : function (imgUrl) {
+            var coordinates = loadedImages[imgUrl];
+            if (!coordinates) { return false; }
+            delete loadedImages[imgUrl];
+            lastLoadedIdx -= 1;
+
+
+            if (lastLoadedIdx === coordinates.offset) {
+                return true; // Ignore if it's last image in the whole set.
+            }
+
+            var tileToRemove = getTileCoordinates(coordinates.offset),
+                lastTileInSet = getTileCoordinates(lastLoadedIdx);
+
+            copy(lastTileInSet, tileToRemove);
+
+            var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
+            replacedOffset.offset = coordinates.offset;
+            trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
+
+            markDirty();
+            return true;
+        },
+
+        /**
+         * Gets all textures in the atlas.
+         */
+        getTextures : function () {
+            return textures; // I trust you...
+        },
+
+        /**
+         * Gets coordinates of the given image in the atlas. Coordinates is an object:
+         * {offset : int } - where offset is an absolute position of the image in the
+         * atlas.
+         *
+         * Absolute means it can be larger than tilesPerTexture parameter, and in that
+         * case clients should get next texture in getTextures() collection.
+         */
+        getCoordinates : function (imgUrl) {
+            return loadedImages[imgUrl];
+        },
+
+        /**
+         * Asynchronously Loads the image to the atlas. Cross-domain security
+         * limitation applies.
+         */
+        load : function (imgUrl, callback) {
+            if (loadedImages.hasOwnProperty(imgUrl)) {
+                callback(loadedImages[imgUrl]);
+            } else {
+                var img = new window.Image(),
+                    imgId = lastLoadedIdx;
+
+                lastLoadedIdx += 1;
+                img.crossOrigin = "anonymous";
+                img.onload = function () {
+                    markDirty();
+                    drawAt(imgId, img, callback);
+                };
+
+                img.src = imgUrl;
+            }
+        }
+    };
+
+    return that;
+};
+
+/**
+ * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
+ */
+Viva.Graph.View.webglImageNodeProgram = function () {
+    var ATTRIBUTES_PER_PRIMITIVE = 18,
+        nodesFS = [
+            "precision mediump float;",
+            "varying vec4 color;",
+            "varying vec3 vTextureCoord;",
+            "uniform sampler2D u_sampler0;",
+            "uniform sampler2D u_sampler1;",
+            "uniform sampler2D u_sampler2;",
+            "uniform sampler2D u_sampler3;",
+
+            "void main(void) {",
+            "   if (vTextureCoord.z == 0.) {",
+            "     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 1.) {",
+            "     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 2.) {",
+            "     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 3.) {",
+            "     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);",
+            "   } else { gl_FragColor = vec4(0, 1, 0, 1); }",
+            "}"
+        ].join("\n"),
+
+        nodesVS = [
+            "attribute vec2 a_vertexPos;",
+
+            "attribute float a_customAttributes;",
+            "uniform vec2 u_screenSize;",
+            "uniform mat4 u_transform;",
+            "uniform float u_tilesPerTexture;",
+            "varying vec3 vTextureCoord;",
+
+            "void main(void) {",
+            "   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);",
+            "float corner = mod(a_customAttributes, 4.);",
+            "float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);",
+            "float tilesPerRow = sqrt(u_tilesPerTexture);",
+            "float tileSize = 1./tilesPerRow;",
+            "float tileColumn = mod(tileIndex, tilesPerRow);",
+            "float tileRow = floor(tileIndex/tilesPerRow);",
+
+            "if(corner == 0.0) {",
+            "  vTextureCoord.xy = vec2(0, 1);",
+            "} else if(corner == 1.0) {",
+            "  vTextureCoord.xy = vec2(1, 1);",
+            "} else if(corner == 2.0) {",
+            "  vTextureCoord.xy = vec2(0, 0);",
+            "} else {",
+            "  vTextureCoord.xy = vec2(1, 0);",
+            "}",
+
+            "vTextureCoord *= tileSize;",
+            "vTextureCoord.x += tileColumn * tileSize;",
+            "vTextureCoord.y += tileRow * tileSize;",
+            "vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);",
+            "}"
+        ].join("\n"),
+
+        tilesPerTexture = 1024, // TODO: Get based on max texture size
+        atlas;
+
+    var program,
+        gl,
+        buffer,
+        utils,
+        locations,
+        nodesCount = 0,
+        nodes = new Float32Array(64),
+        width,
+        height,
+        transform,
+        sizeDirty,
+
+        refreshTexture = function (texture, idx) {
+            if (texture.nativeObject) {
+                gl.deleteTexture(texture.nativeObject);
+            }
+
+            var nativeObject = gl.createTexture();
+            gl.activeTexture(gl["TEXTURE" + idx]);
+            gl.bindTexture(gl.TEXTURE_2D, nativeObject);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.uniform1i(locations["sampler" + idx], idx);
+
+            texture.nativeObject = nativeObject;
+        },
+
+        ensureAtlasTextureUpdated = function () {
+            if (atlas.isDirty) {
+                var textures = atlas.getTextures(),
+                    i;
+                for (i = 0; i < textures.length; ++i) {
+                    if (textures[i].isDirty || !textures[i].nativeObject) {
+                        refreshTexture(textures[i], i);
+                    }
+                }
+
+                atlas.clearDirty();
+            }
+        };
+
+    return {
+        load : function (glContext) {
+            gl = glContext;
+            utils = Viva.Graph.webgl(glContext);
+
+            atlas = new Viva.Graph.View.webglAtlas(tilesPerTexture);
+
+            program = utils.createProgram(nodesVS, nodesFS);
+            gl.useProgram(program);
+            locations = utils.getLocations(program, ["a_vertexPos", "a_customAttributes", "u_screenSize", "u_transform", "u_sampler0", "u_sampler1", "u_sampler2", "u_sampler3", "u_tilesPerTexture"]);
+
+            gl.uniform1f(locations.tilesPerTexture, tilesPerTexture);
+
+            gl.enableVertexAttribArray(locations.vertexPos);
+            gl.enableVertexAttribArray(locations.customAttributes);
+
+            buffer = gl.createBuffer();
+        },
+
+        /**
+         * Updates position of current node in the buffer of nodes.
+         *
+         * @param idx - index of current node.
+         * @param pos - new position of the node.
+         */
+        position : function (nodeUI, pos) {
+            var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
+            nodes[idx] = pos.x - nodeUI.size;
+            nodes[idx + 1] = pos.y - nodeUI.size;
+            nodes[idx + 2] = nodeUI._offset * 4;
+
+            nodes[idx + 3] = pos.x + nodeUI.size;
+            nodes[idx + 4] = pos.y - nodeUI.size;
+            nodes[idx + 5] = nodeUI._offset * 4 + 1;
+
+            nodes[idx + 6] = pos.x - nodeUI.size;
+            nodes[idx + 7] = pos.y + nodeUI.size;
+            nodes[idx + 8] = nodeUI._offset * 4 + 2;
+
+            nodes[idx + 9] = pos.x - nodeUI.size;
+            nodes[idx + 10] = pos.y + nodeUI.size;
+            nodes[idx + 11] = nodeUI._offset * 4 + 2;
+
+            nodes[idx + 12] = pos.x + nodeUI.size;
+            nodes[idx + 13] = pos.y - nodeUI.size;
+            nodes[idx + 14] = nodeUI._offset * 4 + 1;
+
+            nodes[idx + 15] = pos.x + nodeUI.size;
+            nodes[idx + 16] = pos.y + nodeUI.size;
+            nodes[idx + 17] = nodeUI._offset * 4 + 3;
+        },
+
+        createNode : function (ui) {
+            nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
+            nodesCount += 1;
+
+            var coordinates = atlas.getCoordinates(ui.src);
+            if (coordinates) {
+                ui._offset = coordinates.offset;
+            } else {
+                ui._offset = 0;
+                // Image is not yet loaded into the atlas. Reload it:
+                atlas.load(ui.src, function (coordinates) {
+                    ui._offset = coordinates.offset;
+                });
+            }
+        },
+
+        removeNode : function (nodeUI) {
+            if (nodesCount > 0) { nodesCount -= 1; }
+
+            if (nodeUI.id < nodesCount && nodesCount > 0) {
+                if (nodeUI.src) {
+                    atlas.remove(nodeUI.src);
+                }
+
+                utils.copyArrayPart(nodes, nodeUI.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+            }
+        },
+
+        replaceProperties : function (replacedNode, newNode) {
+            newNode._offset = replacedNode._offset;
+        },
+
+        updateTransform : function (newTransform) {
+            sizeDirty = true;
+            transform = newTransform;
+        },
+
+        updateSize : function (w, h) {
+            width = w;
+            height = h;
+            sizeDirty = true;
+        },
+
+        render : function () {
+            gl.useProgram(program);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
+
+            if (sizeDirty) {
+                sizeDirty = false;
+                gl.uniformMatrix4fv(locations.transform, false, transform);
+                gl.uniform2f(locations.screenSize, width, height);
+            }
+
+            gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+            gl.vertexAttribPointer(locations.customAttributes, 1, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
+
+            ensureAtlasTextureUpdated();
+
+            gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
+        }
+    };
+};/**
+ * @fileOverview Defines a graph renderer that uses WebGL based drawings.
+ *
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Graph.View = Viva.Graph.View || {};
+
+/**
+ * Performs webgl-based graph rendering. This module does not perform
+ * layout, but only visualizes nodes and edeges of the graph.
+ *
+ * @param options - to customize graphics  behavior. Currently supported parameter
+ *  enableBlending - true by default, allows to use transparency in node/links colors.
+ *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
+ *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
+ */
+
+Viva.Graph.View.webglGraphics = function (options) {
+    options = Viva.lazyExtend(options, {
+        enableBlending : true,
+        preserveDrawingBuffer : false,
+        clearColor: false,
+        clearColorValue : {
+            r : 1,
+            g : 1,
+            b : 1,
+            a : 1
+        }
+    });
+
+    var container,
+        graphicsRoot,
+        gl,
+        width,
+        height,
+        nodesCount = 0,
+        linksCount = 0,
+        transform,
+        userPlaceNodeCallback,
+        userPlaceLinkCallback,
+        nodes = [],
+        links = [],
+        initCallback,
+
+        linkProgram = Viva.Graph.View.webglLinkProgram(),
+        nodeProgram = Viva.Graph.View.webglNodeProgram(),
+/*jshint unused: false */
+        nodeUIBuilder = function (node) {
+            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
+        },
+
+        linkUIBuilder = function (link) {
+            return Viva.Graph.View.webglLine(0xb3b3b3ff);
+        },
+/*jshint unused: true */
+        updateTransformUniform = function () {
+            linkProgram.updateTransform(transform);
+            nodeProgram.updateTransform(transform);
+        },
+
+        resetScaleInternal = function () {
+            transform = [1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1];
+        },
+
+        updateSize = function () {
+            if (container && graphicsRoot) {
+                width = graphicsRoot.width = Math.max(container.offsetWidth, 1);
+                height = graphicsRoot.height = Math.max(container.offsetHeight, 1);
+                if (gl) { gl.viewport(0, 0, width, height); }
+                if (linkProgram) { linkProgram.updateSize(width / 2, height / 2); }
+                if (nodeProgram) { nodeProgram.updateSize(width / 2, height / 2); }
+            }
+        },
+
+        nodeBuilderInternal = function (node) {
+            var nodeId = nodesCount++,
+                ui = nodeUIBuilder(node);
+            ui.id = nodeId;
+
+            nodeProgram.createNode(ui);
+
+            nodes[nodeId] = node;
+            return ui;
+        },
+
+        linkBuilderInternal = function (link) {
+            var linkId = linksCount++,
+                ui = linkUIBuilder(link);
+            ui.id = linkId;
+
+            linkProgram.createLink(ui);
+
+            links[linkId] = link;
+            return ui;
+        },
+
+        fireRescaled = function (graphics) {
+            graphics.fire("rescaled");
+        };
+
+    var graphics = {
+        /**
+         * Sets the collback that creates node representation or creates a new node
+         * presentation if builderCallbackOrNode is not a function.
+         *
+         * @param builderCallbackOrNode a callback function that accepts graph node
+         * as a parameter and must return an element representing this node. OR
+         * if it's not a function it's treated as a node to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
+         * Otherwise a node representation is returned for the passed parameter.
+         */
+        node : function (builderCallbackOrNode) {
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
+                return nodeBuilderInternal(builderCallbackOrNode); // create ui for node using current nodeUIBuilder
+            }
+
+            nodeUIBuilder = builderCallbackOrNode; // else replace ui builder with provided function.
+
+            return this;
+        },
+
+        /**
+         * Sets the collback that creates link representation or creates a new link
+         * presentation if builderCallbackOrLink is not a function.
+         *
+         * @param builderCallbackOrLink a callback function that accepts graph link
+         * as a parameter and must return an element representing this link. OR
+         * if it's not a function it's treated as a link to which DOM element should be created.
+         *
+         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
+         * Otherwise a link representation is returned for the passed parameter.
+         */
+        link : function (builderCallbackOrLink) {
+
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
+                return linkBuilderInternal(builderCallbackOrLink);
+            }
+
+            linkUIBuilder = builderCallbackOrLink;
+            return this;
+        },
+
+        /**
+         * Allows to override default position setter for the node with a new
+         * function. newPlaceCallback(nodeUI, position) is function which
+         * is used by updateNodePosition().
+         */
+        placeNode : function (newPlaceCallback) {
+            userPlaceNodeCallback = newPlaceCallback;
+            return this;
+        },
+
+        placeLink : function (newPlaceLinkCallback) {
+            userPlaceLinkCallback = newPlaceLinkCallback;
+            return this;
+        },
+
+        /**
+         * Custom input manager listens to mouse events to process nodes drag-n-drop inside WebGL canvas
+         */
+        inputManager : Viva.Input.webglInputManager,
+
+        /**
+         * Called every time before renderer starts rendering.
+         */
+        beginRender : function () {
+            // this function could be replaced by this.init, 
+            // based on user options.
+        },
+
+        /**
+         * Called every time when renderer finishes one step of rendering.
+         */
+        endRender : function () {
+            if (linksCount > 0) {
+                linkProgram.render();
+            }
+            if (nodesCount > 0) {
+                nodeProgram.render();
+            }
+        },
+
+        bringLinkToFront : function (linkUI) {
+            var frontLinkId = linkProgram.getFrontLinkId(),
+                srcLinkId,
+                temp;
+
+            linkProgram.bringToFront(linkUI);
+
+            if (frontLinkId > linkUI.id) {
+                srcLinkId = linkUI.id;
+
+                temp = links[frontLinkId];
+                links[frontLinkId] = links[srcLinkId];
+                links[frontLinkId].ui.id = frontLinkId;
+                links[srcLinkId] = temp;
+                links[srcLinkId].ui.id = srcLinkId;
+            }
+        },
+/*jshint unused: false */
+        /**
+         * Sets translate operation that should be applied to all nodes and links.
+         */
+        graphCenterChanged : function (x, y) {
+            updateSize();
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given link of the graph
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        */
+        initLink : function (linkUI) {
+        },
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render given node of the graph.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        initNode : function (nodeUI) {
+        },
+/*jshint unused: true */
+
+        translateRel : function (dx, dy) {
+            transform[12] += (2 * transform[0] * dx / width) / transform[0];
+            transform[13] -= (2 * transform[5] * dy / height) / transform[5];
+            updateTransformUniform();
+        },
+
+        scale : function (scaleFactor, scrollPoint) {
+            // Transform scroll point to clip-space coordinates:
+            var cx = 2 * scrollPoint.x / width - 1,
+                cy = 1 - (2 * scrollPoint.y) / height;
+
+            cx -= transform[12];
+            cy -= transform[13];
+
+            transform[12] += cx * (1 - scaleFactor);
+            transform[13] += cy * (1 - scaleFactor);
+
+            transform[0] *= scaleFactor;
+            transform[5] *= scaleFactor;
+
+            updateTransformUniform();
+            fireRescaled(this);
+
+            return transform[0];
+        },
+
+        resetScale : function () {
+            resetScaleInternal();
+
+            if (gl) {
+                updateSize();
+                // TODO: what is this?
+                // gl.useProgram(linksProgram);
+                // gl.uniform2f(linksProgram.screenSize, width, height);
+                updateTransformUniform();
+            }
+            return this;
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider prepare to render.
+        */
+        init : function (c) {
+            var contextParameters = {};
+
+            if (options.preserveDrawingBuffer) {
+                contextParameters.preserveDrawingBuffer = true;
+            }
+
+            container = c;
+
+            graphicsRoot = window.document.createElement("canvas");
+            updateSize();
+            resetScaleInternal();
+            container.appendChild(graphicsRoot);
+
+
+            gl = graphicsRoot.getContext("experimental-webgl", contextParameters);
+            if (!gl) {
+                var msg = "Could not initialize WebGL. Seems like the browser doesn't support it.";
+                window.alert(msg);
+                throw msg;
+            }
+            if (options.enableBlending) {
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                gl.enable(gl.BLEND);
+            }
+            if (options.clearColor) {
+                var color = options.clearColorValue;
+                gl.clearColor(color.r, color.g, color.b, color.a);
+                // TODO: not the best way, really. Should come up with something better
+                // what if we need more updates inisde beginRender, like depth buffer?
+                this.beginRender = function () {
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                };
+            }
+
+            linkProgram.load(gl);
+            linkProgram.updateSize(width / 2, height / 2);
+
+            nodeProgram.load(gl);
+            nodeProgram.updateSize(width / 2, height / 2);
+
+            updateTransformUniform();
+
+            // Notify the world if someoen waited for update. TODO: should send an event
+            if (typeof initCallback === "function") {
+                initCallback(graphicsRoot);
+            }
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider release occupied resources.
+        */
+        release : function (container) {
+            if (graphicsRoot && container) {
+                container.removeChild(graphicsRoot);
+                // TODO: anything else?
+            }
+        },
+
+       /**
+        * Checks whether webgl is supported by this browser.
+        */
+        isSupported : function () {
+            var c = window.document.createElement("canvas"),
+                gl = c && c.getContext && c.getContext("experimental-webgl");
+            return gl;
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove link from rendering surface.
+        *
+        * @param linkUI visual representation of the link created by link() execution.
+        **/
+        releaseLink : function (linkToRemove) {
+            if (linksCount > 0) { linksCount -= 1; }
+
+            linkProgram.removeLink(linkToRemove);
+
+            var linkIdToRemove = linkToRemove.id;
+            if (linkIdToRemove < linksCount) {
+                if (linksCount === 0 || linksCount === linkIdToRemove) {
+                    return; // no more links or removed link is the last one.
+                }
+
+                // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
+                // so that renderer will pass proper id in updateLinkPosition.
+                links[linkIdToRemove] = links[linksCount];
+                links[linkIdToRemove].ui.id = linkIdToRemove;
+            }
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider remove node from rendering surface.
+        *
+        * @param nodeUI visual representation of the node created by node() execution.
+        **/
+        releaseNode : function (nodeUI) {
+            if (nodesCount > 0) { nodesCount -= 1; }
+
+            nodeProgram.removeNode(nodeUI);
+
+            if (nodeUI.id < nodesCount) {
+                var nodeIdToRemove = nodeUI.id;
+                if (nodesCount === 0 || nodesCount === nodeIdToRemove) {
+                    return; // no more nodes or removed node is the last in the list.
+                }
+
+                var lastNode = nodes[nodesCount],
+                    replacedNode = nodes[nodeIdToRemove];
+
+                nodes[nodeIdToRemove] = lastNode;
+                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
+
+                // Since concrete shaders may cache properties in the ui element
+                // we are letting them to make this swap (e.g. image node shader
+                // uses this approach to update node's offset in the atlas)
+                nodeProgram.replaceProperties(replacedNode.ui, lastNode.ui);
+            }
+        },
+
+       /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given node UI to recommended position pos {x, y};
+        */
+        updateNodePosition : function (nodeUI, pos) {
+            // WebGL coordinate system is different. Would be better
+            // to have this transform in the shader code, but it would
+            // require every shader to be updated..
+            pos.y = -pos.y;
+            if (userPlaceNodeCallback) {
+                userPlaceNodeCallback(nodeUI, pos);
+            }
+
+            nodeProgram.position(nodeUI, pos);
+        },
+
+        /**
+        * Called by Viva.Graph.View.renderer to let concrete graphic output
+        * provider place given link of the graph. Pos objects are {x, y};
+        */
+        updateLinkPosition : function (link, fromPos, toPos) {
+            // WebGL coordinate system is different. Would be better
+            // to have this transform in the shader code, but it would
+            // require every shader to be updated..
+            fromPos.y = -fromPos.y;
+            toPos.y = -toPos.y;
+            if (userPlaceLinkCallback) {
+                userPlaceLinkCallback(link, fromPos, toPos);
+            }
+
+            linkProgram.position(link, fromPos, toPos);
+        },
+
+        /**
+         * Returns root element which hosts graphics.
+         */
+        getGraphicsRoot : function (callbackWhenReady) {
+            // todo: should fire an event, instead of having this context.
+            if (typeof callbackWhenReady === "function") {
+                if (graphicsRoot) {
+                    callbackWhenReady(graphicsRoot);
+                } else {
+                    initCallback = callbackWhenReady;
+                }
+            }
+            return graphicsRoot;
+        },
+
+        /**
+         * Updates default shader which renders nodes
+         *
+         * @param newProgram to use for nodes.
+         */
+        setNodeProgram : function (newProgram) {
+            if (!gl && newProgram) {
+                // Nothing created yet. Just set shader to the new one
+                // and let initialization logic take care about the rest.
+                nodeProgram = newProgram;
+            } else if (newProgram) {
+                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                // TODO: unload old shader and reinit.
+            }
+        },
+
+        /**
+         * Updates default shader which renders links
+         *
+         * @param newProgram to use for links.
+         */
+        setLinkProgram : function (newProgram) {
+            if (!gl && newProgram) {
+                // Nothing created yet. Just set shader to the new one
+                // and let initialization logic take care about the rest.
+                linkProgram = newProgram;
+            } else if (newProgram) {
+                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                // TODO: unload old shader and reinit.
+            }
+        },
+        getGraphCoordinates : function (graphicsRootPos) {
+            // TODO: could be a problem when container has margins?
+            // to save memory we modify incoming parameter:
+            // point in clipspace coordinates:
+            graphicsRootPos.x = 2 * graphicsRootPos.x / width - 1;
+            graphicsRootPos.y = 1 - (2 * graphicsRootPos.y) / height;
+            // apply transform:
+            graphicsRootPos.x = (graphicsRootPos.x - transform[12]) / transform[0];
+            graphicsRootPos.y = (graphicsRootPos.y - transform[13]) / transform[5];
+            // now transform to graph coordinates:
+            graphicsRootPos.x *= width / 2;
+            graphicsRootPos.y *= -height / 2;
+
+            return graphicsRootPos;
+        }
+    };
+
+    // Let graphics fire events before we return it to the caller.
+    Viva.Graph.Utils.events(graphics).extend();
+
+    return graphics;
+};/**
+ * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
+ *
+ * @param {Viva.Graph.View.webglGraphics} webglGraphics
+ * @param {Viva.Graph.graph} graph
+ */
+Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
+    if (webglGraphics.webglInputEvents) {
+        // Don't listen twice, if we are already attached to this graphics:
+        return webglGraphics.webglInputEvents;
+    }
+
+    var preciseCheck = function (node, x, y) {
+            if (node.ui && node.ui.size) {
+                var pos = node.position,
+                    half = node.ui.size;
+
+                return pos.x - half < x && x < pos.x + half &&
+                       pos.y - half < y && y < pos.y + half;
+            }
+
+            return true;
+        },
+        mouseCapturedNode = null,
+
+        spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
+        mouseEnterCallback = [],
+        mouseLeaveCallback = [],
+        mouseDownCallback = [],
+        mouseUpCallback = [],
+        mouseMoveCallback = [],
+        clickCallback = [],
+        dblClickCallback = [],
+        documentEvents = Viva.Graph.Utils.events(window.document),
+        prevSelectStart,
+        boundRect,
+
+        stopPropagation = function (e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            } else {
+                e.cancelBubble = true;
+            }
+        },
+
+        handleDisabledEvent = function (e) {
+            stopPropagation(e);
+            return false;
+        },
+
+        invoke = function (callbacksChain, args) {
+            var i, stopPropagation;
+            for (i = 0; i < callbacksChain.length; i += 1) {
+                stopPropagation = callbacksChain[i].apply(undefined, args);
+                if (stopPropagation) { return true; }
+            }
+        },
+
+        startListen = function (root) {
+            var pos = {x : 0, y : 0},
+                lastFound = null,
+                lastClickTime = +new Date(),
+
+                handleMouseMove = function (e) {
+                    invoke(mouseMoveCallback, [lastFound, e]);
+                    pos.x = e.clientX;
+                    pos.y = e.clientY;
+                },
+
+                handleMouseUp = function () {
+                    documentEvents.stop('mousemove', handleMouseMove);
+                    documentEvents.stop('mouseup', handleMouseUp);
+                },
+
+                updateBoundRect = function () {
+                    boundRect = root.getBoundingClientRect();
+                };
+
+            window.addEventListener('resize', updateBoundRect);
+            updateBoundRect();
+
+            // mouse move inside container serves only to track mouse enter/leave events.
+            root.addEventListener('mousemove',
+                function (e) {
+                    if (mouseCapturedNode) {
+                        return;
+                    }
+
+                    var cancelBubble = false,
+                        node;
+
+                    pos.x = e.clientX - boundRect.left;
+                    pos.y = e.clientY - boundRect.top;
+
+                    webglGraphics.getGraphCoordinates(pos);
+                    node = spatialIndex.getNodeAt(pos.x, pos.y);
+
+                    if (node && lastFound !== node) {
+                        lastFound = node;
+                        cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
+                    } else if (node === null && lastFound !== node) {
+                        cancelBubble = cancelBubble || invoke(mouseLeaveCallback, [lastFound]);
+                        lastFound = null;
+                    }
+
+                    if (cancelBubble) { stopPropagation(e); }
+                });
+
+            root.addEventListener('mousedown',
+                function (e) {
+                    var cancelBubble = false,
+                        args;
+
+                    pos.x = e.clientX - boundRect.left;
+                    pos.y = e.clientY - boundRect.top;
+                    webglGraphics.getGraphCoordinates(pos);
+
+                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
+                    if (args[0]) {
+                        cancelBubble = invoke(mouseDownCallback, args);
+                        // we clicked on a node. Following drag should be handled on document events:
+                        documentEvents.on('mousemove', handleMouseMove);
+                        documentEvents.on('mouseup', handleMouseUp);
+
+                        prevSelectStart = window.document.onselectstart;
+
+                        window.document.onselectstart = handleDisabledEvent;
+
+                        lastFound = args[0];
+                    } else {
+                        lastFound = null;
+                    }
+                    if (cancelBubble) { stopPropagation(e); }
+                });
+
+            root.addEventListener('mouseup',
+                function (e) {
+                    var clickTime = +new Date(),
+                        args;
+
+                    pos.x = e.clientX - boundRect.left;
+                    pos.y = e.clientY - boundRect.top;
+                    webglGraphics.getGraphCoordinates(pos);
+
+                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
+                    if (args[0]) {
+                        window.document.onselectstart = prevSelectStart;
+
+                        if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
+                            invoke(dblClickCallback, args);
+                        } else {
+                            invoke(clickCallback, args);
+                        }
+                        lastClickTime = clickTime;
+
+                        if (invoke(mouseUpCallback, args)) {
+                            stopPropagation(e);
+                        }
+                    }
+                });
+        };
+
+    // webgl may not be initialized at this point. Pass callback
+    // to start listen after graphics root is ready.
+    webglGraphics.getGraphicsRoot(startListen);
+
+    webglGraphics.webglInputEvents = {
+        mouseEnter : function (callback) {
+            if (typeof callback === 'function') {
+                mouseEnterCallback.push(callback);
+            }
+            return this;
+        },
+        mouseLeave : function (callback) {
+            if (typeof callback === 'function') {
+                mouseLeaveCallback.push(callback);
+            }
+            return this;
+        },
+        mouseDown : function (callback) {
+            if (typeof callback === 'function') {
+                mouseDownCallback.push(callback);
+            }
+            return this;
+        },
+        mouseUp : function (callback) {
+            if (typeof callback === 'function') {
+                mouseUpCallback.push(callback);
+            }
+            return this;
+        },
+        mouseMove : function (callback) {
+            if (typeof callback === 'function') {
+                mouseMoveCallback.push(callback);
+            }
+            return this;
+        },
+        click : function (callback) {
+            if (typeof callback === 'function') {
+                clickCallback.push(callback);
+            }
+            return this;
+        },
+        dblClick : function (callback) {
+            if (typeof callback === 'function') {
+                dblClickCallback.push(callback);
+            }
+            return this;
+        },
+        mouseCapture : function (node) {
+            mouseCapturedNode = node;
+        },
+        releaseMouseCapture : function () {
+            mouseCapturedNode = null;
+        }
+    };
+
+    return webglGraphics.webglInputEvents;
+};
+/**
+ * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ */
+
+Viva.Input = Viva.Input || {};
+Viva.Input.webglInputManager = function (graph, graphics) {
+    var inputEvents = Viva.Graph.webglInputEvents(graphics, graph),
+        draggedNode = null,
+        internalHandlers = {},
+        pos = {x : 0, y : 0};
+
+    inputEvents.mouseDown(function (node, e) {
+        draggedNode = node;
+        pos.x = e.clientX;
+        pos.y = e.clientY;
+
+        inputEvents.mouseCapture(draggedNode);
+
+        var handlers = internalHandlers[node.ui.id];
+        if (handlers && handlers.onStart) {
+            handlers.onStart(e, pos);
+        }
+
+        return true;
+    }).mouseUp(function (node) {
+        inputEvents.releaseMouseCapture(draggedNode);
+
+        draggedNode = null;
+        var handlers = internalHandlers[node.ui.id];
+        if (handlers && handlers.onStop) {
+            handlers.onStop();
+        }
+        return true;
+    }).mouseMove(function (node, e) {
+        if (draggedNode) {
+            var handlers = internalHandlers[draggedNode.ui.id];
+            if (handlers && handlers.onDrag) {
+                handlers.onDrag(e, {x : e.clientX - pos.x, y : e.clientY - pos.y });
+            }
+
+            pos.x = e.clientX;
+            pos.y = e.clientY;
+            return true;
+        }
+    });
+
+    return {
+        /**
+         * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
+         * graphics we may listen to DOM events, whereas for WebGL we graphics
+         * should provide custom eventing mechanism.
+         *
+         * @param node - to be monitored.
+         * @param handlers - object with set of three callbacks:
+         *   onStart: function(),
+         *   onDrag: function(e, offset),
+         *   onStop: function()
+         */
+        bindDragNDrop : function (node, handlers) {
+            internalHandlers[node.ui.id] = handlers;
         }
     };
 };

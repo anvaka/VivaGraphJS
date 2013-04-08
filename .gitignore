@@ -2,3 +2,4 @@
 *.swp
 *.launch
 .DS_Store
+node_modules

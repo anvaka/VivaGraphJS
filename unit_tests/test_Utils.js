@@ -1,6 +1,3 @@
-/*global Viva, console*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true */
-
 var test_Utils = function (test) {
     return {
         randomIteratorReturnsAllItems : function () {

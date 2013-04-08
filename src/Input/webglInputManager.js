@@ -2,9 +2,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Input = Viva.Input || {};
 Viva.Input.webglInputManager = function (graph, graphics) {
     var inputEvents = Viva.Graph.webglInputEvents(graphics, graph),

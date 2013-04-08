@@ -5,15 +5,12 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, Float32Array, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Single texture in the webglAtlas.
  */
 Viva.Graph.View.Texture = function (size) {
-    this.canvas = window.document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
+    this.canvas = window.document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
     this.isDirty = false;
     this.canvas.width = this.canvas.height = size;
 };
@@ -37,18 +34,6 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
         trackedUrls = [],
         that,
 
-        findNearestPowerOf2 = function (n) {
-            // TODO: probably don't need this anymore
-            // http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
-            n = n << 0; // make it integer
-            n = n - 1;
-            n = n | (n >> 1);
-            n = n | (n >> 2);
-            n = n | (n >> 4);
-            n = n | (n >> 8);
-            n = n | (n >> 16);
-            return n + 1;
-        },
         isPowerOf2 = function (n) {
             return (n & (n - 1)) === 0;
         },
@@ -114,7 +99,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
         };
 
     if (!isPowerOf2(tilesPerTexture)) {
-        throw 'Tiles per texture should be power of two.';
+        throw "Tiles per texture should be power of two.";
     }
 
     // this is the return object
@@ -191,8 +176,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
                 callback(loadedImages[imgUrl]);
             } else {
                 var img = new window.Image(),
-                    imgId = lastLoadedIdx,
-                    that = this;
+                    imgId = lastLoadedIdx;
 
                 lastLoadedIdx += 1;
                 img.crossOrigin = "anonymous";
@@ -215,63 +199,64 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
 Viva.Graph.View.webglImageNodeProgram = function () {
     var ATTRIBUTES_PER_PRIMITIVE = 18,
         nodesFS = [
-            'precision mediump float;',
-            'varying vec4 color;',
-            'varying vec3 vTextureCoord;',
-            'uniform sampler2D u_sampler0;',
-            'uniform sampler2D u_sampler1;',
-            'uniform sampler2D u_sampler2;',
-            'uniform sampler2D u_sampler3;',
+            "precision mediump float;",
+            "varying vec4 color;",
+            "varying vec3 vTextureCoord;",
+            "uniform sampler2D u_sampler0;",
+            "uniform sampler2D u_sampler1;",
+            "uniform sampler2D u_sampler2;",
+            "uniform sampler2D u_sampler3;",
 
-            'void main(void) {',
-            '   if (vTextureCoord.z == 0.) {',
-            '     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 1.) {',
-            '     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 2.) {',
-            '     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);',
-            '   } else if (vTextureCoord.z == 3.) {',
-            '     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);',
-            '   } else { gl_FragColor = vec4(0, 1, 0, 1); }',
-            '}'].join('\n'),
+            "void main(void) {",
+            "   if (vTextureCoord.z == 0.) {",
+            "     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 1.) {",
+            "     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 2.) {",
+            "     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);",
+            "   } else if (vTextureCoord.z == 3.) {",
+            "     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);",
+            "   } else { gl_FragColor = vec4(0, 1, 0, 1); }",
+            "}"
+        ].join("\n"),
 
         nodesVS = [
-            'attribute vec2 a_vertexPos;',
+            "attribute vec2 a_vertexPos;",
 
-            'attribute float a_customAttributes;',
-            'uniform vec2 u_screenSize;',
-            'uniform mat4 u_transform;',
-            'uniform float u_tilesPerTexture;',
-            'varying vec3 vTextureCoord;',
+            "attribute float a_customAttributes;",
+            "uniform vec2 u_screenSize;",
+            "uniform mat4 u_transform;",
+            "uniform float u_tilesPerTexture;",
+            "varying vec3 vTextureCoord;",
 
-            'void main(void) {',
-            '   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);',
-            'float corner = mod(a_customAttributes, 4.);',
-            'float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);',
-            'float tilesPerRow = sqrt(u_tilesPerTexture);',
-            'float tileSize = 1./tilesPerRow;',
-            'float tileColumn = mod(tileIndex, tilesPerRow);',
-            'float tileRow = floor(tileIndex/tilesPerRow);',
+            "void main(void) {",
+            "   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);",
+            "float corner = mod(a_customAttributes, 4.);",
+            "float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);",
+            "float tilesPerRow = sqrt(u_tilesPerTexture);",
+            "float tileSize = 1./tilesPerRow;",
+            "float tileColumn = mod(tileIndex, tilesPerRow);",
+            "float tileRow = floor(tileIndex/tilesPerRow);",
 
-            'if(corner == 0.0) {',
-            '  vTextureCoord.xy = vec2(0, 1);',
-            '} else if(corner == 1.0) {',
-            '  vTextureCoord.xy = vec2(1, 1);',
-            '} else if(corner == 2.0) {',
-            '  vTextureCoord.xy = vec2(0, 0);',
-            '} else {',
-            '  vTextureCoord.xy = vec2(1, 0);',
-            '}',
+            "if(corner == 0.0) {",
+            "  vTextureCoord.xy = vec2(0, 1);",
+            "} else if(corner == 1.0) {",
+            "  vTextureCoord.xy = vec2(1, 1);",
+            "} else if(corner == 2.0) {",
+            "  vTextureCoord.xy = vec2(0, 0);",
+            "} else {",
+            "  vTextureCoord.xy = vec2(1, 0);",
+            "}",
 
-            'vTextureCoord *= tileSize;',
-            'vTextureCoord.x += tileColumn * tileSize;',
-            'vTextureCoord.y += tileRow * tileSize;',
-            'vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);',
-            '}'].join('\n'),
+            "vTextureCoord *= tileSize;",
+            "vTextureCoord.x += tileColumn * tileSize;",
+            "vTextureCoord.y += tileRow * tileSize;",
+            "vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);",
+            "}"
+        ].join("\n"),
 
         tilesPerTexture = 1024, // TODO: Get based on max texture size
-        atlas,
-        customPrimitiveType;
+        atlas;
 
     var program,
         gl,
@@ -279,7 +264,6 @@ Viva.Graph.View.webglImageNodeProgram = function () {
         utils,
         locations,
         nodesCount = 0,
-        texture,
         nodes = new Float32Array(64),
         width,
         height,
@@ -292,14 +276,14 @@ Viva.Graph.View.webglImageNodeProgram = function () {
             }
 
             var nativeObject = gl.createTexture();
-            gl.activeTexture(gl['TEXTURE' + idx]);
+            gl.activeTexture(gl["TEXTURE" + idx]);
             gl.bindTexture(gl.TEXTURE_2D, nativeObject);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.uniform1i(locations['sampler' + idx], idx);
+            gl.uniform1i(locations["sampler" + idx], idx);
 
             texture.nativeObject = nativeObject;
         },
@@ -327,7 +311,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
 
             program = utils.createProgram(nodesVS, nodesFS);
             gl.useProgram(program);
-            locations = utils.getLocations(program, ['a_vertexPos', 'a_customAttributes', 'u_screenSize', 'u_transform', 'u_sampler0', 'u_sampler1', 'u_sampler2', 'u_sampler3', 'u_tilesPerTexture']);
+            locations = utils.getLocations(program, ["a_vertexPos", "a_customAttributes", "u_screenSize", "u_transform", "u_sampler0", "u_sampler1", "u_sampler2", "u_sampler3", "u_tilesPerTexture"]);
 
             gl.uniform1f(locations.tilesPerTexture, tilesPerTexture);
 
@@ -345,14 +329,29 @@ Viva.Graph.View.webglImageNodeProgram = function () {
          */
         position : function (nodeUI, pos) {
             var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
-            /*jslint white:true*/
-            nodes[idx] = pos.x - nodeUI.size; nodes[idx + 1] = pos.y - nodeUI.size; nodes[idx + 2] = nodeUI._offset * 4;
-            nodes[idx + 3] = pos.x + nodeUI.size; nodes[idx + 4] = pos.y - nodeUI.size; nodes[idx + 5] = nodeUI._offset * 4 + 1;
-            nodes[idx + 6] = pos.x - nodeUI.size; nodes[idx + 7] = pos.y + nodeUI.size; nodes[idx + 8] = nodeUI._offset * 4 + 2;
+            nodes[idx] = pos.x - nodeUI.size;
+            nodes[idx + 1] = pos.y - nodeUI.size;
+            nodes[idx + 2] = nodeUI._offset * 4;
 
-            nodes[idx + 9] = pos.x - nodeUI.size; nodes[idx + 10] = pos.y + nodeUI.size; nodes[idx + 11] = nodeUI._offset * 4 + 2;
-            nodes[idx + 12] = pos.x + nodeUI.size; nodes[idx + 13] = pos.y - nodeUI.size; nodes[idx + 14] = nodeUI._offset * 4 + 1;
-            nodes[idx + 15] = pos.x + nodeUI.size; nodes[idx + 16] = pos.y + nodeUI.size; nodes[idx + 17] = nodeUI._offset * 4 + 3;
+            nodes[idx + 3] = pos.x + nodeUI.size;
+            nodes[idx + 4] = pos.y - nodeUI.size;
+            nodes[idx + 5] = nodeUI._offset * 4 + 1;
+
+            nodes[idx + 6] = pos.x - nodeUI.size;
+            nodes[idx + 7] = pos.y + nodeUI.size;
+            nodes[idx + 8] = nodeUI._offset * 4 + 2;
+
+            nodes[idx + 9] = pos.x - nodeUI.size;
+            nodes[idx + 10] = pos.y + nodeUI.size;
+            nodes[idx + 11] = nodeUI._offset * 4 + 2;
+
+            nodes[idx + 12] = pos.x + nodeUI.size;
+            nodes[idx + 13] = pos.y - nodeUI.size;
+            nodes[idx + 14] = nodeUI._offset * 4 + 1;
+
+            nodes[idx + 15] = pos.x + nodeUI.size;
+            nodes[idx + 16] = pos.y + nodeUI.size;
+            nodes[idx + 17] = nodeUI._offset * 4 + 3;
         },
 
         createNode : function (ui) {

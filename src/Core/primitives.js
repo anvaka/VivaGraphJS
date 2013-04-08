@@ -1,6 +1,3 @@
-/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Very generic rectangle. 
  */

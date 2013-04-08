@@ -2,10 +2,8 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Input = Viva.Input || {};
-Viva.Input.domInputManager = function (graph, graphics) {
+Viva.Input.domInputManager = function () {
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG

@@ -2,8 +2,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window, global*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 (function () {
@@ -20,7 +18,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     }
 
     if (!global.requestAnimationFrame) {
-        global.requestAnimationFrame = function (callback, element) {
+        global.requestAnimationFrame = function (callback) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
             var id = global.setTimeout(function () { callback(currTime + timeToCall); }, timeToCall);
@@ -39,7 +37,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
      * Timer that fires callback with given interval (in ms) until
      * callback returns true;
      */
-    Viva.Graph.Utils.timer = function (callback, interval) {
+    Viva.Graph.Utils.timer = function (callback) {
         var intervalId,
             stopTimer = function () {
                 global.cancelAnimationFrame(intervalId);

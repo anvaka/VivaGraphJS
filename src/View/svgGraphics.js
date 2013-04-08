@@ -3,8 +3,7 @@
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
+
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
@@ -17,12 +16,12 @@ Viva.Graph.View.svgGraphics = function () {
         offsetX,
         offsetY,
         actualScale = 1,
-
+/*jshint unused: false */
         nodeBuilder = function (node) {
-            return Viva.Graph.svg('rect')
-                     .attr('width', 10)
-                     .attr('height', 10)
-                     .attr('fill', '#00a2e8');
+            return Viva.Graph.svg("rect")
+                     .attr("width", 10)
+                     .attr("height", 10)
+                     .attr("fill", "#00a2e8");
         },
 
         nodePositionCallback = function (nodeUI, pos) {
@@ -32,8 +31,8 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         linkBuilder = function (link) {
-            return Viva.Graph.svg('line')
-                              .attr('stroke', '#999');
+            return Viva.Graph.svg("line")
+                              .attr("stroke", "#999");
         },
 
         linkPositionCallback = function (linkUI, fromPos, toPos) {
@@ -45,13 +44,13 @@ Viva.Graph.View.svgGraphics = function () {
 
         fireRescaled = function (graphics) {
             // TODO: maybe we shall copy changes?
-            graphics.fire('rescaled');
+            graphics.fire("rescaled");
         },
 
         updateTransform = function () {
             if (svgContainer) {
-                var transform = 'matrix(' + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
-                svgContainer.attr('transform', transform);
+                var transform = "matrix(" + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
+                svgContainer.attr("transform", transform);
             }
         };
 
@@ -69,7 +68,7 @@ Viva.Graph.View.svgGraphics = function () {
          */
         node : function (builderCallbackOrNode) {
 
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
                 return nodeBuilder(builderCallbackOrNode);
             }
 
@@ -90,7 +89,7 @@ Viva.Graph.View.svgGraphics = function () {
          * Otherwise a link representation is returned for the passed parameter.
          */
         link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
                 return linkBuilder(builderCallbackOrLink);
             }
 
@@ -152,8 +151,8 @@ Viva.Graph.View.svgGraphics = function () {
             t.e += p.x;
             t.f += p.y;
 
-            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            svgContainer.attr('transform', transform);
+            var transform = "matrix(" + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr("transform", transform);
         },
 
         scale : function (scaleFactor, scrollPoint) {
@@ -170,8 +169,8 @@ Viva.Graph.View.svgGraphics = function () {
             actualScale = t.a;
             offsetX = t.e;
             offsetY = t.f;
-            var transform = 'matrix(' + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
-            svgContainer.attr('transform', transform);
+            var transform = "matrix(" + t.a + ", 0, 0," + t.d + "," + t.e + "," + t.f + ")";
+            svgContainer.attr("transform", transform);
 
             fireRescaled(this);
             return actualScale;
@@ -179,8 +178,8 @@ Viva.Graph.View.svgGraphics = function () {
 
         resetScale : function () {
             actualScale = 1;
-            var transform = 'matrix(1, 0, 0, 1, 0, 0)';
-            svgContainer.attr('transform', transform);
+            var transform = "matrix(1, 0, 0, 1, 0, 0)";
+            svgContainer.attr("transform", transform);
             fireRescaled(this);
             return this;
         },
@@ -193,7 +192,7 @@ Viva.Graph.View.svgGraphics = function () {
             svgRoot = Viva.Graph.svg("svg");
 
             svgContainer = Viva.Graph.svg("g")
-                 .attr('buffered-rendering', 'dynamic');
+                 .attr("buffered-rendering", "dynamic");
 
             svgRoot.appendChild(svgContainer);
             container.appendChild(svgRoot);

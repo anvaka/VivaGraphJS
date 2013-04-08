@@ -1,1 +1,1 @@
-Viva.Graph.version = '1.0.0.43';
+Viva.Graph.version = '0.4.0';

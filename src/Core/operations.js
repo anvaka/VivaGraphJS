@@ -4,8 +4,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.operations = function () {
 
     return {

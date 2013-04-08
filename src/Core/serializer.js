@@ -1,6 +1,3 @@
-/*global Viva, JSON*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.serializer = function () {
     var checkJSON = function () {
             if (typeof JSON === 'undefined' || !JSON.stringify || !JSON.parse) {

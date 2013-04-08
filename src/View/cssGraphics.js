@@ -3,8 +3,8 @@
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
+// The file tries to conform generic interface:
+/*jshint unused: false */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
@@ -21,7 +21,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  */
 Viva.Graph.View.cssGraphics = function () {
     var container, // Where graph will be rendered
-        OLD_IE = 'OLD_IE',
+        OLD_IE = "OLD_IE",
         offsetX,
         offsetY,
         scaleX = 1,
@@ -33,19 +33,19 @@ Viva.Graph.View.cssGraphics = function () {
                 version;
 
             switch (browserName) {
-            case 'mozilla':
-                prefix = 'Moz';
+            case "mozilla":
+                prefix = "Moz";
                 break;
-            case 'webkit':
-                prefix = 'webkit';
+            case "webkit":
+                prefix = "webkit";
                 break;
-            case 'opera':
-                prefix = 'O';
+            case "opera":
+                prefix = "O";
                 break;
-            case 'msie':
+            case "msie":
                 version = Viva.BrowserInfo.version.split(".")[0];
                 if (version > 8) {
-                    prefix = 'ms';
+                    prefix = "ms";
                 } else {
                     return OLD_IE;
                 }
@@ -53,7 +53,7 @@ Viva.Graph.View.cssGraphics = function () {
             }
 
             if (prefix) { // CSS3
-                return prefix + 'Transform';
+                return prefix + "Transform";
             }
             // Unknown browser
             return null;
@@ -62,8 +62,8 @@ Viva.Graph.View.cssGraphics = function () {
        /**
         * Returns a function (ui, x, y, angleRad).
         *
-        * The function attempts to rotate 'ui' dom element on 'angleRad' radians
-        * and position it to 'x' 'y' coordinates.
+        * The function attempts to rotate "ui" dom element on "angleRad" radians
+        * and position it to "x" "y" coordinates.
         *
         * Operation works in most modern browsers that support transform css style
         * and IE.
@@ -83,8 +83,8 @@ Viva.Graph.View.cssGraphics = function () {
                     }
 
                     if (angleRad < Math.PI / 2) {
-                        ui.style.left = x + 'px';
-                        ui.style.top = y + 'px';
+                        ui.style.left = x + "px";
+                        ui.style.top = y + "px";
                     } else if (angleRad < Math.PI) {
                         ui.style.left = x - (ui.clientWidth) * Math.cos(Math.PI - angleRad);
                         ui.style.top = y;
@@ -95,17 +95,17 @@ Viva.Graph.View.cssGraphics = function () {
                         ui.style.left = x;
                         ui.style.top = y + ui.clientWidth * Math.sin(Math.PI - angleRad);
                     }
-                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand'," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
+                    ui.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\"auto expand\"," + "M11=" + cos + ", M12=" + (-sin) + "," + "M21=" + sin + ", M22=" + cos + ");";
                 };
             }
 
             if (transformName) { // Modern CSS3 browser
                 return function (ui, x, y, angleRad) {
-                    ui.style.left = x + 'px';
-                    ui.style.top = y + 'px';
+                    ui.style.left = x + "px";
+                    ui.style.top = y + "px";
 
-                    ui.style[transformName] = 'rotate(' + angleRad + 'rad)';
-                    ui.style[transformName + 'Origin'] = 'left';
+                    ui.style[transformName] = "rotate(" + angleRad + "rad)";
+                    ui.style[transformName + "Origin"] = "left";
                 };
             }
 
@@ -115,15 +115,15 @@ Viva.Graph.View.cssGraphics = function () {
         }()),
 
         nodeBuilder = function (node) {
-            var nodeUI = window.document.createElement('div');
-            nodeUI.setAttribute('class', 'node');
+            var nodeUI = window.document.createElement("div");
+            nodeUI.setAttribute("class", "node");
             return nodeUI;
         },
 
         nodePositionCallback = function (nodeUI, pos) {
             // TODO: Remove magic 5. It should be half of the width or height of the node.
-            nodeUI.style.left = pos.x - 5 + 'px';
-            nodeUI.style.top = pos.y - 5 + 'px';
+            nodeUI.style.left = pos.x - 5 + "px";
+            nodeUI.style.top = pos.y - 5 + "px";
         },
 
         linkPositionCallback = function (linkUI, fromPos, toPos) {
@@ -131,15 +131,15 @@ Viva.Graph.View.cssGraphics = function () {
                 dy = fromPos.y - toPos.y,
                 length = Math.sqrt(dx * dx + dy * dy);
 
-            linkUI.style.height = '1px';
-            linkUI.style.width = length + 'px';
+            linkUI.style.height = "1px";
+            linkUI.style.width = length + "px";
 
             positionLink(linkUI, toPos.x, toPos.y, Math.atan2(dy, dx));
         },
 
         linkBuilder = function (link) {
-            var linkUI = window.document.createElement('div');
-            linkUI.setAttribute('class', 'link');
+            var linkUI = window.document.createElement("div");
+            linkUI.setAttribute("class", "link");
 
             return linkUI;
         },
@@ -147,10 +147,10 @@ Viva.Graph.View.cssGraphics = function () {
         updateTransform = function () {
             if (container) {
                 if (transformName && transformName !== OLD_IE) {
-                    var transform = 'matrix(' + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
+                    var transform = "matrix(" + scaleX + ", 0, 0," + scaleY + "," + offsetX + "," + offsetY + ")";
                     container.style[transformName] = transform;
                 } else {
-                    throw 'Not implemented. TODO: Implement OLD_IE Filter based transform';
+                    throw "Not implemented. TODO: Implement OLD_IE Filter based transform";
                 }
             }
         };
@@ -168,7 +168,7 @@ Viva.Graph.View.cssGraphics = function () {
          * Otherwise a node representation is returned for the passed parameter.
          */
         node : function (builderCallbackOrNode) {
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== 'function') {
+            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
                 return nodeBuilder(builderCallbackOrNode);
             }
 
@@ -189,7 +189,7 @@ Viva.Graph.View.cssGraphics = function () {
          * Otherwise a link representation is returned for the passed parameter.
          */
         link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== 'function') {
+            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
                 return linkBuilder(builderCallbackOrLink);
             }
 

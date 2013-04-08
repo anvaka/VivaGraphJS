@@ -1,5 +1,7 @@
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
+// I don't like to suppress this, but I'm afraid 'force_directed_body'
+// could already be used by someone. Don't want to break it now.
+/* jshint camelcase:false */
+
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 Viva.Graph.Layout.forceDirected = function (graph, settings) {
@@ -55,7 +57,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
 
         graphRect = new Viva.Graph.Rect(),
 
-        random = Viva.random('ted.com', 103, 114, 101, 97, 116),
+        random = Viva.random("ted.com", 103, 114, 101, 97, 116),
 
         getBestNodePosition = function (node) {
             // TODO: Initial position could be picked better, e.g. take into

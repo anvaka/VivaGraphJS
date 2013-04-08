@@ -1,5 +1,3 @@
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 /**
@@ -16,7 +14,8 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         maxY : 1024,
         seed : 'Deterministic randomness made me do this'
     });
-
+    // This class simply follows API, it does not use some of the arguments:
+    /*jshint unused: false */
     var rand = Viva.random(userSettings.seed),
         graphRect = new Viva.Graph.Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
 

@@ -2,8 +2,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true */
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 // TODO: I don't really like the way I implemented events. It looks clumsy and
@@ -46,8 +44,8 @@ Viva.Graph.Utils.events = function (element) {
                 handler,
                 i;
 
-            if (typeof eventName !== 'string') {
-                throw 'Only strings can be used as even type';
+            if (typeof eventName !== "string") {
+                throw "Only strings can be used as even type";
             }
 
             // If an array of handlers exist for this event, then
@@ -65,8 +63,8 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.addEventListener = function (eventName, callback) {
-            if (typeof callback !== 'function') {
-                throw 'Only functions allowed to be callbacks';
+            if (typeof callback !== "function") {
+                throw "Only functions allowed to be callbacks";
             }
 
             var handler = {
@@ -82,8 +80,8 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.removeEventListener = function (eventName, callback) {
-            if (typeof callback !== 'function') {
-                throw 'Only functions allowed to be callbacks';
+            if (typeof callback !== "function") {
+                throw "Only functions allowed to be callbacks";
             }
 
             if (registry.hasOwnProperty(eventName)) {
@@ -102,7 +100,7 @@ Viva.Graph.Utils.events = function (element) {
         };
 
         that.removeAllListeners = function () {
-            var eventName, i, handlers;
+            var eventName;
             for (eventName in registry) {
                 if (registry.hasOwnProperty(eventName)) {
                     delete registry[eventName];
@@ -134,7 +132,7 @@ Viva.Graph.Utils.events = function (element) {
             if (element.removeEventListener) {
                 element.removeEventListener(eventName, callback, false);
             } else if (element.detachEvent) {
-                element.detachEvent('on' + eventName, callback);
+                element.detachEvent("on" + eventName, callback);
             }
         },
 

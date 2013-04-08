@@ -1,11 +1,8 @@
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
-
 Viva.BrowserInfo = (function () {
-    if (typeof window === 'undefined' || !window.hasOwnProperty('navigator')) {
+    if (typeof window === "undefined" || !window.hasOwnProperty("navigator")) {
         return {
-            browser : '',
-            version : '0'
+            browser : "",
+            version : "0"
         };
     }
 

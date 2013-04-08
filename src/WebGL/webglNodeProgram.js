@@ -5,9 +5,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva, Float32Array, Uint32Array, ArrayBuffer*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
@@ -21,7 +18,8 @@ Viva.Graph.View.webglNodeProgram = function () {
 
             'void main(void) {',
             '   gl_FragColor = color;',
-            '}'].join('\n'),
+            '}'
+        ].join('\n'),
         nodesVS = [
             'attribute vec3 a_vertexPos;',
             'attribute vec4 a_color;',
@@ -33,7 +31,8 @@ Viva.Graph.View.webglNodeProgram = function () {
             '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
             '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
             '   color = a_color.abgr;',
-            '}'].join('\n'),
+            '}'
+        ].join('\n'),
 
         program,
         gl,
@@ -86,8 +85,7 @@ Viva.Graph.View.webglNodeProgram = function () {
          * @param pos - new position of the node.
          */
         position : function (nodeUI, pos) {
-            var idx = nodeUI.id,
-                offset = idx * ATTRIBUTES_PER_PRIMITIVE;
+            var idx = nodeUI.id;
 
             positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
             positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
@@ -107,11 +105,6 @@ Viva.Graph.View.webglNodeProgram = function () {
             sizeDirty = true;
         },
 
-        createNode : function (node) {
-            ensureEnoughStorage();
-            nodesCount += 1;
-        },
-
         removeNode : function (node) {
             if (nodesCount > 0) { nodesCount -= 1; }
 
@@ -120,8 +113,14 @@ Viva.Graph.View.webglNodeProgram = function () {
                 utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
             }
         },
+/*jshint unused:false */
+        createNode : function (node) {
+            ensureEnoughStorage();
+            nodesCount += 1;
+        },
 
         replaceProperties : function (replacedNode, newNode) {},
+/*jshint unused:true */
 
         render : function () {
             gl.useProgram(program);

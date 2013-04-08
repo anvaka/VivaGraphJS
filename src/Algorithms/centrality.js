@@ -6,9 +6,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.centrality = function () {
     var singleSourceShortestPath = function (graph, node, oriented) {
             // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
@@ -124,9 +121,8 @@ Viva.Graph.centrality = function () {
          *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
          * 
          * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
-         * @param oriented - identifies how to treat the graph
          */
-        betweennessCentrality : function (graph, oriented) {
+        betweennessCentrality : function (graph) {
             var betweennes = {},
                 shortestPath;
             graph.forEachNode(function (node) {
@@ -178,7 +174,7 @@ Viva.Graph.centrality = function () {
                     return total;
                 };
             } else if (kind === 'both') {
-                calcDegFunction = function (links, nodeId) {
+                calcDegFunction = function (links) {
                     return links.length;
                 };
             } else {

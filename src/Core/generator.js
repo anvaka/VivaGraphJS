@@ -4,9 +4,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.generator = function () {
 
     return {
@@ -17,7 +14,7 @@ Viva.Graph.generator = function () {
          */
         complete : function (n) {
             if (!n || n < 1) {
-                throw { message: 'At least two nodes expected for complete graph' };
+                throw { message: "At least two nodes expected for complete graph" };
             }
 
             var g = Viva.Graph.graph(),
@@ -46,7 +43,7 @@ Viva.Graph.generator = function () {
          */
         completeBipartite : function (n, m) {
             if (!n || !m || n < 0 || m < 0) {
-                throw { message: 'Graph dimensions are invalid. Number of nodes in each partition should be greate than 0' };
+                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greate than 0" };
             }
 
             var g = Viva.Graph.graph(),
@@ -69,7 +66,7 @@ Viva.Graph.generator = function () {
          */
         ladder : function (n) {
             if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
+                throw { message: "Invalid number of nodes" };
             }
 
             var g = Viva.Graph.graph(),
@@ -82,7 +79,7 @@ Viva.Graph.generator = function () {
                 g.addLink(n + i, n + i + 1);
                 // second row
                 g.addLink(i, n + i);
-                // ladder's step
+                // ladder"s step
             }
 
             g.addLink(n - 1, 2 * n - 1);
@@ -98,7 +95,7 @@ Viva.Graph.generator = function () {
          */
         circularLadder : function (n) {
             if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
+                throw { message: "Invalid number of nodes" };
             }
 
             var g = this.ladder(n);
@@ -132,7 +129,7 @@ Viva.Graph.generator = function () {
 
         path: function (n) {
             if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
+                throw { message: "Invalid number of nodes" };
             }
 
             var g = Viva.Graph.graph(),
@@ -149,7 +146,7 @@ Viva.Graph.generator = function () {
 
         lollipop: function (m, n) {
             if (!n || n < 0 || !m || m < 0) {
-                throw { message: 'Invalid number of nodes' };
+                throw { message: "Invalid number of nodes" };
             }
 
             var g = this.complete(m),
@@ -190,7 +187,7 @@ Viva.Graph.generator = function () {
          */
         randomNoLinks : function (n) {
             if (!n || n < 0) {
-                throw { message: 'Invalid number of nodes' };
+                throw { message: "Invalid number of nodes" };
             }
 
             var g = Viva.Graph.graph(),

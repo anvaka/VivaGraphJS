@@ -1,6 +1,3 @@
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * This is Barnes Hut simulation algorithm. Implementation
  * is adopted to non-recursive solution, since certain browsers

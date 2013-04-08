@@ -4,9 +4,6 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*jslint sloppy: true, vars: true, plusplus: true */
-/*global Viva, window, Float32Array*/
-
 Viva.Graph.webgl = function (gl) {
     var createShader = function (shaderText, type) {
             var shader = gl.createShader(type);
@@ -76,14 +73,14 @@ Viva.Graph.webgl = function (gl) {
             for (i = 0; i < uniformOrAttributeNames.length; ++i) {
                 var name = uniformOrAttributeNames[i],
                     location = -1;
-                if (name.indexOf('a_') === 0) {
+                if (name.indexOf("a_") === 0) {
                     location = gl.getAttribLocation(program, name);
                     if (location === -1) {
                         throw "Program doesn't have required attribute: " + name;
                     }
 
                     foundLocations[name.slice(2)] = location;
-                } else if (name.indexOf('u_') === 0) {
+                } else if (name.indexOf("u_") === 0) {
                     location = gl.getUniformLocation(program, name);
                     if (location === null) {
                         throw "Program doesn't have required uniform: " + name;

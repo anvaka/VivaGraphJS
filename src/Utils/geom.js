@@ -1,6 +1,3 @@
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true */
-
 Viva.Graph.geom = function () {
 
     return {

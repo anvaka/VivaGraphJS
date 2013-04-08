@@ -7,21 +7,17 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-/*global Viva*/
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 Viva.Graph.View.svgNodeFactory = function (graph) {
-    var highlightColor = 'orange',
-        defaultColor = '#999',
+    var defaultColor = "#999",
         geom = Viva.Graph.geom(),
 
-        attachCustomContent = function (nodeUI, node) {
+        attachCustomContent = function (nodeUI) {
             nodeUI.size = {w: 10, h: 10};
-            nodeUI.append('rect')
-                .attr('width', nodeUI.size.w)
-                .attr('height', nodeUI.size.h)
-                .attr('stroke', 'orange')
-                .attr('fill', 'orange');
+            nodeUI.append("rect")
+                .attr("width", nodeUI.size.w)
+                .attr("height", nodeUI.size.h)
+                .attr("stroke", "orange")
+                .attr("fill", "orange");
         },
 
         nodeSize = function (nodeUI) {
@@ -31,7 +27,7 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
 
     return {
         node : function (node) {
-            var nodeUI = Viva.Graph.svg('g');
+            var nodeUI = Viva.Graph.svg("g");
 
             attachCustomContent(nodeUI, node);
             nodeUI.nodeId = node.id;
@@ -43,8 +39,8 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
                 nodeUI = fromNode && fromNode.ui;
 
             if (nodeUI && !nodeUI.linksContainer) {
-                var nodeLinks = Viva.Graph.svg('path')
-                                    .attr('stroke', defaultColor);
+                var nodeLinks = Viva.Graph.svg("path")
+                                    .attr("stroke", defaultColor);
                 nodeUI.linksContainer = nodeLinks;
                 return nodeLinks;
             }
@@ -57,13 +53,13 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
          * @param conentCreator(nodeUI, node) - callback function which returns a node content UI.
          *  Image, for example.
          * @param sizeProvider(nodeUI) - a callback function which accepts nodeUI returned by
-         *  contentCreator and returns it's custom rectangular size.
+         *  contentCreator and returns it"s custom rectangular size.
          *
          */
         customContent : function (contentCreator, sizeProvider) {
-            if (typeof contentCreator !== 'function'
-                    || typeof sizeProvider !== 'function') {
-                throw 'Two functions expected: contentCreator(nodeUI, node) and size(nodeUI)';
+            if (typeof contentCreator !== "function" ||
+                typeof sizeProvider !== "function") {
+                throw "Two functions expected: contentCreator(nodeUI, node) and size(nodeUI)";
             }
 
             attachCustomContent = contentCreator;
@@ -71,7 +67,7 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
         },
 
         placeNode : function (nodeUI, fromNodePos) {
-            var linksPath = '',
+            var linksPath = "",
                 fromNodeSize = nodeSize(nodeUI);
 
             graph.forEachLinkedNode(nodeUI.nodeId, function (linkedNode, link) {
@@ -111,14 +107,14 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
                         fromNodePos.y
                     ) || toNodePos;
 
-                linksPath += 'M' + Math.round(from.x) + ' ' + Math.round(from.y) +
-                             'L' + Math.round(to.x) + ' ' + Math.round(to.y);
+                linksPath += "M" + Math.round(from.x) + " " + Math.round(from.y) +
+                             "L" + Math.round(to.x) + " " + Math.round(to.y);
             });
 
             nodeUI.attr("transform",
                         "translate(" + (fromNodePos.x - fromNodeSize.w / 2) + ", " +
                          (fromNodePos.y - fromNodeSize.h / 2) + ")");
-            if (linksPath !== '' && nodeUI.linksContainer) {
+            if (linksPath !== "" && nodeUI.linksContainer) {
                 nodeUI.linksContainer.attr("d", linksPath);
             }
         }

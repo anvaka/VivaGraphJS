@@ -1,6 +1,3 @@
-/*global Viva */
-/*jslint sloppy: true, vars: true, plusplus: true, bitwise: true, nomen: true */
-
 /**
  * Allows querying graph nodes position at given point.
  *
@@ -21,7 +18,6 @@ Viva.Graph.spatialIndex = function (graph, toleranceOrCheckCallback) {
         getNodeFunction = function (x, y) {
             var foundNode = null;
             graph.forEachNode(function (node) {
-                var pos = node.position;
                 if (preciseCheckCallback(node, x, y)) {
                     foundNode = node;
                     return true;

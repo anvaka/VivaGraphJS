@@ -1,24 +1,24 @@
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
-/*global Viva, window*/
-/*jslint sloppy: true, vars: true, plusplus: true, regexp: true*/
 
 /**
  * Simple wrapper over svg object model API, to shorten the usage syntax.
  */
 Viva.Graph.svg = function (element) {
     var svgns = "http://www.w3.org/2000/svg",
-        xlinkns = 'http://www.w3.org/1999/xlink',
+        xlinkns = "http://www.w3.org/1999/xlink",
         svgElement = element;
 
-    if (typeof element === 'string') {
+    if (typeof element === "string") {
         svgElement = window.document.createElementNS(svgns, element);
     }
 
-    if (svgElement.vivagraph_augmented) { return svgElement; }
+    if (svgElement.vivagraphAugmented) {
+        return svgElement;
+    }
 
-    svgElement.vivagraph_augmented = true;
+    svgElement.vivagraphAugmented = true;
 
     // Augment svg element (TODO: it's not safe - what if some function already exists on the prototype?):
 
@@ -53,7 +53,7 @@ Viva.Graph.svg = function (element) {
     };
 
     svgElement.text = function (textContent) {
-        if (typeof textContent !== 'undefined') {
+        if (typeof textContent !== "undefined") {
             svgElement.textContent = textContent;
             return svgElement;
         }
@@ -62,62 +62,62 @@ Viva.Graph.svg = function (element) {
 
     svgElement.link = function (target) {
         if (arguments.length) {
-            svgElement.setAttributeNS(xlinkns, 'xlink:href', target);
+            svgElement.setAttributeNS(xlinkns, "xlink:href", target);
             return svgElement;
         }
 
-        return svgElement.getAttributeNS(xlinkns, 'xlink:href');
+        return svgElement.getAttributeNS(xlinkns, "xlink:href");
     };
 
     svgElement.children = function (selector) {
-        var wrapped_children = [],
-            children_count = svgElement.childNodes.length,
+        var wrappedChildren = [],
+            childrenCount = svgElement.childNodes.length,
             i,
             j;
 
         if (selector === undefined && svgElement.hasChildNodes()) {
-            for (i = 0; i < children_count; i++) {
-                wrapped_children.push(Viva.Graph.svg(svgElement.childNodes[i]));
+            for (i = 0; i < childrenCount; i++) {
+                wrappedChildren.push(Viva.Graph.svg(svgElement.childNodes[i]));
             }
-        } else if (typeof selector === 'string') {
-            var class_selector = (selector[0] === '.'),
-                id_selector    = (selector[0] === '#'),
-                tag_selector   = !class_selector && !id_selector;
+        } else if (typeof selector === "string") {
+            var classSelector = (selector[0] === "."),
+                idSelector    = (selector[0] === "#"),
+                tagSelector   = !classSelector && !idSelector;
 
-            for (i = 0; i < children_count; i++) {
+            for (i = 0; i < childrenCount; i++) {
                 var el = svgElement.childNodes[i];
 
                 // pass comments, text nodes etc.
                 if (el.nodeType === 1) {
-                    var classes = el.attr('class'),
-                        id = el.attr('id'),
+                    var classes = el.attr("class"),
+                        id = el.attr("id"),
                         tagName = el.nodeName;
 
-                    if (class_selector && classes) {
-                        classes = classes.replace(/\s+/g, ' ').split(' ');
+                    if (classSelector && classes) {
+                        classes = classes.replace(/\s+/g, " ").split(" ");
                         for (j = 0; j < classes.length; j++) {
-                            if (class_selector && classes[j] === selector.substr(1)) {
-                                wrapped_children.push(Viva.Graph.svg(el));
+                            if (classSelector && classes[j] === selector.substr(1)) {
+                                wrappedChildren.push(Viva.Graph.svg(el));
                                 break;
                             }
                         }
-                    } else if (id_selector && id === selector.substr(1)) {
-                        wrapped_children.push(Viva.Graph.svg(el));
+                    } else if (idSelector && id === selector.substr(1)) {
+                        wrappedChildren.push(Viva.Graph.svg(el));
                         break;
-                    } else if (tag_selector && tagName === selector) {
-                        wrapped_children.push(Viva.Graph.svg(el));
+                    } else if (tagSelector && tagName === selector) {
+                        wrappedChildren.push(Viva.Graph.svg(el));
                     }
 
-                    wrapped_children = wrapped_children.concat(Viva.Graph.svg(el).children(selector));
+                    wrappedChildren = wrappedChildren.concat(Viva.Graph.svg(el).children(selector));
                 }
             }
 
-            if (id_selector && wrapped_children.length === 1) {
-                return wrapped_children[0];
+            if (idSelector && wrappedChildren.length === 1) {
+                return wrappedChildren[0];
             }
         }
 
-        return wrapped_children;
+        return wrappedChildren;
     };
 
     return svgElement;
