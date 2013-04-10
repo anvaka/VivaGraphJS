@@ -68,6 +68,13 @@ module.exports = function (grunt) {
     });
     grunt.initConfig({
         lib: libConfig,
+        watch: {
+            js: {
+                files: "<%= lib.src %>/**/*.js",
+                tasks: ["build"],
+                spawn: true
+            }
+        },
         jshint: {
             all: [
                 "Gruntfile.js",
@@ -121,11 +128,18 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
+    grunt.loadNpmTasks("grunt-regarde");
+
+    grunt.renameTask("regarde", "watch");
 
     grunt.registerTask("build", [
         "clean:dist",
         "concat:all",
         "uglify"
+    ]);
+    grunt.registerTask("server", [
+        "build",
+        "watch"
     ]);
     grunt.registerTask("default", ["jshint", "build"]);
 };
