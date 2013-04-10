@@ -730,28 +730,38 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     var lastTime = 0,
         vendors = ['ms', 'moz', 'webkit', 'o'],
         i,
-        global = (typeof window === 'undefined') ? {} : window;
+        scope;
 
-    for (i = 0; i < vendors.length && !global.requestAnimationFrame; ++i) {
+    if (typeof window !== 'undefined') {
+        scope = window;
+    } else if (typeof global !== 'undefined') {
+        scope = global;
+    } else {
+        scope = {
+            setTimeout: function () {},
+            clearTimeout: function () {}
+        };
+    }
+    for (i = 0; i < vendors.length && !scope.requestAnimationFrame; ++i) {
         var vendorPrefix = vendors[i];
-        global.requestAnimationFrame = global[vendorPrefix + 'RequestAnimationFrame'];
-        global.cancelAnimationFrame =
-            global[vendorPrefix + 'CancelAnimationFrame'] || global[vendorPrefix + 'CancelRequestAnimationFrame'];
+        scope.requestAnimationFrame = scope[vendorPrefix + 'RequestAnimationFrame'];
+        scope.cancelAnimationFrame =
+            scope[vendorPrefix + 'CancelAnimationFrame'] || scope[vendorPrefix + 'CancelRequestAnimationFrame'];
     }
 
-    if (!global.requestAnimationFrame) {
-        global.requestAnimationFrame = function (callback) {
+    if (!scope.requestAnimationFrame) {
+        scope.requestAnimationFrame = function (callback) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = global.setTimeout(function () { callback(currTime + timeToCall); }, timeToCall);
+            var id = scope.setTimeout(function () { callback(currTime + timeToCall); }, timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
     }
 
-    if (!global.cancelAnimationFrame) {
-        global.cancelAnimationFrame = function (id) {
-            global.clearTimeout(id);
+    if (!scope.cancelAnimationFrame) {
+        scope.cancelAnimationFrame = function (id) {
+            scope.clearTimeout(id);
         };
     }
 
@@ -762,12 +772,12 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     Viva.Graph.Utils.timer = function (callback) {
         var intervalId,
             stopTimer = function () {
-                global.cancelAnimationFrame(intervalId);
+                scope.cancelAnimationFrame(intervalId);
                 intervalId = 0;
             },
 
             startTimer = function () {
-                intervalId = global.requestAnimationFrame(startTimer);
+                intervalId = scope.requestAnimationFrame(startTimer);
                 if (!callback()) {
                     stopTimer();
                 }
