@@ -9,7 +9,7 @@ Viva.Graph.Physics = Viva.Graph.Physics || {};
  * // TODO: Show example.
  */
 Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
-    var integrator = forceIntegrator || Viva.Graph.Physics.rungeKuttaIntegrator(),
+    var integrator = forceIntegrator,
         bodies = [], // Bodies in this simulation.
         springs = [], // Springs in this simulation.
         bodyForces = [], // Forces acting on bodies.
