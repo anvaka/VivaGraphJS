@@ -8,7 +8,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
     var lastTime = 0,
         vendors = ['ms', 'moz', 'webkit', 'o'],
         i,
-        global = global || window || {};
+        global = (typeof window === 'undefined') ? {} : window;
 
     for (i = 0; i < vendors.length && !global.requestAnimationFrame; ++i) {
         var vendorPrefix = vendors[i];

@@ -2,7 +2,7 @@
   "name": "vivagraphjs",
   "version": "0.4.0",
   "description": "Graph Drawing Library",
-  "main": "index.js",
+  "main": "dist/vivagrph.min.js",
   "directories": {
     "doc": "docs"
   },
