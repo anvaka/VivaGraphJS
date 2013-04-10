@@ -11,8 +11,46 @@ Viva.Graph.Physics.nbodyForce = function (options) {
         theta : 0.8
     });
 
+    // the following structures are here to reduce memory pressure
+    // when constructing BH-tree.
+    function InsertStackElement(node, body) {
+        this.node = node;
+        this.body = body;
+    }
+
+    function InsertStack () {
+        this.stack = [];
+        this.popIdx = 0;
+    }
+
+    InsertStack.prototype = {
+        isEmpty: function() {
+            return this.popIdx === 0;
+        },
+        push: function (node, body) {
+            var item = this.stack[this.popIdx];
+            if (!item) {
+                this.stack[this.popIdx] = new InsertStackElement(node, body);
+            } else {
+                item.node = node;
+                item.body = body;
+            }
+            ++this.popIdx;
+        },
+        pop: function () {
+            if (this.popIdx > 0) {
+                return this.stack[--this.popIdx];
+            }
+        },
+        reset: function () {
+            this.popIdx = 0;
+        }
+    };
+
+
     var gravity = options.gravity,
         updateQueue = [],
+        insertStack = new InsertStack(),
         theta = options.theta,
         random = Viva.random('5f4dcc3b5aa765d61d8327deb882cf99', 75, 20, 63, 0x6c, 65, 76, 65, 72),
 
@@ -65,16 +103,13 @@ Viva.Graph.Physics.nbodyForce = function (options) {
 
         // Inserts body to the tree
         insert = function (newBody) {
-            // TODO: Consider reusing queue's elements if GC hit shows up.
-            var queue = [{
-                node : root,
-                body : newBody
-            }];
+            insertStack.reset();
+            insertStack.push(root, newBody);
 
-            while (queue.length) {
-                var queueItem = queue.shift(),
-                    node = queueItem.node,
-                    body = queueItem.body;
+            while (!insertStack.isEmpty()) {
+                var stackItem = insertStack.pop(),
+                    node = stackItem.node,
+                    body = stackItem.body;
 
                 if (node.isInternal) {
                     // This is internal node. Update the total mass of the node and center-of-mass.
@@ -118,11 +153,8 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                         node.quads[quadIdx] = child;
                     }
 
-                    // proceed search in this quadrant.
-                    queue.unshift({
-                        node : child,
-                        body : body
-                    });
+                    // continue searching in this quadrant.
+                    insertStack.push(child, body);
                 } else if (node.body) {
                     // We are trying to add to the leaf node.
                     // To achieve this we have to convert current leaf into internal node
@@ -150,16 +182,9 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                         oldBody.location.x = newX;
                         oldBody.location.y = newY;
                     }
-
                     // Next iteration should subdivide node further.
-                    queue.unshift({
-                        node : node,
-                        body : oldBody
-                    });
-                    queue.unshift({
-                        node : node,
-                        body : body
-                    });
+                    insertStack.push(node, oldBody);
+                    insertStack.push(node, body);
                 } else {
                     // Node has no body. Put it in here.
                     node.body = body;
