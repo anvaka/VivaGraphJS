@@ -160,7 +160,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     // To achieve this we have to convert current leaf into internal node
                     // and continue adding two nodes.
                     var oldBody = node.body;
-                    node.body = null; // internal nodes does not cary bodies
+                    node.body = null; // internal nodes do not cary bodies
                     node.isInternal = true;
 
                     if (isSamePosition(oldBody.location, body.location)) {
