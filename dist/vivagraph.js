@@ -443,8 +443,10 @@ Viva.Graph.Utils.events = function (element) {
  */
 
 Viva.Graph.Utils = Viva.Graph.Utils || {};
-// TODO: Add support for touch events: http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
+
 // TODO: Move to input namespace
+// TODO: Methods should be extracted into the prototype. This class
+// does not need to consume so much memory for every tracked element
 Viva.Graph.Utils.dragndrop = function (element) {
     var start,
         drag,
@@ -459,6 +461,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
         startX = 0,
         startY = 0,
         dragObject,
+        touchInProgress = false,
+        pinchZoomLength = 0,
 
         getMousePos = function (e) {
             var posx = 0,
@@ -477,8 +481,20 @@ Viva.Graph.Utils.dragndrop = function (element) {
             return [posx, posy];
         },
 
+        move = function (e, clientX, clientY) {
+            if (drag) {
+                drag(e, {x : clientX - startX, y : clientY - startY });
+            }
+
+            startX = clientX;
+            startY = clientY;
+        },
+
         stopPropagation = function (e) {
             if (e.stopPropagation) { e.stopPropagation(); } else { e.cancelBubble = true; }
+        },
+        preventDefault = function (e) {
+            if (e.preventDefault) { e.preventDefault(); }
         },
 
         handleDisabledEvent = function (e) {
@@ -489,17 +505,17 @@ Viva.Graph.Utils.dragndrop = function (element) {
         handleMouseMove = function (e) {
             e = e || window.event;
 
-            if (drag) {
-                drag(e, {x : e.clientX - startX, y : e.clientY - startY });
-            }
-
-            startX = e.clientX;
-            startY = e.clientY;
+            move(e, e.clientX, e.clientY);
         },
 
         handleMouseDown = function (e) {
             e = e || window.event;
-
+            if (touchInProgress) {
+                // modern browsers will fire mousedown for touch events too
+                // we do not want this, since touch is handled separately.
+                stopPropagation(e);
+                return false;
+            }
             // for IE, left click == 1
             // for Firefox, left click == 0
             var isLeftButton = ((e.button === 1 && window.event !== null) || e.button === 0);
@@ -516,10 +532,9 @@ Viva.Graph.Utils.dragndrop = function (element) {
                 documentEvents.on('mousemove', handleMouseMove);
                 documentEvents.on('mouseup', handleMouseUp);
 
+
                 stopPropagation(e);
-                // TODO: This is suggested here: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
-                // do we need it? What if event already there?
-                // Not bullet proof:
+                // TODO: What if event already there? Not bullet proof:
                 prevSelectStart = window.document.onselectstart;
                 prevDragStart = window.document.ondragstart;
 
@@ -588,10 +603,82 @@ Viva.Graph.Utils.dragndrop = function (element) {
             }
 
             scroll = scrollCallback;
+        },
+
+        getPinchZoomLength = function(finger1, finger2) {
+            return (finger1.clientX - finger2.clientX) * (finger1.clientX - finger2.clientX) +
+                   (finger1.clientY - finger2.clientY) * (finger1.clientY - finger2.clientY);
+        },
+
+        handleTouchMove = function (e) {
+            if (e.touches.length === 1) {
+                stopPropagation(e);
+
+                var touch = e.touches[0];
+                move(e, touch.clientX, touch.clientY);
+            } else if (e.touches.length === 2) {
+                // it's a zoom:
+                var currentPinchLength = getPinchZoomLength(e.touches[0], e.touches[1]);
+                var delta = 0;
+                if (currentPinchLength < pinchZoomLength) {
+                    delta = -1;
+                } else if (currentPinchLength > pinchZoomLength) {
+                    delta = 1;
+                }
+                scroll(e, delta, {x: e.touches[0].clientX, y: e.touches[0].clientY});
+                pinchZoomLength = currentPinchLength;
+                stopPropagation(e);
+                preventDefault(e);
+            }
+        },
+
+        handleTouchEnd = function (e) {
+            touchInProgress = false;
+            documentEvents.stop('touchmove', handleTouchMove);
+            documentEvents.stop('touchend', handleTouchEnd);
+            documentEvents.stop('touchcancel', handleTouchEnd);
+            dragObject = null;
+            if (end) { end(e); }
+        },
+
+        handleSignleFingerTouch = function (e, touch) {
+            stopPropagation(e);
+            preventDefault(e);
+
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            dragObject = e.target || e.srcElement;
+
+            if (start) { start(e, {x: startX, y : startY}); }
+            // TODO: can I enter into the state when touch is in progress
+            // but it's still a single finger touch?
+            if (!touchInProgress) {
+                touchInProgress = true;
+                documentEvents.on('touchmove', handleTouchMove);
+                documentEvents.on('touchend', handleTouchEnd);
+                documentEvents.on('touchcancel', handleTouchEnd);
+            }
+        },
+
+        handleTouchStart = function (e) {
+            console.log('Touch start for ', element);
+            if (e.touches.length === 1) {
+                return handleSignleFingerTouch(e, e.touches[0]);
+            } else if (e.touches.length === 2) {
+                // handleTouchMove() will care about pinch zoom.
+                stopPropagation(e);
+                preventDefault(e);
+
+                pinchZoomLength = getPinchZoomLength(e.touches[0], e.touches[1]);
+
+            }
+            // don't care about the rest.
         };
 
 
     elementEvents.on('mousedown', handleMouseDown);
+    elementEvents.on('touchstart', handleTouchStart);
 
     return {
         onStart : function (callback) {
@@ -1732,7 +1819,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     // To achieve this we have to convert current leaf into internal node
                     // and continue adding two nodes.
                     var oldBody = node.body;
-                    node.body = null; // internal nodes does not cary bodies
+                    node.body = null; // internal nodes do not cary bodies
                     node.isInternal = true;
 
                     if (isSamePosition(oldBody.location, body.location)) {
