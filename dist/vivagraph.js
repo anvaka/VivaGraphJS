@@ -709,6 +709,10 @@ Viva.Graph.Utils.dragndrop = function (element) {
             documentEvents.stop('mousemove', handleMouseMove);
             documentEvents.stop('mousedown', handleMouseDown);
             documentEvents.stop('mouseup', handleMouseUp);
+            documentEvents.stop('touchmove', handleTouchMove);
+            documentEvents.stop('touchend', handleTouchEnd);
+            documentEvents.stop('touchcancel', handleTouchEnd);
+
             updateScrollEvents(null);
         }
     };
