@@ -18,23 +18,23 @@
                         "#bcbd22", "#dbdb8d",
                         "#17becf", "#9edae5"
                         ];
-                        
+
            function beginRemoveNodesLoop(graph){
                var nodesLeft = [];
                graph.forEachNode(function(node){
                    nodesLeft.push(node.id);
                });
-               
+
                var removeInterval = setInterval(function(){
                     var nodesCount = nodesLeft.length;
-                    
+
                     if (nodesCount > 0){
                         var nodeToRemove = Math.min((Math.random() * nodesCount) << 0, nodesCount - 1);
-                        
+
                         graph.removeNode(nodesLeft[nodeToRemove]);
                         nodesLeft.splice(nodeToRemove, 1);
                     }
-                    
+
                     if (nodesCount === 0) { 
                         clearInterval(removeInterval);
                         setTimeout(function(){
@@ -43,12 +43,12 @@
                     }
                 }, 100);
            }
-           
+
            function beginAddNodesLoop(graph){
               var i = 0, m = 10, n = 20;
                 var addInterval = setInterval(function(){
                     graph.beginUpdate();
-                    
+
                     for (var j = 0; j < m; ++j){
                         var node = i + j * n;
                         if (i > 0) { graph.addLink(node, i - 1 + j * n); }
@@ -56,7 +56,7 @@
                     }
                     i++;
                     graph.endUpdate();
-                    
+
                     if (i >= n) { 
                         clearInterval(addInterval);
                         setTimeout(function() {
@@ -65,7 +65,7 @@
                     }
                 }, 100);
            }
-           
+
            function onLoad() {
                var graph = Viva.Graph.graph();
 
@@ -83,7 +83,7 @@
                      .attr('height', 10)
                      .attr('fill', node.data ? node.data : '#00a2e8'); 
                });
-                    
+
                var renderer = Viva.Graph.View.renderer(graph,
                    {
                        layout     : layout,
@@ -91,9 +91,9 @@
                        container  : document.getElementById('graphConainer'),
                        renderLinks : true
                    });
-                   
+
                renderer.run(50);
-                
+
                beginAddNodesLoop(graph);
                l = layout;
            }
@@ -104,7 +104,7 @@
                 width: 100%;
                 height: 100%;
             }
-            
+
             #graphConainer > svg {
                 width: 100%;
                 height: 100%; 
