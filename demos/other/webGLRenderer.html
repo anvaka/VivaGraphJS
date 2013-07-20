@@ -13,7 +13,7 @@
                 //var graph = graphGenerator.randomNoLinks(500);
                 //var graph = graphGenerator.completeBipartite(100, 1);
                 //var graph = graphGenerator.complete(2);
-                var graph = graphGenerator.grid(50, 50);
+                var graph = graphGenerator.grid(100, 100);
                 //var graph = graphGenerator.balancedBinTree(10);
                 //var graph = graphGenerator.ladder(1000);
                 //var graph = Viva.Graph.graph();
@@ -22,7 +22,7 @@
                 var layout = Viva.Graph.Layout.forceDirected(graph, {
                    springLength : 30,
                    springCoeff : 0.0008,
-                   dragCoeff : 0.00,
+                   dragCoeff : 0.01,
                    gravity : -1.2,
                    theta : 1
                 });
