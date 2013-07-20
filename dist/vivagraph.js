@@ -2226,13 +2226,12 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
 /* jshint camelcase:false */
 
 Viva.Graph.Layout = Viva.Graph.Layout || {};
-
-Viva.Graph.Layout.forceDirected = function (graph, settings) {
+Viva.Graph.Layout.forceDirected = function(graph, settings) {
     var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
 
     if (!graph) {
         throw {
-            message : "Graph structure cannot be undefined"
+            message: 'Graph structure cannot be undefined'
         };
     }
 
@@ -2240,12 +2239,12 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
         /**
          * Ideal length for links (springs in physical model).
          */
-        springLength : 80,
+        springLength: 80,
 
         /**
          * Hook's law coefficient. 1 - solid spring.
          */
-        springCoeff : 0.0002,
+        springCoeff: 0.0002,
 
         /**
          * Coulomb's law coefficient. It's used to repel nodes thus should be negative
@@ -2259,30 +2258,31 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * Setting it to one makes Barnes Hut simulation no different from
          * brute-force forces calculation (each node is considered).
          */
-        theta : 0.8,
+        theta: 0.8,
 
         /**
          * Drag force coefficient. Used to slow down system, thus should be less than 1.
          * The closer it is to 0 the less tight system will be.
          */
-        dragCoeff : 0.02
+        dragCoeff: 0.02
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
-
-        nbodyForce = Viva.Graph.Physics.nbodyForce({gravity : settings.gravity, theta: settings.theta}),
-
-        springForce = Viva.Graph.Physics.springForce({length : settings.springLength, coeff: settings.springCoeff }),
-
-        dragForce = Viva.Graph.Physics.dragForce({coeff: settings.dragCoeff}),
-
-        initializationRequired = true,
-
+        nbodyForce = Viva.Graph.Physics.nbodyForce({
+            gravity: settings.gravity,
+            theta: settings.theta
+        }),
+        springForce = Viva.Graph.Physics.springForce({
+            length: settings.springLength,
+            coeff: settings.springCoeff
+        }),
+        dragForce = Viva.Graph.Physics.dragForce({
+            coeff: settings.dragCoeff
+        }),
         graphRect = new Viva.Graph.Rect(),
+        random = Viva.random('ted.com', 103, 114, 101, 97, 116),
 
-        random = Viva.random("ted.com", 103, 114, 101, 97, 116),
-
-        getBestNodePosition = function (node) {
+        getBestNodePosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
             // TODO: this is the same as in gem layout. consider refactoring.
@@ -2300,17 +2300,17 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             }
 
             return {
-                x : baseX + random.next(springLength) - springLength / 2,
-                y : baseY + random.next(springLength) - springLength / 2
+                x: baseX + random.next(springLength) - springLength / 2,
+                y: baseY + random.next(springLength) - springLength / 2
             };
         },
 
-        updateNodeMass = function (node) {
+        updateNodeMass = function(node) {
             var body = node.force_directed_body;
             body.mass = 1 + graph.getLinks(node.id).length / 3.0;
         },
 
-        initNode = function (node) {
+        initNode = function(node) {
             var body = node.force_directed_body;
             if (!body) {
                 // TODO: rename position to location or location to position to be consistent with
@@ -2326,7 +2326,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             }
         },
 
-        releaseNode = function (node) {
+        releaseNode = function(node) {
             var body = node.force_directed_body;
             if (body) {
                 node.force_directed_body = null;
@@ -2336,7 +2336,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             }
         },
 
-        initLink = function (link) {
+        initLink = function(link) {
             // TODO: what if bodies are not initialized?
             var from = graph.getNode(link.fromId),
                 to = graph.getNode(link.toId);
@@ -2346,13 +2346,17 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
         },
 
-        releaseLink = function (link) {
+        releaseLink = function(link) {
             var spring = link.force_directed_spring;
             if (spring) {
                 var from = graph.getNode(link.fromId),
                     to = graph.getNode(link.toId);
-                if (from) { updateNodeMass(from); }
-                if (to) { updateNodeMass(to); }
+                if (from) {
+                    updateNodeMass(from);
+                }
+                if (to) {
+                    updateNodeMass(to);
+                }
 
                 link.force_directed_spring = null;
                 delete link.force_directed_spring;
@@ -2361,12 +2365,35 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             }
         },
 
-        initSimulator = function () {
-            graph.forEachNode(initNode);
-            graph.forEachLink(initLink);
+        onGraphChanged = function(changes) {
+            for (var i = 0; i < changes.length; ++i) {
+                var change = changes[i];
+                if (change.changeType === 'add') {
+                    if (change.node) {
+                        initNode(change.node);
+                    }
+                    if (change.link) {
+                        initLink(change.link);
+                    }
+                } else if (change.changeType === 'remove') {
+                    if (change.node) {
+                        releaseNode(change.node);
+                    }
+                    if (change.link) {
+                        releaseLink(change.link);
+                    }
+                }
+                // Probably we don't need to care about 'update' event here;
+            }
         },
 
-        isNodePinned = function (node) {
+        initSimulator = function() {
+            graph.forEachNode(initNode);
+            graph.forEachLink(initLink);
+            graph.addEventListener('changed', onGraphChanged);
+        },
+
+        isNodePinned = function(node) {
             if (!node) {
                 return true;
             }
@@ -2374,17 +2401,21 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             return node.isPinned || (node.data && node.data.isPinned);
         },
 
-        updateNodePositions = function () {
+        updateNodePositions = function() {
             var x1 = Number.MAX_VALUE,
                 y1 = Number.MAX_VALUE,
                 x2 = Number.MIN_VALUE,
                 y2 = Number.MIN_VALUE;
-            if (graph.getNodesCount() === 0) { return; }
+            if (graph.getNodesCount() === 0) {
+                return;
+            }
 
-            graph.forEachNode(function (node) {
+            graph.forEachNode(function(node) {
                 var body = node.force_directed_body;
                 if (!body) {
-                    return; // TODO: maybe we shall initialize it?
+                    // This could be a sign someone removed the propery.
+                    // I should really decouple force related stuff from node
+                    return;
                 }
 
                 if (isNodePinned(node)) {
@@ -2395,10 +2426,18 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
                 node.position.x = body.location.x;
                 node.position.y = body.location.y;
 
-                if (node.position.x < x1) { x1 = node.position.x; }
-                if (node.position.x > x2) { x2 = node.position.x; }
-                if (node.position.y < y1) { y1 = node.position.y; }
-                if (node.position.y > y2) { y2 = node.position.y; }
+                if (node.position.x < x1) {
+                    x1 = node.position.x;
+                }
+                if (node.position.x > x2) {
+                    x2 = node.position.x;
+                }
+                if (node.position.y < y1) {
+                    y1 = node.position.y;
+                }
+                if (node.position.y > y2) {
+                    y2 = node.position.y;
+                }
             });
 
             graphRect.x1 = x1;
@@ -2411,13 +2450,15 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
     forceSimulator.addBodyForce(nbodyForce);
     forceSimulator.addBodyForce(dragForce);
 
+    initSimulator();
+
     return {
         /**
          * Attempts to layout graph within given number of iterations.
          *
          * @param {integer} [iterationsCount] number of algorithm's iterations.
          */
-        run : function (iterationsCount) {
+        run: function(iterationsCount) {
             var i;
             iterationsCount = iterationsCount || 50;
 
@@ -2426,14 +2467,7 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
             }
         },
 
-        step : function () {
-            // we assume graph was not modified between calls. If it was
-            // we will have to reinitialize force simulator.
-            if (initializationRequired) {
-                initSimulator();
-                initializationRequired = false;
-            }
-
+        step: function() {
             var energy = forceSimulator.run(20);
             updateNodePositions();
 
@@ -2444,34 +2478,15 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * Returns rectangle structure {x1, y1, x2, y2}, which represents
          * current space occupied by graph.
          */
-        getGraphRect : function () {
+        getGraphRect: function() {
             return graphRect;
-        },
-
-        addNode : function (node) {
-            initNode(node);
-        },
-
-        removeNode : function (node) {
-            releaseNode(node);
-        },
-
-        addLink : function (link) {
-            initLink(link);
-        },
-
-        removeLink : function (link) {
-            releaseLink(link);
         },
 
         /**
          * Request to release all resources
          */
-        dispose : function () {
-            // Because I do not have reference to all nodes
-            // they should be disposed externally. Probably this will change
-            // In future. For now just reset this flag.
-            initializationRequired = true;
+        dispose: function() {
+            graph.removeEventListener('change', onGraphChanged);
         },
 
         // Layout specific methods
@@ -2481,24 +2496,28 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * @param length new desired length of the springs (aka edge, aka link).
          * if this parameter is empty then old spring length is returned.
          */
-        springLength : function (length) {
+        springLength: function(length) {
             if (arguments.length === 1) {
-                springForce.options({ length : length });
+                springForce.options({
+                    length: length
+                });
                 return this;
             }
 
             return springForce.options().length;
         },
 
-         /**
+        /**
          * Gets or sets current spring coeffiсient.
          *
          * @param coeff new spring coeffiсient.
          * if this parameter is empty then its old value returned.
          */
-        springCoeff : function (coeff) {
+        springCoeff: function(coeff) {
             if (arguments.length === 1) {
-                springForce.options({ coeff : coeff });
+                springForce.options({
+                    coeff: coeff
+                });
                 return this;
             }
 
@@ -2511,9 +2530,11 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * @param g new gravity constant.
          * if this parameter is empty then its old value returned.
          */
-        gravity : function (g) {
+        gravity: function(g) {
             if (arguments.length === 1) {
-                nbodyForce.options({ gravity : g });
+                nbodyForce.options({
+                    gravity: g
+                });
                 return this;
             }
 
@@ -2526,9 +2547,11 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * @param t new theta coeffiсient.
          * if this parameter is empty then its old value returned.
          */
-        theta : function (t) {
+        theta: function(t) {
             if (arguments.length === 1) {
-                nbodyForce.options({ theta : t });
+                nbodyForce.options({
+                    theta: t
+                });
                 return this;
             }
 
@@ -2541,16 +2564,19 @@ Viva.Graph.Layout.forceDirected = function (graph, settings) {
          * @param dragCoeff new drag coeffiсient.
          * if this parameter is empty then its old value returned.
          */
-        drag : function (dragCoeff) {
+        drag: function(dragCoeff) {
             if (arguments.length === 1) {
-                dragForce.options({ coeff : dragCoeff });
+                dragForce.options({
+                    coeff: dragCoeff
+                });
                 return this;
             }
 
             return dragForce.options().coeff;
         }
     };
-};Viva.Graph.Layout = Viva.Graph.Layout || {};
+};
+Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 /**
  * Does not really perform any layouting algorithm but is compliant
@@ -2598,6 +2624,20 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             graphRect.y2 = Number.MIN_VALUE;
 
             graph.forEachNode(ensureNodeInitialized);
+        },
+
+        onGraphChanged = function(changes) {
+            for (var i = 0; i < changes.length; ++i) {
+                var change = changes[i];
+                if (change.changeType === 'add' && change.node) {
+                    ensureNodeInitialized(change.node);
+                }
+            }
+        },
+
+        initLayout = function () {
+            updateNodePositions();
+            graph.addEventListener('changed', onGraphChanged);
         };
 
     return {
@@ -2628,18 +2668,12 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             return graphRect;
         },
 
-        addNode : ensureNodeInitialized,
-
-        removeNode : function (node) { /* nop */ },
-
-        addLink : function (link) { /* nop */ },
-
-        removeLink : function (link) { /* nop */ },
-
         /**
          * Request to release all resources
          */
-        dispose : function () { /* nop */ },
+        dispose : function () {
+            graph.removeEventListener('change', onGraphChanged);
+        },
 
         // Layout specific methods:
 
@@ -2669,7 +2703,8 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         }
 
     };
-};/**
+};
+/**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -2699,7 +2734,6 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // Layout algorithm to be used. The algorithm is expected to comply with defined
  *     // interface and is expected to be iterative. Renderer will use it then to calculate
  *     // grpaph's layout. For examples of the interface refer to Viva.Graph.Layout.forceDirected()
- *     // and Viva.Graph.Layout.gem() algorithms.
  *     layout : Viva.Graph.Layout.forceDirected(),
  *
  *     // Directs renderer to display links. Usually rendering links is the slowest part of this
@@ -2840,8 +2874,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 for (i = 0; i < settings.prerender; i += 1) {
                     layout.step();
                 }
-            } else {
-                layout.step(); // make one step to init positions property.
             }
         },
 
@@ -2861,7 +2893,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
             var nodeUI = graphics.node(node);
             node.ui = nodeUI;
             graphics.initNode(nodeUI);
-            layout.addNode(node);
 
             renderNode(node);
         },
@@ -2873,8 +2904,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 node.ui = null;
                 delete node.ui;
             }
-
-            layout.removeNode(node);
         },
 
         createLinkUi = function (link) {
@@ -2954,13 +2983,11 @@ Viva.Graph.View.renderer = function (graph, settings) {
                     updateCenterRequired = true; // Next time when node is added - center the graph.
                 }
             } else if (change.changeType === 'update') {
+                releaseNodeEvents(node);
+                removeNodeUi(node);
 
-                // releaseNodeEvents(node);
-                // removeNodeUi(node);
-
-                // createNodeUi(node);
-                // listenNodeEvents(node);
-                throw 'Update type is not implemented. TODO: Implement me!';
+                createNodeUi(node);
+                listenNodeEvents(node);
             }
         },
 
@@ -2968,16 +2995,9 @@ Viva.Graph.View.renderer = function (graph, settings) {
             var link = change.link;
             if (change.changeType === 'add') {
                 if (settings.renderLinks) { createLinkUi(link); }
-                layout.addLink(link);
             } else if (change.changeType === 'remove') {
                 if (settings.renderLinks) { removeLinkUi(link); }
-                layout.removeLink(link);
             } else if (change.changeType === 'update') {
-                // if (settings.renderLinks) { removeLinkUi(link); }
-                // layout.removeLink(link);
-
-                // if (settings.renderLinks) { createLinkUi(link); }
-                // layout.addLink(link);
                 throw 'Update type is not implemented. TODO: Implement me!';
             }
         },
@@ -3054,7 +3074,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
             graph.forEachLink(function (link) {
                 if (settings.renderLinks) { removeLinkUi(link); }
-                layout.removeLink(link);
             });
 
             graph.forEachNode(function (node) {

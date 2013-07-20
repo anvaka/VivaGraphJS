@@ -277,13 +277,11 @@ Viva.Graph.View.renderer = function (graph, settings) {
                     updateCenterRequired = true; // Next time when node is added - center the graph.
                 }
             } else if (change.changeType === 'update') {
+                releaseNodeEvents(node);
+                removeNodeUi(node);
 
-                // releaseNodeEvents(node);
-                // removeNodeUi(node);
-
-                // createNodeUi(node);
-                // listenNodeEvents(node);
-                throw 'Update type is not implemented. TODO: Implement me!';
+                createNodeUi(node);
+                listenNodeEvents(node);
             }
         },
 
