@@ -28,7 +28,6 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // Layout algorithm to be used. The algorithm is expected to comply with defined
  *     // interface and is expected to be iterative. Renderer will use it then to calculate
  *     // grpaph's layout. For examples of the interface refer to Viva.Graph.Layout.forceDirected()
- *     // and Viva.Graph.Layout.gem() algorithms.
  *     layout : Viva.Graph.Layout.forceDirected(),
  *
  *     // Directs renderer to display links. Usually rendering links is the slowest part of this
@@ -169,8 +168,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 for (i = 0; i < settings.prerender; i += 1) {
                     layout.step();
                 }
-            } else {
-                layout.step(); // make one step to init positions property.
             }
         },
 
@@ -190,7 +187,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
             var nodeUI = graphics.node(node);
             node.ui = nodeUI;
             graphics.initNode(nodeUI);
-            layout.addNode(node);
 
             renderNode(node);
         },
@@ -202,8 +198,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 node.ui = null;
                 delete node.ui;
             }
-
-            layout.removeNode(node);
         },
 
         createLinkUi = function (link) {
@@ -297,16 +291,9 @@ Viva.Graph.View.renderer = function (graph, settings) {
             var link = change.link;
             if (change.changeType === 'add') {
                 if (settings.renderLinks) { createLinkUi(link); }
-                layout.addLink(link);
             } else if (change.changeType === 'remove') {
                 if (settings.renderLinks) { removeLinkUi(link); }
-                layout.removeLink(link);
             } else if (change.changeType === 'update') {
-                // if (settings.renderLinks) { removeLinkUi(link); }
-                // layout.removeLink(link);
-
-                // if (settings.renderLinks) { createLinkUi(link); }
-                // layout.addLink(link);
                 throw 'Update type is not implemented. TODO: Implement me!';
             }
         },
@@ -383,7 +370,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
             graph.forEachLink(function (link) {
                 if (settings.renderLinks) { removeLinkUi(link); }
-                layout.removeLink(link);
             });
 
             graph.forEachNode(function (node) {

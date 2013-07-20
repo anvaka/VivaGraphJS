@@ -46,6 +46,20 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             graphRect.y2 = Number.MIN_VALUE;
 
             graph.forEachNode(ensureNodeInitialized);
+        },
+
+        onGraphChanged = function(changes) {
+            for (var i = 0; i < changes.length; ++i) {
+                var change = changes[i];
+                if (change.changeType === 'add' && change.node) {
+                    ensureNodeInitialized(change.node);
+                }
+            }
+        },
+
+        initLayout = function () {
+            updateNodePositions();
+            graph.addEventListener('changed', onGraphChanged);
         };
 
     return {
@@ -76,18 +90,12 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             return graphRect;
         },
 
-        addNode : ensureNodeInitialized,
-
-        removeNode : function (node) { /* nop */ },
-
-        addLink : function (link) { /* nop */ },
-
-        removeLink : function (link) { /* nop */ },
-
         /**
          * Request to release all resources
          */
-        dispose : function () { /* nop */ },
+        dispose : function () {
+            graph.removeEventListener('change', onGraphChanged);
+        },
 
         // Layout specific methods:
 
