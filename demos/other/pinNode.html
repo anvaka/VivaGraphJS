@@ -16,14 +16,14 @@
                    dragCoeff : 0.02,
                    gravity : -1.2
                 });
-                
+
                 var graphics = Viva.Graph.View.svgGraphics();
 
-                // Node pinning is an attribute, which tells layout algorithm 
-                // to not update node's position. Effectively the node looks 
-                // like it is pinned to the canvas. 
+                // Node pinning is an attribute, which tells layout algorithm
+                // to not update node's position. Effectively the node looks
+                // like it is pinned to the canvas.
 
-                // One way to achieve pinning is to have "isPinned" attribute on 
+                // One way to achieve pinning is to have "isPinned" attribute on
                 // node object:
                 // var node = graph.addNode('yourNodeId', {some: data});
                 // node.isPinned = true; // now the node will not move.
@@ -45,7 +45,7 @@
                         graphics  : graphics,
                         container : document.getElementById('graphContainer')
                     });
-                    
+
                 renderer.run();
             }
         </script>

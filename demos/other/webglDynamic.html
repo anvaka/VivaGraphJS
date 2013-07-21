@@ -18,24 +18,24 @@
 0xbcbd22ff, 0xdbdb8dff,
 0x17becfff, 0x9edae5ff
                         ];
-                        
+
            function beginRemoveNodesLoop(graph){
                var nodesLeft = [];
                graph.forEachNode(function(node){
                    nodesLeft.push(node.id);
                });
-               
+
                var removeInterval = setInterval(function(){
                     var nodesCount = nodesLeft.length;
-                    
+
                     if (nodesCount > 0){
                         var nodeToRemove = Math.min((Math.random() * nodesCount) << 0, nodesCount - 1);
-                        
+
                         graph.removeNode(nodesLeft[nodeToRemove]);
                         nodesLeft.splice(nodeToRemove, 1);
                     }
-                    
-                    if (nodesCount === 0) { 
+
+                    if (nodesCount === 0) {
                         clearInterval(removeInterval);
                         setTimeout(function(){
                             beginAddNodesLoop(graph);
@@ -43,12 +43,12 @@
                     }
                 }, 100);
            }
-           
+
            function beginAddNodesLoop(graph){
               var i = 0, m = 10, n = 50;
                 var addInterval = setInterval(function(){
                     graph.beginUpdate();
-                    
+
                     for (var j = 0; j < m; ++j){
                         var node = i + j * n;
                         if (i > 0) { graph.addLink(node, i - 1 + j * n); }
@@ -56,16 +56,16 @@
                     }
                     i++;
                     graph.endUpdate();
-                    
-                    if (i >= n) { 
+
+                    if (i >= n) {
                         clearInterval(addInterval);
                         setTimeout(function() {
                             beginRemoveNodesLoop(graph);
-                        }, 10000); 
+                        }, 10000);
                     }
                 }, 100);
            }
-           
+
            function onLoad() {
                var graph = Viva.Graph.graph();
 
@@ -75,7 +75,7 @@
                    dragCoeff : 0.02,
                    gravity : -1.2
                });
-                
+
                var graphics = Viva.Graph.View.webglGraphics();
                graphics
                    .node(function(node){
@@ -84,7 +84,7 @@
                    .link(function(link) {
                        return Viva.Graph.View.webglLine(colors[(Math.random() * colors.length) << 0]);
                    });
-               
+
                var renderer = Viva.Graph.View.renderer(graph,
                    {
                        layout     : layout,
@@ -92,7 +92,7 @@
                        container  : document.getElementById('graph1'),
                        renderLinks : true
                    });
-                   
+
                renderer.run(50);
                 //graph.addLink(1, 2)
                beginAddNodesLoop(graph);
@@ -110,7 +110,7 @@
                 background-color: #dddddd;
                 position: absolute;
             }
-            
+
             #graph1{
                 position: absolute;
                 width: 100%;

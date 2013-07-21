@@ -16,7 +16,7 @@
                    dragCoeff : 0.02,
                    gravity : -1.2
                 });
-                
+
                 var graphics = Viva.Graph.View.svgGraphics();
 
                 var renderer = Viva.Graph.View.renderer(graph, {
@@ -24,7 +24,7 @@
                         graphics  : graphics,
                         container : document.getElementById('graphContainer')
                     });
-                    
+
                 renderer.run();
                 document.body.addEventListener('keydown', function (e) {
                     if (e.which === 32) { // spacebar

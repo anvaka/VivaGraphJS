@@ -35,7 +35,7 @@
                         nodesLeft.splice(nodeToRemove, 1);
                     }
 
-                    if (nodesCount === 0) { 
+                    if (nodesCount === 0) {
                         clearInterval(removeInterval);
                         setTimeout(function(){
                             beginAddNodesLoop(graph);
@@ -57,11 +57,11 @@
                     i++;
                     graph.endUpdate();
 
-                    if (i >= n) { 
+                    if (i >= n) {
                         clearInterval(addInterval);
                         setTimeout(function() {
                             beginRemoveNodesLoop(graph);
-                        }, 10000); 
+                        }, 10000);
                     }
                 }, 100);
            }
@@ -81,7 +81,7 @@
                   return Viva.Graph.svg('rect')
                      .attr('width', 10)
                      .attr('height', 10)
-                     .attr('fill', node.data ? node.data : '#00a2e8'); 
+                     .attr('fill', node.data ? node.data : '#00a2e8');
                });
 
                var renderer = Viva.Graph.View.renderer(graph,
@@ -107,7 +107,7 @@
 
             #graphConainer > svg {
                 width: 100%;
-                height: 100%; 
+                height: 100%;
             }
  </style>
 </head>

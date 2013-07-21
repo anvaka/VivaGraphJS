@@ -4,10 +4,10 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width, user-scalable=no">
         <title>VivaGraph Convex Hull test page</title>
-        
+
         <script src="../../dist/vivagraph.js"></script>
         <script type='text/javascript'>
-        
+
             /*global Viva, $*/
             function onLoad() {
                 var pointsCount = 100,
@@ -18,9 +18,9 @@
                         x : Math.random() * 500 + 10,
                         y : Math.random() * 500 + 10
                     });
-                    
+
                 }
-                
+
                 var scene = document.getElementById('scene');
                 for (i = 0; i < pointsCount; ++i) {
                     var pt = Viva.Graph.svg('rect')
@@ -31,7 +31,7 @@
                                 .attr('height', 10);
                     scene.appendChild(pt);
                 }
-                
+
                 var hull = Viva.Graph.geom().convexHull(points),
                     hullPath = 'M' + hull[0].x + ' ' + hull[0].y;
 
