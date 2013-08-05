@@ -160,7 +160,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                         releaseLink(change.link);
                     }
                 }
-                // Probably we don't need to care about 'update' event here;
             }
         },
 
