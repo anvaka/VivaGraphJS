@@ -37,7 +37,13 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // Number of layout iterations to run before displaying the graph. The bigger you set this number
  *     // the closer to ideal position graph will apper first time. But be careful: for large graphs
  *     // it can freeze the browser.
- *     prerender : 0
+ *     prerender : 0,
+ *
+ *     // Renderer should be compatible with older version of VivaGraph.
+ *     // Warning: This option will be depricated soon. Compatible mode has a flaw of data being
+ *     // shared on a node object of a graph. Which makes it impossible to reuse between multiple
+ *     // renderers/layouters.
+ *     compatible: false
  *   }
  */
 Viva.Graph.View.renderer = function (graph, settings) {
@@ -80,6 +86,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 settings.renderLinks = true;
             }
 
+            settings.compatible = settings.compatible || false;
             settings.prerender = settings.prerender || 0;
             inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
         },
@@ -94,29 +101,28 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
 
         renderLink = function (link) {
-            var fromNode = graph.getNode(link.fromId),
-                toNode = graph.getNode(link.toId);
+            var fromNode = layout.getNodePosition(link.fromId),
+                toNode = layout.getNodePosition(link.toId);
 
             if (!fromNode || !toNode) {
                 return;
             }
 
-            cachedFromPos.x = fromNode.position.x;
-            cachedFromPos.y = fromNode.position.y;
-            cachedFromPos.node = fromNode;
+            cachedFromPos.x = fromNode.x;
+            cachedFromPos.y = fromNode.y;
 
-            cachedToPos.x = toNode.position.x;
-            cachedToPos.y = toNode.position.y;
-            cachedToPos.node = toNode;
+            cachedToPos.x = toNode.x;
+            cachedToPos.y = toNode.y;
 
-            graphics.updateLinkPosition(link.ui, cachedFromPos, cachedToPos);
+            graphics.updateLinkPosition(link, cachedFromPos, cachedToPos);
         },
 
         renderNode = function (node) {
-            cachedNodePos.x = node.position.x;
-            cachedNodePos.y = node.position.y;
+            var pos = layout.getNodePosition(node.id);
+            cachedNodePos.x = pos.x;
+            cachedNodePos.y = pos.y;
 
-            graphics.updateNodePosition(node.ui, cachedNodePos);
+            graphics.updateNodePosition(node, cachedNodePos);
         },
 
         renderGraph = function () {
@@ -184,26 +190,27 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createNodeUi = function (node) {
-            var nodeUI = graphics.node(node);
-            node.ui = nodeUI;
-            graphics.initNode(nodeUI);
+            var nodeUI = graphics.addNode(node);
+            if (settings.compatible) {
+                node.ui = nodeUI;
+            }
 
             renderNode(node);
         },
 
         removeNodeUi = function (node) {
-            if (node.hasOwnProperty('ui')) {
-                graphics.releaseNode(node.ui);
-
+            graphics.releaseNode(node);
+            if (settings.compatible && node.hasOwnProperty('ui')) {
                 node.ui = null;
                 delete node.ui;
             }
         },
 
         createLinkUi = function (link) {
-            var linkUI = graphics.link(link);
-            link.ui = linkUI;
-            graphics.initLink(linkUI);
+            var linkUI = graphics.addLink(link);
+            if (settings.compatible) {
+                link.ui = linkUI;
+            }
 
             if (!graphics.omitLinksRendering) {
                 renderLink(link);
@@ -211,8 +218,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         removeLinkUi = function (link) {
-            if (link.hasOwnProperty('ui')) {
-                graphics.releaseLink(link.ui);
+            graphics.releaseLink(link);
+            if (settings.compatible && link.hasOwnProperty('ui')) {
                 link.ui = null;
                 delete link.ui;
             }
@@ -224,20 +231,23 @@ Viva.Graph.View.renderer = function (graph, settings) {
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
                 onStart : function () {
-                    wasPinned = node.isPinned;
-                    node.isPinned = true;
+                    wasPinned = layout.isNodePinned(node);
+                    layout.pinNode(node, true);
                     userInteraction = true;
                     resetStable();
                 },
                 onDrag : function (e, offset) {
-                    node.position.x += offset.x / transform.scale;
-                    node.position.y += offset.y / transform.scale;
+                    var oldPos = layout.getNodePosition(node.id);
+                    layout.setNodePosition(node,
+                                           oldPos.x + offset.x / transform.scale,
+                                           oldPos.y + offset.y / transform.scale);
+
                     userInteraction = true;
 
                     renderGraph();
                 },
                 onStop : function () {
-                    node.isPinned = wasPinned;
+                    layout.pinNode(node, wasPinned);
                     userInteraction = false;
                 }
             });

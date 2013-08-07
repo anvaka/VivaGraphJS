@@ -723,7 +723,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
  */
 
 Viva.Input = Viva.Input || {};
-Viva.Input.domInputManager = function () {
+Viva.Input.domInputManager = function (graph, graphics) {
+    var nodeEvents = {};
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
@@ -737,8 +738,10 @@ Viva.Input.domInputManager = function () {
          *   onStop: function()
          */
         bindDragNDrop : function (node, handlers) {
+            var events;
             if (handlers) {
-                var events = Viva.Graph.Utils.dragndrop(node.ui);
+                var nodeUI = graphics.getNodeUI(node.id);
+                events = Viva.Graph.Utils.dragndrop(nodeUI);
                 if (typeof handlers.onStart === 'function') {
                     events.onStart(handlers.onStart);
                 }
@@ -749,12 +752,10 @@ Viva.Input.domInputManager = function () {
                     events.onStop(handlers.onStop);
                 }
 
-                node.events = events;
-            } else if (node.events) {
-                // TODO: i'm not sure if this is required in JS world...
-                node.events.release();
-                node.events = null;
-                delete node.events;
+                nodeEvents[node.id] = events;
+            } else if (( events = nodeEvents[node.id] )) {
+                events.release();
+                delete nodeEvents[node.id];
             }
         }
     };
@@ -1105,11 +1106,13 @@ Viva.Graph.Node = function (id) {
 /**
  * Internal structure to represent links;
  */
-Viva.Graph.Link = function (fromId, toId, data) {
+Viva.Graph.Link = function (fromId, toId, data, id) {
     this.fromId = fromId;
     this.toId = toId;
     this.data = data;
-};/**
+    this.id = id;
+};
+/**
  * @fileOverview Contains definition of the core graph object.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -1135,6 +1138,8 @@ Viva.Graph.graph = function () {
 
     var nodes = {},
         links = [],
+        // Hash of multi-edges. Used to track ids of edges between same nodes
+        multiEdges = {},
         nodesCount = 0,
         suspendEvents = 0,
 
@@ -1257,7 +1262,16 @@ Viva.Graph.graph = function () {
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
-            var link = new Viva.Graph.Link(fromId, toId, data);
+            var linkId = fromId.toString() + toId.toString();
+            var isMultiEdge = multiEdges.hasOwnProperty(linkId);
+            if (isMultiEdge || this.hasLink(fromId, toId)) {
+                if (!isMultiEdge) {
+                    multiEdges[linkId] = 0;
+                }
+                linkId += '@' + (++multiEdges[linkId]);
+            }
+
+            var link = new Viva.Graph.Link(fromId, toId, data, linkId);
 
             links.push(link);
 
@@ -1514,7 +1528,8 @@ Viva.Graph.graph = function () {
     Viva.Graph.Utils.events(graphPart).extend();
 
     return graphPart;
-};/**
+};
+/**
  * @fileOverview Contains collection of primitve operations under graph.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -2238,6 +2253,12 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
 
     settings = Viva.lazyExtend(settings, {
         /**
+         * If true, the layout API will be compatible with
+         * old version of the library, where each node had it's own
+         * position property. This was a bad API decision...
+         */
+        compatible: false,
+        /**
          * Ideal length for links (springs in physical model).
          */
         springLength: 80,
@@ -2283,10 +2304,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         graphRect = new Viva.Graph.Rect(),
         random = Viva.random('ted.com', 103, 114, 101, 97, 116),
 
-        getBestNodePosition = function(node) {
+        getBestBodyPosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
-            // TODO: this is the same as in gem layout. consider refactoring.
+            // How about center of mass?
             var baseX = (graphRect.x1 + graphRect.x2) / 2,
                 baseY = (graphRect.y1 + graphRect.y2) / 2,
                 springLength = settings.springLength;
@@ -2306,61 +2327,94 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             };
         },
 
-        updateNodeMass = function(node) {
-            var body = node.force_directed_body;
+        nodeBodies = {},
+        getBody = function (nodeId) {
+            return nodeBodies[nodeId];
+        },
+
+        releaseBody = function (node) {
+            nodeBodies[node.id] = null;
+            delete nodeBodies[node.id];
+        },
+
+        springs = {},
+
+        updateBodyMass = function(node) {
+            var body = getBody(node.id);
             body.mass = 1 + graph.getLinks(node.id).length / 3.0;
         },
 
         initNode = function(node) {
-            var body = node.force_directed_body;
+            var body = getBody(node.id);
             if (!body) {
-                // TODO: rename position to location or location to position to be consistent with
-                // other places.
-                node.position = node.position || getBestNodePosition(node);
-
                 body = new Viva.Graph.Physics.Body();
-                node.force_directed_body = body;
-                updateNodeMass(node);
+                nodeBodies[node.id] = body;
+                var position = getBestBodyPosition(body);
+                body.loc(position);
+                updateBodyMass(node);
 
-                body.loc(node.position);
+                if (settings.compatible) {
+                    // This is depricated method. Please never ever use
+                    // 'compatible' mode: it has a curse of shared data store
+                    // i.e. there is no way two layouters could layout the same
+                    // graph, since they both would compete for positions
+                    node.position = position;
+                    node.force_directed_body = body;
+                }
+
                 forceSimulator.addBody(body);
             }
         },
 
         releaseNode = function(node) {
-            var body = node.force_directed_body;
+            var body = getBody(node.id);
             if (body) {
-                node.force_directed_body = null;
-                delete node.force_directed_body;
+                if (settings.compatible) {
+                    node.force_directed_body = null;
+                    delete node.force_directed_body;
+                }
+                releaseBody(node);
 
                 forceSimulator.removeBody(body);
             }
         },
 
         initLink = function(link) {
-            // TODO: what if bodies are not initialized?
             var from = graph.getNode(link.fromId),
                 to = graph.getNode(link.toId);
 
-            updateNodeMass(from);
-            updateNodeMass(to);
-            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
+            updateBodyMass(from);
+            updateBodyMass(to);
+
+            var fromBody = getBody(link.fromId),
+                toBody  = getBody(link.toId),
+                spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
+
+            // TODO: this has a bug, with multiple springs between same nodes
+            springs[link.id] = spring;
+
+            if (settings.compatible) {
+                // bad...
+                link.force_directed_spring = spring;
+            }
         },
 
         releaseLink = function(link) {
-            var spring = link.force_directed_spring;
+            var spring = springs[link.id];
             if (spring) {
                 var from = graph.getNode(link.fromId),
                     to = graph.getNode(link.toId);
                 if (from) {
-                    updateNodeMass(from);
+                    updateBodyMass(from);
                 }
                 if (to) {
-                    updateNodeMass(to);
+                    updateBodyMass(to);
                 }
-
-                link.force_directed_spring = null;
-                delete link.force_directed_spring;
+                if (settings.compatible) {
+                    link.force_directed_spring = null;
+                    delete link.force_directed_spring;
+                }
+                delete springs[link.id];
 
                 forceSimulator.removeSpring(spring);
             }
@@ -2384,7 +2438,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                         releaseLink(change.link);
                     }
                 }
-                // Probably we don't need to care about 'update' event here;
             }
         },
 
@@ -2394,12 +2447,14 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             graph.addEventListener('changed', onGraphChanged);
         },
 
-        isNodePinned = function(node) {
-            if (!node) {
+        isNodePinned = function(node, body) {
+            // this potentiall should make it easy to refactor when compatible mode goes away
+            if (!node && !body) {
                 return true;
             }
 
-            return node.isPinned || (node.data && node.data.isPinned);
+            return (node && (node.isPinned || (node.data && node.data.isPinned))) ||
+                   (body && body.isPinned);
         },
 
         updateNodePositions = function() {
@@ -2407,39 +2462,54 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 y1 = Number.MAX_VALUE,
                 x2 = Number.MIN_VALUE,
                 y2 = Number.MIN_VALUE;
+
             if (graph.getNodesCount() === 0) {
                 return;
             }
+            for (var key in nodeBodies) {
+                if (nodeBodies.hasOwnProperty(key)) {
+                    // how about pinned nodes?
+                    var body = nodeBodies[key];
+                    if (isNodePinned(null, body)) {
+                        body.location.x = body.prevLocation.x;
+                        body.location.y = body.prevLocation.y;
+                    } else {
+                        body.prevLocation.x = body.location.x;
+                        body.prevLocation.y = body.location.y;
+                    }
+                    if (body.location.x < x1) {
+                        x1 = body.location.x;
+                    }
+                    if (body.location.x > x2) {
+                        x2 = body.location.x;
+                    }
+                    if (body.location.y < y1) {
+                        y1 = body.location.y;
+                    }
+                    if (body.location.y > y2) {
+                        y2 = body.location.y;
+                    }
+                }
+            }
 
-            graph.forEachNode(function(node) {
-                var body = node.force_directed_body;
-                if (!body) {
-                    // This could be a sign someone removed the propery.
-                    // I should really decouple force related stuff from node
-                    return;
-                }
+            if (settings.compatible) {
+                graph.forEachNode(function(node) {
+                    var body = node.force_directed_body;
+                    if (!body) {
+                        // This could be a sign someone removed the propery.
+                        // Please don't use 'compatible' mode
+                        return;
+                    }
 
-                if (isNodePinned(node)) {
-                    body.loc(node.position);
-                }
+                    // if (isNodePinned(node)) {
+                    //     body.loc(node.position);
+                    // }
 
-                // TODO: once again: use one name to be consistent (position vs location)
-                node.position.x = body.location.x;
-                node.position.y = body.location.y;
+                    node.position.x = body.location.x;
+                    node.position.y = body.location.y;
 
-                if (node.position.x < x1) {
-                    x1 = node.position.x;
-                }
-                if (node.position.x > x2) {
-                    x2 = node.position.x;
-                }
-                if (node.position.y < y1) {
-                    y1 = node.position.y;
-                }
-                if (node.position.y > y2) {
-                    y2 = node.position.y;
-                }
-            });
+                });
+            }
 
             graphRect.x1 = x1;
             graphRect.x2 = x2;
@@ -2473,6 +2543,29 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             updateNodePositions();
 
             return energy < STABLE_THRESHOLD;
+        },
+
+        isNodePinned: function (node) {
+            var body = getBody(node.id);
+            return isNodePinned(node, body);
+        },
+
+        pinNode: function (node, isPinned) {
+            var body = getBody(node.id);
+            body.isPinned = !!isPinned;
+        },
+
+        getNodePosition: function (nodeId) {
+            var body = getBody(nodeId);
+            return body && body.location;
+        },
+
+        setNodePosition: function (node, x, y) {
+            var body = getBody(node.id);
+            if (body) {
+                body.prevLocation.x = body.location.x = x;
+                body.prevLocation.y = body.location.y = y;
+            }
         },
 
         /**
@@ -2744,7 +2837,13 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // Number of layout iterations to run before displaying the graph. The bigger you set this number
  *     // the closer to ideal position graph will apper first time. But be careful: for large graphs
  *     // it can freeze the browser.
- *     prerender : 0
+ *     prerender : 0,
+ *
+ *     // Renderer should be compatible with older version of VivaGraph.
+ *     // Warning: This option will be depricated soon. Compatible mode has a flaw of data being
+ *     // shared on a node object of a graph. Which makes it impossible to reuse between multiple
+ *     // renderers/layouters.
+ *     compatible: false
  *   }
  */
 Viva.Graph.View.renderer = function (graph, settings) {
@@ -2787,6 +2886,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 settings.renderLinks = true;
             }
 
+            settings.compatible = settings.compatible || false;
             settings.prerender = settings.prerender || 0;
             inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
         },
@@ -2801,29 +2901,28 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
 
         renderLink = function (link) {
-            var fromNode = graph.getNode(link.fromId),
-                toNode = graph.getNode(link.toId);
+            var fromNode = layout.getNodePosition(link.fromId),
+                toNode = layout.getNodePosition(link.toId);
 
             if (!fromNode || !toNode) {
                 return;
             }
 
-            cachedFromPos.x = fromNode.position.x;
-            cachedFromPos.y = fromNode.position.y;
-            cachedFromPos.node = fromNode;
+            cachedFromPos.x = fromNode.x;
+            cachedFromPos.y = fromNode.y;
 
-            cachedToPos.x = toNode.position.x;
-            cachedToPos.y = toNode.position.y;
-            cachedToPos.node = toNode;
+            cachedToPos.x = toNode.x;
+            cachedToPos.y = toNode.y;
 
-            graphics.updateLinkPosition(link.ui, cachedFromPos, cachedToPos);
+            graphics.updateLinkPosition(link, cachedFromPos, cachedToPos);
         },
 
         renderNode = function (node) {
-            cachedNodePos.x = node.position.x;
-            cachedNodePos.y = node.position.y;
+            var pos = layout.getNodePosition(node.id);
+            cachedNodePos.x = pos.x;
+            cachedNodePos.y = pos.y;
 
-            graphics.updateNodePosition(node.ui, cachedNodePos);
+            graphics.updateNodePosition(node, cachedNodePos);
         },
 
         renderGraph = function () {
@@ -2891,26 +2990,27 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createNodeUi = function (node) {
-            var nodeUI = graphics.node(node);
-            node.ui = nodeUI;
-            graphics.initNode(nodeUI);
+            var nodeUI = graphics.addNode(node);
+            if (settings.compatible) {
+                node.ui = nodeUI;
+            }
 
             renderNode(node);
         },
 
         removeNodeUi = function (node) {
-            if (node.hasOwnProperty('ui')) {
-                graphics.releaseNode(node.ui);
-
+            graphics.releaseNode(node);
+            if (settings.compatible && node.hasOwnProperty('ui')) {
                 node.ui = null;
                 delete node.ui;
             }
         },
 
         createLinkUi = function (link) {
-            var linkUI = graphics.link(link);
-            link.ui = linkUI;
-            graphics.initLink(linkUI);
+            var linkUI = graphics.addLink(link);
+            if (settings.compatible) {
+                link.ui = linkUI;
+            }
 
             if (!graphics.omitLinksRendering) {
                 renderLink(link);
@@ -2918,8 +3018,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         removeLinkUi = function (link) {
-            if (link.hasOwnProperty('ui')) {
-                graphics.releaseLink(link.ui);
+            graphics.releaseLink(link);
+            if (settings.compatible && link.hasOwnProperty('ui')) {
                 link.ui = null;
                 delete link.ui;
             }
@@ -2931,20 +3031,23 @@ Viva.Graph.View.renderer = function (graph, settings) {
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
                 onStart : function () {
-                    wasPinned = node.isPinned;
-                    node.isPinned = true;
+                    wasPinned = layout.isNodePinned(node);
+                    layout.pinNode(node, true);
                     userInteraction = true;
                     resetStable();
                 },
                 onDrag : function (e, offset) {
-                    node.position.x += offset.x / transform.scale;
-                    node.position.y += offset.y / transform.scale;
+                    var oldPos = layout.getNodePosition(node.id);
+                    layout.setNodePosition(node,
+                                           oldPos.x + offset.x / transform.scale,
+                                           oldPos.y + offset.y / transform.scale);
+
                     userInteraction = true;
 
                     renderGraph();
                 },
                 onStop : function () {
-                    node.isPinned = wasPinned;
+                    layout.pinNode(node, wasPinned);
                     userInteraction = false;
                 }
             });
@@ -4419,6 +4522,8 @@ Viva.Graph.View.svgGraphics = function () {
         offsetX,
         offsetY,
         actualScale = 1,
+        allNodes = {},
+        allLinks = {},
 /*jshint unused: false */
         nodeBuilder = function (node) {
             return Viva.Graph.svg("rect")
@@ -4458,51 +4563,53 @@ Viva.Graph.View.svgGraphics = function () {
         };
 
     var graphics = {
+        getNodeUI: function (nodeId) {
+            return allNodes[nodeId];
+        },
+
+        getLinkUI: function (linkId) {
+            return allLinks[linkId];
+        },
         /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
+         * Sets the collback that creates node representation.
          *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph node
+         * as a parameter and must return an element representing this node.
          *
          * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
+         * Otherwise undefined value is returned
          */
-        node : function (builderCallbackOrNode) {
-
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
-                return nodeBuilder(builderCallbackOrNode);
+        node : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            nodeBuilder = builderCallbackOrNode;
+            nodeBuilder = builderCallback;
 
             return this;
         },
 
         /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
+         * Sets the callback that creates link representation
          *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph link
+         * as a parameter and must return an element representing this link.
          *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
+         * @returns If builderCallback is a valid callback function, instance of this is returned;
+         * Otherwise undefined value is returend.
          */
-        link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
-                return linkBuilder(builderCallbackOrLink);
+        link : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            linkBuilder = builderCallbackOrLink;
+            linkBuilder = builderCallback;
             return this;
         },
 
         /**
          * Allows to override default position setter for the node with a new
-         * function. newPlaceCallback(nodeUI, position) is function which
+         * function. newPlaceCallback(nodeUI, position, node) is function which
          * is used by updateNodePosition().
          */
         placeNode : function (newPlaceCallback) {
@@ -4618,13 +4725,16 @@ Viva.Graph.View.svgGraphics = function () {
          *
          * @param linkUI visual representation of the link created by link() execution.
          */
-        initLink : function (linkUI) {
+        addLink: function (link) {
+            var linkUI = linkBuilder(link);
             if (!linkUI) { return; }
+            allLinks[link.id] = linkUI;
             if (svgContainer.childElementCount > 0) {
                 svgContainer.insertBefore(linkUI, svgContainer.firstChild);
             } else {
                 svgContainer.appendChild(linkUI);
             }
+            return linkUI;
         },
 
        /**
@@ -4633,7 +4743,8 @@ Viva.Graph.View.svgGraphics = function () {
         *
         * @param linkUI visual representation of the link created by link() execution.
         **/
-        releaseLink : function (linkUI) {
+        releaseLink : function (link) {
+            var linkUI = this.getLinkUI(link);
             svgContainer.removeChild(linkUI);
         },
 
@@ -4643,26 +4754,40 @@ Viva.Graph.View.svgGraphics = function () {
         *
         * @param nodeUI visual representation of the node created by node() execution.
         **/
-        initNode : function (nodeUI) {
+        addNode : function (node) {
+            var nodeUI = nodeBuilder(node);
+            if (!nodeUI) {
+                return;
+            }
+            allNodes[node.id] = nodeUI;
+
             svgContainer.appendChild(nodeUI);
+
+            return nodeUI;
         },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider remove node from rendering surface.
         *
-        * @param nodeUI visual representation of the node created by node() execution.
+        * @param node graph's node
         **/
-        releaseNode : function (nodeUI) {
-            svgContainer.removeChild(nodeUI);
+        releaseNode : function (node) {
+            var nodeUI = this.getNodeUI(node.id);
+            if (nodeUI) {
+                svgContainer.removeChild(nodeUI);
+            }
         },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider place given node UI to recommended position pos {x, y};
         */
-        updateNodePosition : function (nodeUI, pos) {
-            nodePositionCallback(nodeUI, pos);
+        updateNodePosition : function (node, pos) {
+            var ui = this.getNodeUI(node.id);
+            if (ui) {
+                nodePositionCallback(ui, pos, node);
+            }
         },
 
         /**
@@ -4670,7 +4795,8 @@ Viva.Graph.View.svgGraphics = function () {
         * provider place given link of the graph. Pos objects are {x, y};
         */
         updateLinkPosition : function (link, fromPos, toPos) {
-            linkPositionCallback(link, fromPos, toPos);
+            var ui = this.getLinkUI(link.id);
+            linkPositionCallback(ui, fromPos, toPos, link);
         },
 
         /**

@@ -14,6 +14,12 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
 
     settings = Viva.lazyExtend(settings, {
         /**
+         * If true, the layout API will be compatible with
+         * old version of the library, where each node had it's own
+         * position property. This was a bad API decision...
+         */
+        compatible: false,
+        /**
          * Ideal length for links (springs in physical model).
          */
         springLength: 80,
@@ -59,10 +65,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         graphRect = new Viva.Graph.Rect(),
         random = Viva.random('ted.com', 103, 114, 101, 97, 116),
 
-        getBestNodePosition = function(node) {
+        getBestBodyPosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
-            // TODO: this is the same as in gem layout. consider refactoring.
+            // How about center of mass?
             var baseX = (graphRect.x1 + graphRect.x2) / 2,
                 baseY = (graphRect.y1 + graphRect.y2) / 2,
                 springLength = settings.springLength;
@@ -82,61 +88,94 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             };
         },
 
-        updateNodeMass = function(node) {
-            var body = node.force_directed_body;
+        nodeBodies = {},
+        getBody = function (nodeId) {
+            return nodeBodies[nodeId];
+        },
+
+        releaseBody = function (node) {
+            nodeBodies[node.id] = null;
+            delete nodeBodies[node.id];
+        },
+
+        springs = {},
+
+        updateBodyMass = function(node) {
+            var body = getBody(node.id);
             body.mass = 1 + graph.getLinks(node.id).length / 3.0;
         },
 
         initNode = function(node) {
-            var body = node.force_directed_body;
+            var body = getBody(node.id);
             if (!body) {
-                // TODO: rename position to location or location to position to be consistent with
-                // other places.
-                node.position = node.position || getBestNodePosition(node);
-
                 body = new Viva.Graph.Physics.Body();
-                node.force_directed_body = body;
-                updateNodeMass(node);
+                nodeBodies[node.id] = body;
+                var position = getBestBodyPosition(body);
+                body.loc(position);
+                updateBodyMass(node);
 
-                body.loc(node.position);
+                if (settings.compatible) {
+                    // This is depricated method. Please never ever use
+                    // 'compatible' mode: it has a curse of shared data store
+                    // i.e. there is no way two layouters could layout the same
+                    // graph, since they both would compete for positions
+                    node.position = position;
+                    node.force_directed_body = body;
+                }
+
                 forceSimulator.addBody(body);
             }
         },
 
         releaseNode = function(node) {
-            var body = node.force_directed_body;
+            var body = getBody(node.id);
             if (body) {
-                node.force_directed_body = null;
-                delete node.force_directed_body;
+                if (settings.compatible) {
+                    node.force_directed_body = null;
+                    delete node.force_directed_body;
+                }
+                releaseBody(node);
 
                 forceSimulator.removeBody(body);
             }
         },
 
         initLink = function(link) {
-            // TODO: what if bodies are not initialized?
             var from = graph.getNode(link.fromId),
                 to = graph.getNode(link.toId);
 
-            updateNodeMass(from);
-            updateNodeMass(to);
-            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
+            updateBodyMass(from);
+            updateBodyMass(to);
+
+            var fromBody = getBody(link.fromId),
+                toBody  = getBody(link.toId),
+                spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
+
+            // TODO: this has a bug, with multiple springs between same nodes
+            springs[link.id] = spring;
+
+            if (settings.compatible) {
+                // bad...
+                link.force_directed_spring = spring;
+            }
         },
 
         releaseLink = function(link) {
-            var spring = link.force_directed_spring;
+            var spring = springs[link.id];
             if (spring) {
                 var from = graph.getNode(link.fromId),
                     to = graph.getNode(link.toId);
                 if (from) {
-                    updateNodeMass(from);
+                    updateBodyMass(from);
                 }
                 if (to) {
-                    updateNodeMass(to);
+                    updateBodyMass(to);
                 }
-
-                link.force_directed_spring = null;
-                delete link.force_directed_spring;
+                if (settings.compatible) {
+                    link.force_directed_spring = null;
+                    delete link.force_directed_spring;
+                }
+                delete springs[link.id];
 
                 forceSimulator.removeSpring(spring);
             }
@@ -169,12 +208,14 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             graph.addEventListener('changed', onGraphChanged);
         },
 
-        isNodePinned = function(node) {
-            if (!node) {
+        isNodePinned = function(node, body) {
+            // this potentiall should make it easy to refactor when compatible mode goes away
+            if (!node && !body) {
                 return true;
             }
 
-            return node.isPinned || (node.data && node.data.isPinned);
+            return (node && (node.isPinned || (node.data && node.data.isPinned))) ||
+                   (body && body.isPinned);
         },
 
         updateNodePositions = function() {
@@ -182,39 +223,54 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 y1 = Number.MAX_VALUE,
                 x2 = Number.MIN_VALUE,
                 y2 = Number.MIN_VALUE;
+
             if (graph.getNodesCount() === 0) {
                 return;
             }
+            for (var key in nodeBodies) {
+                if (nodeBodies.hasOwnProperty(key)) {
+                    // how about pinned nodes?
+                    var body = nodeBodies[key];
+                    if (isNodePinned(null, body)) {
+                        body.location.x = body.prevLocation.x;
+                        body.location.y = body.prevLocation.y;
+                    } else {
+                        body.prevLocation.x = body.location.x;
+                        body.prevLocation.y = body.location.y;
+                    }
+                    if (body.location.x < x1) {
+                        x1 = body.location.x;
+                    }
+                    if (body.location.x > x2) {
+                        x2 = body.location.x;
+                    }
+                    if (body.location.y < y1) {
+                        y1 = body.location.y;
+                    }
+                    if (body.location.y > y2) {
+                        y2 = body.location.y;
+                    }
+                }
+            }
 
-            graph.forEachNode(function(node) {
-                var body = node.force_directed_body;
-                if (!body) {
-                    // This could be a sign someone removed the propery.
-                    // I should really decouple force related stuff from node
-                    return;
-                }
+            if (settings.compatible) {
+                graph.forEachNode(function(node) {
+                    var body = node.force_directed_body;
+                    if (!body) {
+                        // This could be a sign someone removed the propery.
+                        // Please don't use 'compatible' mode
+                        return;
+                    }
 
-                if (isNodePinned(node)) {
-                    body.loc(node.position);
-                }
+                    // if (isNodePinned(node)) {
+                    //     body.loc(node.position);
+                    // }
 
-                // TODO: once again: use one name to be consistent (position vs location)
-                node.position.x = body.location.x;
-                node.position.y = body.location.y;
+                    node.position.x = body.location.x;
+                    node.position.y = body.location.y;
 
-                if (node.position.x < x1) {
-                    x1 = node.position.x;
-                }
-                if (node.position.x > x2) {
-                    x2 = node.position.x;
-                }
-                if (node.position.y < y1) {
-                    y1 = node.position.y;
-                }
-                if (node.position.y > y2) {
-                    y2 = node.position.y;
-                }
-            });
+                });
+            }
 
             graphRect.x1 = x1;
             graphRect.x2 = x2;
@@ -248,6 +304,29 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             updateNodePositions();
 
             return energy < STABLE_THRESHOLD;
+        },
+
+        isNodePinned: function (node) {
+            var body = getBody(node.id);
+            return isNodePinned(node, body);
+        },
+
+        pinNode: function (node, isPinned) {
+            var body = getBody(node.id);
+            body.isPinned = !!isPinned;
+        },
+
+        getNodePosition: function (nodeId) {
+            var body = getBody(nodeId);
+            return body && body.location;
+        },
+
+        setNodePosition: function (node, x, y) {
+            var body = getBody(node.id);
+            if (body) {
+                body.prevLocation.x = body.location.x = x;
+                body.prevLocation.y = body.location.y = y;
+            }
         },
 
         /**

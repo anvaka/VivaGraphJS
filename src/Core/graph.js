@@ -24,6 +24,8 @@ Viva.Graph.graph = function () {
 
     var nodes = {},
         links = [],
+        // Hash of multi-edges. Used to track ids of edges between same nodes
+        multiEdges = {},
         nodesCount = 0,
         suspendEvents = 0,
 
@@ -146,7 +148,16 @@ Viva.Graph.graph = function () {
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
-            var link = new Viva.Graph.Link(fromId, toId, data);
+            var linkId = fromId.toString() + toId.toString();
+            var isMultiEdge = multiEdges.hasOwnProperty(linkId);
+            if (isMultiEdge || this.hasLink(fromId, toId)) {
+                if (!isMultiEdge) {
+                    multiEdges[linkId] = 0;
+                }
+                linkId += '@' + (++multiEdges[linkId]);
+            }
+
+            var link = new Viva.Graph.Link(fromId, toId, data, linkId);
 
             links.push(link);
 

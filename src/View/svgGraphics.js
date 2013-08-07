@@ -16,6 +16,8 @@ Viva.Graph.View.svgGraphics = function () {
         offsetX,
         offsetY,
         actualScale = 1,
+        allNodes = {},
+        allLinks = {},
 /*jshint unused: false */
         nodeBuilder = function (node) {
             return Viva.Graph.svg("rect")
@@ -55,51 +57,53 @@ Viva.Graph.View.svgGraphics = function () {
         };
 
     var graphics = {
+        getNodeUI: function (nodeId) {
+            return allNodes[nodeId];
+        },
+
+        getLinkUI: function (linkId) {
+            return allLinks[linkId];
+        },
         /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
+         * Sets the collback that creates node representation.
          *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph node
+         * as a parameter and must return an element representing this node.
          *
          * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
+         * Otherwise undefined value is returned
          */
-        node : function (builderCallbackOrNode) {
-
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
-                return nodeBuilder(builderCallbackOrNode);
+        node : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            nodeBuilder = builderCallbackOrNode;
+            nodeBuilder = builderCallback;
 
             return this;
         },
 
         /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
+         * Sets the callback that creates link representation
          *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph link
+         * as a parameter and must return an element representing this link.
          *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
+         * @returns If builderCallback is a valid callback function, instance of this is returned;
+         * Otherwise undefined value is returend.
          */
-        link : function (builderCallbackOrLink) {
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
-                return linkBuilder(builderCallbackOrLink);
+        link : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            linkBuilder = builderCallbackOrLink;
+            linkBuilder = builderCallback;
             return this;
         },
 
         /**
          * Allows to override default position setter for the node with a new
-         * function. newPlaceCallback(nodeUI, position) is function which
+         * function. newPlaceCallback(nodeUI, position, node) is function which
          * is used by updateNodePosition().
          */
         placeNode : function (newPlaceCallback) {
@@ -215,13 +219,16 @@ Viva.Graph.View.svgGraphics = function () {
          *
          * @param linkUI visual representation of the link created by link() execution.
          */
-        initLink : function (linkUI) {
+        addLink: function (link) {
+            var linkUI = linkBuilder(link);
             if (!linkUI) { return; }
+            allLinks[link.id] = linkUI;
             if (svgContainer.childElementCount > 0) {
                 svgContainer.insertBefore(linkUI, svgContainer.firstChild);
             } else {
                 svgContainer.appendChild(linkUI);
             }
+            return linkUI;
         },
 
        /**
@@ -230,7 +237,8 @@ Viva.Graph.View.svgGraphics = function () {
         *
         * @param linkUI visual representation of the link created by link() execution.
         **/
-        releaseLink : function (linkUI) {
+        releaseLink : function (link) {
+            var linkUI = this.getLinkUI(link);
             svgContainer.removeChild(linkUI);
         },
 
@@ -240,26 +248,40 @@ Viva.Graph.View.svgGraphics = function () {
         *
         * @param nodeUI visual representation of the node created by node() execution.
         **/
-        initNode : function (nodeUI) {
+        addNode : function (node) {
+            var nodeUI = nodeBuilder(node);
+            if (!nodeUI) {
+                return;
+            }
+            allNodes[node.id] = nodeUI;
+
             svgContainer.appendChild(nodeUI);
+
+            return nodeUI;
         },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider remove node from rendering surface.
         *
-        * @param nodeUI visual representation of the node created by node() execution.
+        * @param node graph's node
         **/
-        releaseNode : function (nodeUI) {
-            svgContainer.removeChild(nodeUI);
+        releaseNode : function (node) {
+            var nodeUI = this.getNodeUI(node.id);
+            if (nodeUI) {
+                svgContainer.removeChild(nodeUI);
+            }
         },
 
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider place given node UI to recommended position pos {x, y};
         */
-        updateNodePosition : function (nodeUI, pos) {
-            nodePositionCallback(nodeUI, pos);
+        updateNodePosition : function (node, pos) {
+            var ui = this.getNodeUI(node.id);
+            if (ui) {
+                nodePositionCallback(ui, pos, node);
+            }
         },
 
         /**
@@ -267,7 +289,8 @@ Viva.Graph.View.svgGraphics = function () {
         * provider place given link of the graph. Pos objects are {x, y};
         */
         updateLinkPosition : function (link, fromPos, toPos) {
-            linkPositionCallback(link, fromPos, toPos);
+            var ui = this.getLinkUI(link.id);
+            linkPositionCallback(ui, fromPos, toPos, link);
         },
 
         /**
