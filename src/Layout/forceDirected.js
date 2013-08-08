@@ -14,12 +14,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
 
     settings = Viva.lazyExtend(settings, {
         /**
-         * If true, the layout API will be compatible with
-         * old version of the library, where each node had it's own
-         * position property. This was a bad API decision...
-         */
-        compatible: false,
-        /**
          * Ideal length for links (springs in physical model).
          */
         springLength: 80,
@@ -65,7 +59,8 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         graphRect = new Viva.Graph.Rect(),
         random = Viva.random('ted.com', 103, 114, 101, 97, 116),
 
-        getBestBodyPosition = function(node) {
+        nodeBodies = {},
+        getBestNodePosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
             // How about center of mass?
@@ -75,10 +70,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
 
             if (node.links && node.links.length > 0) {
                 var firstLink = node.links[0],
-                    otherNode = firstLink.fromId !== node.id ? graph.getNode(firstLink.fromId) : graph.getNode(firstLink.toId);
-                if (otherNode.position) {
-                    baseX = otherNode.position.x;
-                    baseY = otherNode.position.y;
+                    otherNode = firstLink.fromId !== node.id ? nodeBodies[firstLink.fromId] : nodeBodies[firstLink.toId];
+                if (otherNode && otherNode.location) {
+                    baseX = otherNode.location.x;
+                    baseY = otherNode.location.y;
                 }
             }
 
@@ -88,7 +83,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             };
         },
 
-        nodeBodies = {},
         getBody = function (nodeId) {
             return nodeBodies[nodeId];
         },
@@ -110,18 +104,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             if (!body) {
                 body = new Viva.Graph.Physics.Body();
                 nodeBodies[node.id] = body;
-                var position = getBestBodyPosition(body);
+                var position = getBestNodePosition(node);
                 body.loc(position);
                 updateBodyMass(node);
-
-                if (settings.compatible) {
-                    // This is depricated method. Please never ever use
-                    // 'compatible' mode: it has a curse of shared data store
-                    // i.e. there is no way two layouters could layout the same
-                    // graph, since they both would compete for positions
-                    node.position = position;
-                    node.force_directed_body = body;
-                }
 
                 forceSimulator.addBody(body);
             }
@@ -130,10 +115,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         releaseNode = function(node) {
             var body = getBody(node.id);
             if (body) {
-                if (settings.compatible) {
-                    node.force_directed_body = null;
-                    delete node.force_directed_body;
-                }
                 releaseBody(node);
 
                 forceSimulator.removeBody(body);
@@ -153,11 +134,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
 
             // TODO: this has a bug, with multiple springs between same nodes
             springs[link.id] = spring;
-
-            if (settings.compatible) {
-                // bad...
-                link.force_directed_spring = spring;
-            }
         },
 
         releaseLink = function(link) {
@@ -170,10 +146,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 }
                 if (to) {
                     updateBodyMass(to);
-                }
-                if (settings.compatible) {
-                    link.force_directed_spring = null;
-                    delete link.force_directed_spring;
                 }
                 delete springs[link.id];
 
@@ -209,7 +181,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         },
 
         isNodePinned = function(node, body) {
-            // this potentiall should make it easy to refactor when compatible mode goes away
             if (!node && !body) {
                 return true;
             }
@@ -251,25 +222,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                         y2 = body.location.y;
                     }
                 }
-            }
-
-            if (settings.compatible) {
-                graph.forEachNode(function(node) {
-                    var body = node.force_directed_body;
-                    if (!body) {
-                        // This could be a sign someone removed the propery.
-                        // Please don't use 'compatible' mode
-                        return;
-                    }
-
-                    // if (isNodePinned(node)) {
-                    //     body.loc(node.position);
-                    // }
-
-                    node.position.x = body.location.x;
-                    node.position.y = body.location.y;
-
-                });
             }
 
             graphRect.x1 = x1;
