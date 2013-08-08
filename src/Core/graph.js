@@ -148,7 +148,7 @@ Viva.Graph.graph = function () {
             var fromNode = this.getNode(fromId) || this.addNode(fromId);
             var toNode = this.getNode(toId) || this.addNode(toId);
 
-            var linkId = fromId.toString() + toId.toString();
+            var linkId = fromId.toString() +'👉 ' + toId.toString();
             var isMultiEdge = multiEdges.hasOwnProperty(linkId);
             if (isMultiEdge || this.hasLink(fromId, toId)) {
                 if (!isMultiEdge) {
@@ -351,9 +351,9 @@ Viva.Graph.graph = function () {
          *  data - additional data passed to graph.addLink() method.
          */
         forEachLink : function (callback) {
-            var i;
+            var i, length;
             if (typeof callback === 'function') {
-                for (i = 0; i < links.length; ++i) {
+                for (i = 0, length = links.length; i < length; ++i) {
                     callback(links[i]);
                 }
             }
