@@ -321,6 +321,27 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             return body && body.location;
         },
 
+        getBoundNodePosition: function (node) {
+            var body = getBody(node.id);
+            if (!body) {
+                initNode(node);
+                body = getBody(node.id);
+            }
+            return body.location;
+        },
+
+        getBoundLinkPosition: function (link) {
+            var fromNode = graph.getNode(link.fromId),
+                toNode = graph.getNode(link.toId),
+                boundFrom = this.getBoundNodePosition(fromNode),
+                boundTo = this.getBoundNodePosition(toNode);
+
+            return {
+                from : boundFrom,
+                to : boundTo
+            };
+        },
+
         setNodePosition: function (node, x, y) {
             var body = getBody(node.id);
             if (body) {

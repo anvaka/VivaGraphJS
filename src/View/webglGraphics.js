@@ -43,6 +43,8 @@ Viva.Graph.View.webglGraphics = function (options) {
         links = [],
         initCallback,
 
+        allNodes = {},
+        allLinks = {},
         linkProgram = Viva.Graph.View.webglLinkProgram(),
         nodeProgram = Viva.Graph.View.webglNodeProgram(),
 /*jshint unused: false */
@@ -76,74 +78,56 @@ Viva.Graph.View.webglGraphics = function (options) {
             }
         },
 
-        nodeBuilderInternal = function (node) {
-            var nodeId = nodesCount++,
-                ui = nodeUIBuilder(node);
-            ui.id = nodeId;
-
-            nodeProgram.createNode(ui);
-
-            nodes[nodeId] = node;
-            return ui;
-        },
-
-        linkBuilderInternal = function (link) {
-            var linkId = linksCount++,
-                ui = linkUIBuilder(link);
-            ui.id = linkId;
-
-            linkProgram.createLink(ui);
-
-            links[linkId] = link;
-            return ui;
-        },
-
         fireRescaled = function (graphics) {
             graphics.fire("rescaled");
         };
 
     var graphics = {
+        getLinkUI: function (linkId) {
+            return allLinks[linkId];
+        },
+
+        getNodeUI: function (nodeId) {
+            return allNodes[nodeId];
+        },
+
         /**
-         * Sets the collback that creates node representation or creates a new node
-         * presentation if builderCallbackOrNode is not a function.
+         * Sets the collback that creates node representation.
          *
-         * @param builderCallbackOrNode a callback function that accepts graph node
-         * as a parameter and must return an element representing this node. OR
-         * if it's not a function it's treated as a node to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph node
+         * as a parameter and must return an element representing this node.
          *
          * @returns If builderCallbackOrNode is a valid callback function, instance of this is returned;
-         * Otherwise a node representation is returned for the passed parameter.
+         * Otherwise undefined value is returned
          */
-        node : function (builderCallbackOrNode) {
-            if (builderCallbackOrNode && typeof builderCallbackOrNode !== "function") {
-                return nodeBuilderInternal(builderCallbackOrNode); // create ui for node using current nodeUIBuilder
+        node : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            nodeUIBuilder = builderCallbackOrNode; // else replace ui builder with provided function.
+            nodeUIBuilder = builderCallback;
 
             return this;
         },
 
         /**
-         * Sets the collback that creates link representation or creates a new link
-         * presentation if builderCallbackOrLink is not a function.
+         * Sets the callback that creates link representation
          *
-         * @param builderCallbackOrLink a callback function that accepts graph link
-         * as a parameter and must return an element representing this link. OR
-         * if it's not a function it's treated as a link to which DOM element should be created.
+         * @param builderCallback a callback function that accepts graph link
+         * as a parameter and must return an element representing this link.
          *
-         * @returns If builderCallbackOrLink is a valid callback function, instance of this is returned;
-         * Otherwise a link representation is returned for the passed parameter.
+         * @returns If builderCallback is a valid callback function, instance of this is returned;
+         * Otherwise undefined value is returend.
          */
-        link : function (builderCallbackOrLink) {
-
-            if (builderCallbackOrLink && typeof builderCallbackOrLink !== "function") {
-                return linkBuilderInternal(builderCallbackOrLink);
+        link : function (builderCallback) {
+            if (typeof builderCallback !== "function") {
+                return; // todo: throw? this is not compatible with old versions
             }
 
-            linkUIBuilder = builderCallbackOrLink;
+            linkUIBuilder = builderCallback;
             return this;
         },
+
 
         /**
          * Allows to override default position setter for the node with a new
@@ -210,23 +194,45 @@ Viva.Graph.View.webglGraphics = function (options) {
             updateSize();
         },
 
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider prepare to render given link of the graph
-        *
-        * @param linkUI visual representation of the link created by link() execution.
-        */
-        initLink : function (linkUI) {
+        /**
+         * Called by Viva.Graph.View.renderer to let concrete graphic output
+         * provider prepare to render given link of the graph
+         *
+         * @param link - model of a link
+         */
+        addLink: function (link, boundPosition) {
+            var uiid = linksCount++,
+                ui = linkUIBuilder(link);
+            ui.id = uiid;
+            ui.pos = boundPosition;
+
+            linkProgram.createLink(ui);
+
+            links[uiid] = ui;
+            allLinks[link.id] = ui;
+            return ui;
         },
+
        /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider prepare to render given node of the graph.
         *
         * @param nodeUI visual representation of the node created by node() execution.
         **/
-        initNode : function (nodeUI) {
+        addNode : function (node, boundPosition) {
+            var uiid = nodesCount++,
+                ui = nodeUIBuilder(node);
+
+            ui.id = uiid;
+            ui.position = boundPosition;
+            ui.node = node;
+
+            nodeProgram.createNode(ui);
+
+            nodes[uiid] = ui;
+            allNodes[node.id] = ui;
+            return ui;
         },
-/*jshint unused: true */
 
         translateRel : function (dx, dy) {
             transform[12] += (2 * transform[0] * dx / width) / transform[0];
@@ -346,21 +352,22 @@ Viva.Graph.View.webglGraphics = function (options) {
         *
         * @param linkUI visual representation of the link created by link() execution.
         **/
-        releaseLink : function (linkToRemove) {
+        releaseLink : function (link) {
             if (linksCount > 0) { linksCount -= 1; }
+            var linkUI = allLinks[link.id];
+            delete allLinks[link.id];
 
-            linkProgram.removeLink(linkToRemove);
+            linkProgram.removeLink(linkUI);
 
-            var linkIdToRemove = linkToRemove.id;
+            var linkIdToRemove = linkUI.id;
             if (linkIdToRemove < linksCount) {
                 if (linksCount === 0 || linksCount === linkIdToRemove) {
                     return; // no more links or removed link is the last one.
                 }
 
-                // TODO: consider getting rid of this. The only reason why it's here is to update 'ui' property
-                // so that renderer will pass proper id in updateLinkPosition.
-                links[linkIdToRemove] = links[linksCount];
-                links[linkIdToRemove].ui.id = linkIdToRemove;
+                var lastLinkUI = links[linksCount];
+                links[linkIdToRemove] = lastLinkUI;
+                lastLinkUI.id = linkIdToRemove;
             }
         },
 
@@ -370,61 +377,67 @@ Viva.Graph.View.webglGraphics = function (options) {
         *
         * @param nodeUI visual representation of the node created by node() execution.
         **/
-        releaseNode : function (nodeUI) {
+        releaseNode : function (node) {
             if (nodesCount > 0) { nodesCount -= 1; }
+            var nodeUI = allNodes[node.id];
+            delete allNodes[node.id];
 
             nodeProgram.removeNode(nodeUI);
 
-            if (nodeUI.id < nodesCount) {
-                var nodeIdToRemove = nodeUI.id;
+            var nodeIdToRemove = nodeUI.id;
+            if (nodeIdToRemove < nodesCount) {
                 if (nodesCount === 0 || nodesCount === nodeIdToRemove) {
                     return; // no more nodes or removed node is the last in the list.
                 }
 
-                var lastNode = nodes[nodesCount],
-                    replacedNode = nodes[nodeIdToRemove];
+                var lastNodeUI = nodes[nodesCount];
 
-                nodes[nodeIdToRemove] = lastNode;
-                nodes[nodeIdToRemove].ui.id = nodeIdToRemove;
+                nodes[nodeIdToRemove] = lastNodeUI;
+                lastNodeUI.id = nodeIdToRemove;
 
                 // Since concrete shaders may cache properties in the ui element
                 // we are letting them to make this swap (e.g. image node shader
                 // uses this approach to update node's offset in the atlas)
-                nodeProgram.replaceProperties(replacedNode.ui, lastNode.ui);
+                nodeProgram.replaceProperties(nodeUI, lastNodeUI);
             }
         },
 
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given node UI to recommended position pos {x, y};
-        */
-        updateNodePosition : function (nodeUI, pos) {
+        renderNodes: function () {
+            var pos = {x : 0, y : 0};
             // WebGL coordinate system is different. Would be better
             // to have this transform in the shader code, but it would
             // require every shader to be updated..
-            pos.y = -pos.y;
-            if (userPlaceNodeCallback) {
-                userPlaceNodeCallback(nodeUI, pos);
-            }
+            for (var i = 0; i < nodesCount; ++i) {
+                var ui = nodes[i];
+                pos.x = ui.position.x;
+                pos.y = -ui.position.y;
+                if (userPlaceNodeCallback) {
+                    userPlaceNodeCallback(ui, pos);
+                }
 
-            nodeProgram.position(nodeUI, pos);
+                nodeProgram.position(ui, pos);
+            }
         },
 
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given link of the graph. Pos objects are {x, y};
-        */
-        updateLinkPosition : function (link, fromPos, toPos) {
-            // WebGL coordinate system is different. Would be better
-            // to have this transform in the shader code, but it would
-            // require every shader to be updated..
-            fromPos.y = -fromPos.y;
-            toPos.y = -toPos.y;
-            if (userPlaceLinkCallback) {
-                userPlaceLinkCallback(link, fromPos, toPos);
-            }
+        renderLinks: function () {
+            if (this.omitLinksRendering) { return; }
 
-            linkProgram.position(link, fromPos, toPos);
+            var toPos = {x : 0, y : 0};
+            var fromPos = {x : 0, y : 0};
+            for (var i = 0; i < linksCount; ++i) {
+                var ui = links[i];
+                var pos = ui.pos.from;
+                fromPos.x = pos.x;
+                fromPos.y = -pos.y;
+                pos = ui.pos.to;
+                toPos.x = pos.x;
+                toPos.y = -pos.y;
+                if (userPlaceLinkCallback) {
+                    userPlaceLinkCallback(ui, fromPos, toPos);
+                }
+
+                linkProgram.position(ui, fromPos, toPos);
+            }
         },
 
         /**
@@ -473,7 +486,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // TODO: unload old shader and reinit.
             }
         },
-        getGraphCoordinates : function (graphicsRootPos) {
+        transformClientToGraphCoordinates : function (graphicsRootPos) {
             // TODO: could be a problem when container has margins?
             // to save memory we modify incoming parameter:
             // point in clipspace coordinates:
@@ -487,6 +500,25 @@ Viva.Graph.View.webglGraphics = function (options) {
             graphicsRootPos.y *= -height / 2;
 
             return graphicsRootPos;
+        },
+
+        getNodeAtClientPos: function (clientPos, preciseCheck) {
+            if (typeof preciseCheck !== "function") {
+                // we don't know anything about your node structure here :(
+                // potentially this could be delegated to node program, but for 
+                // right now, we are giving up if you don't pass boundary check
+                // callback. It answers to a question is nodeUI covers  (x, y)
+                return;
+            }
+            // first transform to graph coordinates:
+            this.transformClientToGraphCoordinates(clientPos);
+            // now using precise check iterate over each node and find one within box:
+            // TODO: This is poor O(N) performance.
+            for (var i = 0; i < nodesCount; ++i) {
+                if (preciseCheck(nodes[i], clientPos.x, clientPos.y)) {
+                    return nodes[i].node;
+                }
+            }
         }
     };
 

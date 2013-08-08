@@ -64,6 +64,7 @@ Viva.Graph.View.svgGraphics = function () {
         getLinkUI: function (linkId) {
             return allLinks[linkId];
         },
+
         /**
          * Sets the collback that creates node representation.
          *
@@ -217,7 +218,7 @@ Viva.Graph.View.svgGraphics = function () {
          * Called by Viva.Graph.View.renderer to let concrete graphic output
          * provider prepare to render given link of the graph
          *
-         * @param linkUI visual representation of the link created by link() execution.
+         * @param link - model of a link
          */
         addLink: function (link) {
             var linkUI = linkBuilder(link);

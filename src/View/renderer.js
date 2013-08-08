@@ -37,13 +37,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // Number of layout iterations to run before displaying the graph. The bigger you set this number
  *     // the closer to ideal position graph will apper first time. But be careful: for large graphs
  *     // it can freeze the browser.
- *     prerender : 0,
- *
- *     // Renderer should be compatible with older version of VivaGraph.
- *     // Warning: This option will be depricated soon. Compatible mode has a flaw of data being
- *     // shared on a node object of a graph. Which makes it impossible to reuse between multiple
- *     // renderers/layouters.
- *     compatible: false
+ *     prerender : 0
  *   }
  */
 Viva.Graph.View.renderer = function (graph, settings) {
@@ -86,52 +80,22 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 settings.renderLinks = true;
             }
 
-            settings.compatible = settings.compatible || false;
             settings.prerender = settings.prerender || 0;
             inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
         },
-        // Cache positions object to prevent GC pressure
-        cachedFromPos = {x : 0, y : 0, node: null},
-        cachedToPos = {x : 0, y : 0, node: null},
-        cachedNodePos = { x: 0, y: 0},
         windowEvents = Viva.Graph.Utils.events(window),
         publicEvents = Viva.Graph.Utils.events({}).extend(),
         graphEvents,
         containerDrag,
 
-
-        renderLink = function (link) {
-            var fromNode = layout.getNodePosition(link.fromId),
-                toNode = layout.getNodePosition(link.toId);
-
-            if (!fromNode || !toNode) {
-                return;
-            }
-
-            cachedFromPos.x = fromNode.x;
-            cachedFromPos.y = fromNode.y;
-
-            cachedToPos.x = toNode.x;
-            cachedToPos.y = toNode.y;
-
-            graphics.updateLinkPosition(link, cachedFromPos, cachedToPos);
-        },
-
-        renderNode = function (node) {
-            var pos = layout.getNodePosition(node.id);
-            cachedNodePos.x = pos.x;
-            cachedNodePos.y = pos.y;
-
-            graphics.updateNodePosition(node, cachedNodePos);
-        },
-
         renderGraph = function () {
             graphics.beginRender();
-            if (settings.renderLinks && !graphics.omitLinksRendering) {
-                graph.forEachLink(renderLink);
-            }
 
-            graph.forEachNode(renderNode);
+            // todo: move this check graphics
+            if (settings.renderLinks) {
+                graphics.renderLinks();
+            }
+            graphics.renderNodes();
             graphics.endRender();
         },
 
@@ -190,39 +154,21 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createNodeUi = function (node) {
-            var nodeUI = graphics.addNode(node);
-            if (settings.compatible) {
-                node.ui = nodeUI;
-            }
-
-            renderNode(node);
+            var boundPosition = layout.getBoundNodePosition(node);
+            graphics.addNode(node, boundPosition);
         },
 
         removeNodeUi = function (node) {
             graphics.releaseNode(node);
-            if (settings.compatible && node.hasOwnProperty('ui')) {
-                node.ui = null;
-                delete node.ui;
-            }
         },
 
         createLinkUi = function (link) {
-            var linkUI = graphics.addLink(link);
-            if (settings.compatible) {
-                link.ui = linkUI;
-            }
-
-            if (!graphics.omitLinksRendering) {
-                renderLink(link);
-            }
+            var boundLinkPosition = layout.getBoundLinkPosition(link);
+            graphics.addLink(link, boundLinkPosition);
         },
 
         removeLinkUi = function (link) {
             graphics.releaseLink(link);
-            if (settings.compatible && link.hasOwnProperty('ui')) {
-                link.ui = null;
-                delete link.ui;
-            }
         },
 
         listenNodeEvents = function (node) {
