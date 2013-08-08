@@ -220,9 +220,11 @@ Viva.Graph.View.svgGraphics = function () {
          *
          * @param link - model of a link
          */
-        addLink: function (link) {
+        addLink: function (link, pos) {
             var linkUI = linkBuilder(link);
             if (!linkUI) { return; }
+            linkUI.position = pos;
+            linkUI.link = link;
             allLinks[link.id] = linkUI;
             if (svgContainer.childElementCount > 0) {
                 svgContainer.insertBefore(linkUI, svgContainer.firstChild);
@@ -249,11 +251,13 @@ Viva.Graph.View.svgGraphics = function () {
         *
         * @param nodeUI visual representation of the node created by node() execution.
         **/
-        addNode : function (node) {
+        addNode : function (node, pos) {
             var nodeUI = nodeBuilder(node);
             if (!nodeUI) {
                 return;
             }
+            nodeUI.position = pos;
+            nodeUI.node = node;
             allNodes[node.id] = nodeUI;
 
             svgContainer.appendChild(nodeUI);
@@ -274,24 +278,31 @@ Viva.Graph.View.svgGraphics = function () {
             }
         },
 
-       /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given node UI to recommended position pos {x, y};
-        */
-        updateNodePosition : function (node, pos) {
-            var ui = this.getNodeUI(node.id);
-            if (ui) {
-                nodePositionCallback(ui, pos, node);
+        renderNodes : function () {
+            var pos = {x : 0, y: 0};
+            for (var key in allNodes) {
+                if (allNodes.hasOwnProperty(key)) {
+                    var nodeUI = allNodes[key];
+                    pos.x = nodeUI.position.x;
+                    pos.y = nodeUI.position.y;
+                    nodePositionCallback(nodeUI, pos, nodeUI.node);
+                }
             }
         },
 
-        /**
-        * Called by Viva.Graph.View.renderer to let concrete graphic output
-        * provider place given link of the graph. Pos objects are {x, y};
-        */
-        updateLinkPosition : function (link, fromPos, toPos) {
-            var ui = this.getLinkUI(link.id);
-            linkPositionCallback(ui, fromPos, toPos, link);
+        renderLinks : function () {
+            var fromPos = {x : 0, y: 0},
+                toPos = {x : 0, y: 0};
+            for (var key in allLinks) {
+                if (allLinks.hasOwnProperty(key)) {
+                    var linkUI = allLinks[key];
+                    fromPos.x = linkUI.position.from.x;
+                    fromPos.y = linkUI.position.from.y;
+                    toPos.x = linkUI.position.to.x;
+                    toPos.y = linkUI.position.to.y;
+                    linkPositionCallback(linkUI, fromPos, toPos, linkUI.link);
+                }
+            }
         },
 
         /**
