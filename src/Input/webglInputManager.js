@@ -58,6 +58,9 @@ Viva.Input.webglInputManager = function (graph, graphics) {
          */
         bindDragNDrop : function (node, handlers) {
             internalHandlers[node.id] = handlers;
+            if (!handlers) {
+                delete internalHandlers[node.id];
+            }
         }
     };
 };
