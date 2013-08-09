@@ -253,7 +253,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     // force it exerts on body b, and add this amount to b's net force.
                     if ((node.right - node.left) / r < theta) {
                         // in the if statement above we consider node's width only
-                        // because the region was sqaurified during tree creation.
+                        // because the region was squarified during tree creation.
                         // Thus there is no difference between using width or height.
                         v = gravity * node.mass * sourceBody.mass / (r * r * r);
                         sourceBody.force.x = sourceBody.force.x + v * dx;

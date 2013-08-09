@@ -230,9 +230,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             graphRect.y2 = y2;
         };
 
-    forceSimulator.addSpringForce(springForce);
-    forceSimulator.addBodyForce(nbodyForce);
-    forceSimulator.addBodyForce(dragForce);
+    forceSimulator.setSpringForce(springForce);
+    forceSimulator.setNbodyForce(nbodyForce);
+    forceSimulator.setDragForce(dragForce);
 
     initSimulator();
 

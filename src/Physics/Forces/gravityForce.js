@@ -10,7 +10,6 @@ Viva.Graph.Physics.gravityForce = function (gravityConstant, options) {
 
 
     return {
-        init : function (forceSimulator) {},
         update : function (body) {
             var coeff = currentOptions.gravity * body.mass;
 
