@@ -16,10 +16,10 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
     });
 
     var graphRect = {
-            x1 : settings.radius,
-            y1 : settings.radius,
-            x2 : settings.radius,
-            y2 : settings.radius
+            x1 : settings.center.x - settings.radius,
+            y1 : settings.center.y - settings.radius,
+            x2 : settings.center.x + settings.radius,
+            y2 : settings.center.y + settings.radius
         },
         nodesPositions = [];
 
