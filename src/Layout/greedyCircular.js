@@ -30,21 +30,25 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
         // ties are broken according to the number of placed neighbors.
         // (choose one with the higher number)
         var compareHeapElements = function(element1, element2) {
-            if (element1.layoutData.unplacedNodesNumber > element2.layoutData.unplacedNodesNumber ) {
+            if (element1.layoutData.unplacedNodesNumber >
+                element2.layoutData.unplacedNodesNumber ) {
                 return 1;
             }
 
-            if (element1.layoutData.unplacedNodesNumber < element2.layoutData.unplacedNodesNumber ) {
+            if (element1.layoutData.unplacedNodesNumber <
+                element2.layoutData.unplacedNodesNumber ) {
                 return -1;
             }
 
             // element1.unplacedNodesNumber === element2.unplacedNodesNumber
 
-            if (element1.layoutData.placedNodesNumber < element2.layoutData.placedNodesNumber) {
+            if (element1.layoutData.placedNodesNumber <
+                element2.layoutData.placedNodesNumber) {
                 return 1;
             }
 
-            if (element1.layoutData.placedNodesNumber > element2.layoutData.placedNodesNumber) {
+            if (element1.layoutData.placedNodesNumber >
+                element2.layoutData.placedNodesNumber) {
                 return -1;
             }
 
@@ -138,8 +142,10 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
                         rightNeighborsNumber--;
                         leftNeighborsNumber++;
                     }
-                    leftCrossingsNumber += rightNeighborsNumber * nextNode.layoutData.unplacedNodesNumber;
-                    rightCrossingsNumber += leftNeighborsNumber * nextNode.layoutData.unplacedNodesNumber;
+                    leftCrossingsNumber += rightNeighborsNumber *
+                                           nextNode.layoutData.unplacedNodesNumber;
+                    rightCrossingsNumber += leftNeighborsNumber *
+                                            nextNode.layoutData.unplacedNodesNumber;
                 });
 
                 if (leftCrossingsNumber < rightCrossingsNumber) {
@@ -217,7 +223,8 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
 
         prevNode = layout.prev(node1);
         while(prevNode !== node2) {
-            if(prevNode.layoutData.node1Neighbor || prevNode.layoutData.node2Neighbor) {
+            if(prevNode.layoutData.node1Neighbor ||
+               prevNode.layoutData.node2Neighbor) {
                 neighbors.push(prevNode);
             }
             if(prevNode.layoutData.node2Neighbor) {
@@ -250,8 +257,7 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
 
         var nextNode,
             crossingsBeforeAndAfterSwap,
-            crossings = graph.getLinksCount() * graph.getLinksCount(), // TODO
-            // any value will be less then this
+            crossings = 0,
             minCrossings = crossings,
             minCrossingsNode = node;
 
@@ -259,7 +265,9 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
             nextNode = layout.next(node);
 
             crossingsBeforeAndAfterSwap = getCrossingsNumber(node, nextNode, layout);
-            crossings = crossings - crossingsBeforeAndAfterSwap[0] + crossingsBeforeAndAfterSwap[1];
+            crossings = crossings -
+                        crossingsBeforeAndAfterSwap[0] +
+                        crossingsBeforeAndAfterSwap[1];
             if (crossings < minCrossings) {
                 minCrossings = crossings;
                 minCrossingsNode = nextNode;
@@ -296,18 +304,20 @@ Viva.Graph.Layout.greedyCircular = function(graph, settings) {
         } while(layout.len() !== nodesNumber);
 
         // Circular cifting improvement
-        /*for(var i = 0; i < layout.len() ; ++i) {
+        for(var i = 0; i < layout.len() ; ++i) {
             console.log('sifting ' + i);
             improvePosition(nodes[i], layout);
-        }*/
-
-        // Circular cifting improvement
-        layout.forEachNode(function(node) {
-            console.log(getCrossingsNumber(node, layout.next(node), layout));
-        });
+        }
 
         // Set positions (x, y) according to sequence
         setNodesPositions(layout);
+
+        // Clean up
+        graph.forEachNode(
+            function(node) {
+                node.layoutData = undefined;
+            }
+        );
     };
 
     setLayout();

@@ -129,7 +129,7 @@ Viva.Graph.Utils.heap = function(compare){
             heapify(elements[0]);
 
             // mark element as removed
-            minElement.heapData.idx = -1;
+            minElement.heapData = undefined;
 
             return minElement;
         },
@@ -140,7 +140,7 @@ Viva.Graph.Utils.heap = function(compare){
             return false;
         },
         update : function(element) {
-            if (element.heapData.idx !== -1) {
+            if (element.heapData) {
                 heapify(element);
             }
         },
