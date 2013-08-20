@@ -49,6 +49,10 @@ Viva.Graph.View.svgGraphics = function () {
             graphics.fire("rescaled");
         },
 
+        cachedPos = {x : 0, y: 0},
+        cachedFromPos = {x : 0, y: 0},
+        cachedToPos = {x : 0, y: 0},
+
         updateTransform = function () {
             if (svgContainer) {
                 var transform = "matrix(" + actualScale + ", 0, 0," + actualScale + "," + offsetX + "," + offsetY + ")";
@@ -241,8 +245,11 @@ Viva.Graph.View.svgGraphics = function () {
         * @param linkUI visual representation of the link created by link() execution.
         **/
         releaseLink : function (link) {
-            var linkUI = this.getLinkUI(link);
-            svgContainer.removeChild(linkUI);
+            var linkUI = allLinks[link.id];
+            if (linkUI) {
+                svgContainer.removeChild(linkUI);
+                delete allLinks[link.id];
+            }
         },
 
        /**
@@ -272,35 +279,33 @@ Viva.Graph.View.svgGraphics = function () {
         * @param node graph's node
         **/
         releaseNode : function (node) {
-            var nodeUI = this.getNodeUI(node.id);
+            var nodeUI = allNodes[node.id];
             if (nodeUI) {
                 svgContainer.removeChild(nodeUI);
+                delete allNodes[node.id];
             }
         },
 
         renderNodes : function () {
-            var pos = {x : 0, y: 0};
             for (var key in allNodes) {
                 if (allNodes.hasOwnProperty(key)) {
                     var nodeUI = allNodes[key];
-                    pos.x = nodeUI.position.x;
-                    pos.y = nodeUI.position.y;
-                    nodePositionCallback(nodeUI, pos, nodeUI.node);
+                    cachedPos.x = nodeUI.position.x;
+                    cachedPos.y = nodeUI.position.y;
+                    nodePositionCallback(nodeUI, cachedPos, nodeUI.node);
                 }
             }
         },
 
         renderLinks : function () {
-            var fromPos = {x : 0, y: 0},
-                toPos = {x : 0, y: 0};
             for (var key in allLinks) {
                 if (allLinks.hasOwnProperty(key)) {
                     var linkUI = allLinks[key];
-                    fromPos.x = linkUI.position.from.x;
-                    fromPos.y = linkUI.position.from.y;
-                    toPos.x = linkUI.position.to.x;
-                    toPos.y = linkUI.position.to.y;
-                    linkPositionCallback(linkUI, fromPos, toPos, linkUI.link);
+                    cachedFromPos.x = linkUI.position.from.x;
+                    cachedFromPos.y = linkUI.position.from.y;
+                    cachedToPos.x = linkUI.position.to.x;
+                    cachedToPos.y = linkUI.position.to.y;
+                    linkPositionCallback(linkUI, cachedFromPos, cachedToPos, linkUI.link);
                 }
             }
         },
