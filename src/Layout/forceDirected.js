@@ -99,6 +99,15 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             body.mass = 1 + graph.getLinks(node.id).length / 3.0;
         },
 
+        isNodePinned = function(node, body) {
+            if (!node && !body) {
+                return true;
+            }
+
+            return (node && (node.isPinned || (node.data && node.data.isPinned))) ||
+                   (body && body.isPinned);
+        },
+
         initNode = function(node) {
             var body = getBody(node.id);
             if (!body) {
@@ -108,6 +117,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 body.loc(position);
                 updateBodyMass(node);
 
+                if (isNodePinned(node)) {
+                    body.isPinned = true;
+                }
                 forceSimulator.addBody(body);
             }
         },
@@ -180,14 +192,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             graph.addEventListener('changed', onGraphChanged);
         },
 
-        isNodePinned = function(node, body) {
-            if (!node && !body) {
-                return true;
-            }
-
-            return (node && (node.isPinned || (node.data && node.data.isPinned))) ||
-                   (body && body.isPinned);
-        },
 
         updateNodePositions = function() {
             var x1 = Number.MAX_VALUE,
