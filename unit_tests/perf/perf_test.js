@@ -13,6 +13,7 @@ var layoutIterations = 100;
 
 console.log('This is a very basic performance test of force directed layout');
 console.log('V8 version: ' + process.versions.v8);
+console.log('VivaGraph version: ' + Viva.Graph.version);
 var generator = Viva.Graph.generator();
 var graph = generator.grid(gridSize, gridSize);
 console.log('Grid ' + gridSize + 'x' + gridSize + ', Nodes: ' + graph.getNodesCount() + ', Edges: ' + graph.getLinksCount());
