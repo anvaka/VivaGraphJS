@@ -181,9 +181,9 @@ Viva.Graph.View.webglGraphics = function (options) {
 
                 temp = links[frontLinkId];
                 links[frontLinkId] = links[srcLinkId];
-                links[frontLinkId].ui.id = frontLinkId;
+                links[frontLinkId].id = frontLinkId;
                 links[srcLinkId] = temp;
-                links[srcLinkId].ui.id = srcLinkId;
+                links[srcLinkId].id = srcLinkId;
             }
         },
 /*jshint unused: false */
@@ -508,7 +508,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // potentially this could be delegated to node program, but for 
                 // right now, we are giving up if you don't pass boundary check
                 // callback. It answers to a question is nodeUI covers  (x, y)
-                return;
+                return null;
             }
             // first transform to graph coordinates:
             this.transformClientToGraphCoordinates(clientPos);
@@ -519,6 +519,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                     return nodes[i].node;
                 }
             }
+            return null;
         }
     };
 
