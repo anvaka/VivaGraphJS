@@ -151,7 +151,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 toBody  = getBody(link.toId),
                 spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
 
-            // TODO: this has a bug, with multiple springs between same nodes
             springs[link.id] = spring;
         },
 
