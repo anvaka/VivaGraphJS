@@ -94,11 +94,10 @@ Viva.Graph.Physics.nbodyForce = function (options) {
         root = newNode(),
 
         isSamePosition = function (point1, point2) {
-            // TODO: inline it?
             var dx = Math.abs(point1.x - point2.x);
             var dy = Math.abs(point1.y - point2.y);
 
-            return (dx < 0.01 && dy < 0.01);
+            return (dx < 1e-8 && dy < 1e-8);
         },
 
         // Inserts body to the tree
@@ -165,22 +164,23 @@ Viva.Graph.Physics.nbodyForce = function (options) {
 
                     if (isSamePosition(oldBody.location, body.location)) {
                         // Prevent infinite subdivision by bumping one node
-                        // slightly. I assume this operation should be quite
-                        // rare, that's why usage of cos()/sin() shouldn't hit performance.
-                        var newX, newY;
+                        // anywhere in this quadrant
+                        if (node.right - node.left < 1e-8) {
+                            // This is very bad, we ran out of precision.
+                            // if we do not return from the method we'll get into
+                            // infinite loop here. So we sacrifice correctness of layout, and keep the app running
+                            return;
+                        }
                         do {
-                            var angle = random.nextDouble() * 2 * Math.PI;
-                            var dx = (node.right - node.left) * 0.006 * Math.cos(angle);
-                            var dy = (node.bottom - node.top) * 0.006 * Math.sin(angle);
+                            var offset = random.nextDouble();
+                            var dx = (node.right - node.left) * offset;
+                            var dy = (node.bottom - node.top) * offset;
 
-                            newX = oldBody.location.x + dx;
-                            newY = oldBody.location.y + dy;
+                            oldBody.location.x = node.left + dx;
+                            oldBody.location.y = node.top + dy;
                             // Make sure we don't bump it out of the box. If we do, next iteration should fix it
-                        } while (newX < node.left || newX > node.right ||
-                                 newY < node.top  || newY > node.bottom);
+                        } while (isSamePosition(oldBody.location, body.location));
 
-                        oldBody.location.x = newX;
-                        oldBody.location.y = newY;
                     }
                     // Next iteration should subdivide node further.
                     insertStack.push(node, oldBody);
