@@ -87,35 +87,41 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             return nodeBodies[nodeId];
         },
 
-        releaseBody = function (node) {
-            nodeBodies[node.id] = null;
-            delete nodeBodies[node.id];
+        releaseBody = function (nodeId) {
+            nodeBodies[nodeId] = null;
+            delete nodeBodies[nodeId];
         },
 
         springs = {},
 
-        updateBodyMass = function(node) {
-            var body = getBody(node.id);
-            body.mass = 1 + graph.getLinks(node.id).length / 3.0;
+        updateBodyMass = function(nodeId) {
+            var body = getBody(nodeId);
+            body.mass = 1 + graph.getLinks(nodeId).length / 3.0;
         },
 
-        isNodePinned = function(node, body) {
-            if (!node && !body) {
-                return true;
-            }
+        isNodePinned = function(nodeId) {
+            var node = graph.getNode(nodeId);
 
-            return (node && (node.isPinned || (node.data && node.data.isPinned))) ||
-                   (body && body.isPinned);
+            return (node && (node.isPinned || (node.data && node.data.isPinned)));
         },
 
-        initNode = function(node) {
-            var body = getBody(node.id);
+        isBodyPinned = function (body) {
+            return body.isPinned;
+        },
+
+        initNode = function(nodeId) {
+            var body = getBody(nodeId);
             if (!body) {
+                var node = graph.getNode(nodeId);
+                if (!node) {
+                    return; // what are you doing?
+                }
+
                 body = new Viva.Graph.Physics.Body();
-                nodeBodies[node.id] = body;
+                nodeBodies[nodeId] = body;
                 var position = getBestNodePosition(node);
                 body.loc(position);
-                updateBodyMass(node);
+                updateBodyMass(nodeId);
 
                 if (isNodePinned(node)) {
                     body.isPinned = true;
@@ -124,21 +130,22 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             }
         },
 
+        initNodeObject = function (node) {
+            initNode(node.id);
+        },
+
         releaseNode = function(node) {
             var body = getBody(node.id);
             if (body) {
-                releaseBody(node);
+                releaseBody(node.id);
 
                 forceSimulator.removeBody(body);
             }
         },
 
         initLink = function(link) {
-            var from = graph.getNode(link.fromId),
-                to = graph.getNode(link.toId);
-
-            updateBodyMass(from);
-            updateBodyMass(to);
+            updateBodyMass(link.fromId);
+            updateBodyMass(link.toId);
 
             var fromBody = getBody(link.fromId),
                 toBody  = getBody(link.toId),
@@ -154,10 +161,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 var from = graph.getNode(link.fromId),
                     to = graph.getNode(link.toId);
                 if (from) {
-                    updateBodyMass(from);
+                    updateBodyMass(from.id);
                 }
                 if (to) {
-                    updateBodyMass(to);
+                    updateBodyMass(to.id);
                 }
                 delete springs[link.id];
 
@@ -170,7 +177,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 var change = changes[i];
                 if (change.changeType === 'add') {
                     if (change.node) {
-                        initNode(change.node);
+                        initNode(change.node.id);
                     }
                     if (change.link) {
                         initLink(change.link);
@@ -187,11 +194,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         },
 
         initSimulator = function() {
-            graph.forEachNode(initNode);
+            graph.forEachNode(initNodeObject);
             graph.forEachLink(initLink);
             graph.addEventListener('changed', onGraphChanged);
         },
-
 
         updateNodePositions = function() {
             var x1 = Number.MAX_VALUE,
@@ -206,7 +212,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 if (nodeBodies.hasOwnProperty(key)) {
                     // how about pinned nodes?
                     var body = nodeBodies[key];
-                    if (isNodePinned(null, body)) {
+                    if (isBodyPinned(body)) {
                         body.location.x = body.prevLocation.x;
                         body.location.y = body.prevLocation.y;
                     } else {
@@ -255,6 +261,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             }
         },
 
+        /**
+         * Performs one step of iterative layout algorithm
+         */
         step: function() {
             var energy = forceSimulator.run(20);
             updateNodePositions();
@@ -262,42 +271,55 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             return energy < STABLE_THRESHOLD;
         },
 
+        /*
+         * Checks whether given node is pinned;
+         */
         isNodePinned: function (node) {
             var body = getBody(node.id);
-            return isNodePinned(node, body);
+            if (body) {
+                return isBodyPinned(body);
+            }
         },
 
+        /*
+         * Requests layout algorithm to pin/unpin node to its current position
+         * Pinned nodes should not be affected by layout algorithm and always
+         * remain at their position
+         */
         pinNode: function (node, isPinned) {
             var body = getBody(node.id);
             body.isPinned = !!isPinned;
         },
 
+        /*
+         * Gets position of a node by its id. If node was not seen by this
+         * layout algorithm undefined value is returned;
+         */
         getNodePosition: function (nodeId) {
             var body = getBody(nodeId);
+            if (!body) {
+                initNode(nodeId);
+                body = getBody(nodeId);
+            }
             return body && body.location;
         },
 
-        getBoundNodePosition: function (node) {
-            var body = getBody(node.id);
-            if (!body) {
-                initNode(node);
-                body = getBody(node.id);
-            }
-            return body.location;
-        },
-
-        getBoundLinkPosition: function (link) {
-            var fromNode = graph.getNode(link.fromId),
-                toNode = graph.getNode(link.toId),
-                boundFrom = this.getBoundNodePosition(fromNode),
-                boundTo = this.getBoundNodePosition(toNode);
+        /**
+         * Returns {from, to} position of a link.
+         */
+        getLinkPosition: function (link) {
+            var from = this.getNodePosition(link.fromId),
+                to = this.getNodePosition(link.toId);
 
             return {
-                from : boundFrom,
-                to : boundTo
+                from : from,
+                to : to
             };
         },
 
+        /**
+         * Sets position of a node to a given coordinates
+         */
         setNodePosition: function (node, x, y) {
             var body = getBody(node.id);
             if (body) {

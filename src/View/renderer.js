@@ -154,8 +154,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createNodeUi = function (node) {
-            var boundPosition = layout.getBoundNodePosition(node);
-            graphics.addNode(node, boundPosition);
+            var nodePosition = layout.getNodePosition(node.id);
+            graphics.addNode(node, nodePosition);
         },
 
         removeNodeUi = function (node) {
@@ -163,8 +163,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createLinkUi = function (link) {
-            var boundLinkPosition = layout.getBoundLinkPosition(link);
-            graphics.addLink(link, boundLinkPosition);
+            var linkPosition = layout.getLinkPosition(link);
+            graphics.addLink(link, linkPosition);
         },
 
         removeLinkUi = function (link) {
