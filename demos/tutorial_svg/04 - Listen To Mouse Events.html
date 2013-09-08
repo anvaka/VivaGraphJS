@@ -4,7 +4,7 @@
     <title>04. Listen to mouse events. Vivagraph SVG tutorial.</title>
     <script type="text/javascript" src="../../dist/vivagraph.js"></script>
 
-    <!-- 
+    <!--
     This example uses jQuery, but it's only for convenience of listenting
     to DOM events. The jQuery can be replaced with your favorite library.
      -->
@@ -25,23 +25,23 @@
                 highlightRelatedNodes = function(nodeId, isOn) {
                    // just enumerate all realted nodes and update link color:
                    graph.forEachLinkedNode(nodeId, function(node, link){
-                       if (link && link.ui) {
-                           // link.ui is a special property of each link
-                           // points to the link presentation object.
-                           link.ui.attr('stroke', isOn ? 'red' : 'gray');
+                       var linkUI = graphics.getLinkUI(link.id);
+                       if (linkUI) {
+                           // linkUI is a UI object created by graphics below
+                           linkUI.attr('stroke', isOn ? 'red' : 'gray');
                        }
                    });
                 };
 
             // Since we are using SVG we can easily subscribe to any supported
-            // events (http://www.w3.org/TR/SVG/interact.html#SVGEvents ), 
+            // events (http://www.w3.org/TR/SVG/interact.html#SVGEvents ),
             // including mouse events:
             graphics.node(function(node) {
                 var ui = Viva.Graph.svg('image')
                      .attr('width', nodeSize)
                      .attr('height', nodeSize)
-                     .link('https://secure.gravatar.com/avatar/' + node.data); 
-                
+                     .link('https://secure.gravatar.com/avatar/' + node.data);
+
                 $(ui).hover(function() { // mouse over
                     highlightRelatedNodes(node.id, true);
                 }, function() { // mouse out
@@ -50,13 +50,13 @@
                 return ui;
             }).placeNode(function(nodeUI, pos) {
                 nodeUI.attr('x', pos.x - nodeSize / 2).attr('y', pos.y - nodeSize / 2);
-            }); 
+            });
 
             graphics.link(function(link){
                 return Viva.Graph.svg('path')
                               .attr('stroke', 'gray');
             }).placeLink(function(linkUI, fromPos, toPos) {
-                var data = 'M' + fromPos.x + ',' + fromPos.y + 
+                var data = 'M' + fromPos.x + ',' + fromPos.y +
                            'L' + toPos.x + ',' + toPos.y;
 
                 linkUI.attr("d", data);
@@ -69,7 +69,7 @@
             renderer.run();
         }
     </script>
-    
+
     <style type="text/css" media="screen">
         html, body, svg { width: 100%; height: 100%;}
     </style>
