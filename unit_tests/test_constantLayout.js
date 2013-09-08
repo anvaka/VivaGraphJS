@@ -12,9 +12,10 @@ var test_constantLayout = function(test) {
             layout.run();
 
             graph.forEachNode(function(node) {
-                test.assert(node.hasOwnProperty('position'), 'All nodes expected to have some position');
-                test.assert(typeof node.position.x === 'number', 'Node position does not have a valid x position');
-                test.assert(typeof node.position.y === 'number', 'Node position does not have a valid y position');
+                var position = layout.getNodePosition(node.id);
+                test.assert(position, 'All nodes expected to have some position');
+                test.assert(typeof position.x === 'number', 'Node position does not have a valid x position');
+                test.assert(typeof position.y === 'number', 'Node position does not have a valid y position');
             });
         },
 
@@ -29,8 +30,9 @@ var test_constantLayout = function(test) {
             layout.run();
 
             graph.forEachNode(function(node) {
-                test.assertEqual(node.position.x, 42, 'Node position does not have a valid x position');
-                test.assertEqual(node.position.y, 42, 'Node position does not have a valid y position');
+                var position = layout.getNodePosition(node.id);
+                test.assertEqual(position.x, 42, 'Node position does not have a valid x position');
+                test.assertEqual(position.y, 42, 'Node position does not have a valid y position');
             });
         },
 
@@ -45,8 +47,9 @@ var test_constantLayout = function(test) {
             layout.run();
 
             graph.forEachNode(function(node) {
-                test.assert(node.position.x <= layoutSettings.maxX, 'Node position does not have a valid x position');
-                test.assert(node.position.y <= layoutSettings.maxY, 'Node position does not have a valid y position');
+                var position = layout.getNodePosition(node.id);
+                test.assert(position.x <= layoutSettings.maxX, 'Node position does not have a valid x position');
+                test.assert(position.y <= layoutSettings.maxY, 'Node position does not have a valid y position');
             });
         }
     };
