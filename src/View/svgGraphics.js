@@ -15,6 +15,7 @@ Viva.Graph.View.svgGraphics = function () {
         svgRoot,
         offsetX,
         offsetY,
+        initCallback,
         actualScale = 1,
         allNodes = {},
         allLinks = {},
@@ -206,6 +207,10 @@ Viva.Graph.View.svgGraphics = function () {
             svgRoot.appendChild(svgContainer);
             container.appendChild(svgRoot);
             updateTransform();
+            // Notify the world if someoen waited for update. TODO: should send an event
+            if (typeof initCallback === "function") {
+                initCallback(svgRoot);
+            }
         },
 
        /**
@@ -311,10 +316,23 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         /**
+         * Returns root element which hosts graphics.
+         */
+        getGraphicsRoot : function (callbackWhenReady) {
+            // todo: should fire an event, instead of having this context.
+            if (typeof callbackWhenReady === "function") {
+                if (svgRoot) {
+                    callbackWhenReady(svgRoot);
+                } else {
+                    initCallback = callbackWhenReady;
+                }
+            }
+            return svgRoot;
+        },
+        /**
          * Returns root svg element.
          *
          * Note: This is internal method specific to this renderer
-         * TODO: Rename this to getGraphicsRoot() to be uniform accross graphics classes
          */
         getSvgRoot : function () {
             return svgRoot;
