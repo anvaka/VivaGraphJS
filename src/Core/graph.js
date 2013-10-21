@@ -104,26 +104,7 @@ Viva.Graph.graph = function () {
                 recordNodeChange(node, 'update');
             }
 
-            if (data) {
-                var augmentedData = node.data || {},
-                    dataType = typeof data,
-                    name;
-
-                if (dataType === 'string' || isArray(data) ||
-                        dataType === 'number' || dataType === 'boolean') {
-                    augmentedData = data;
-                } else if (dataType === 'undefined') {
-                    augmentedData = null;
-                } else {
-                    for (name in data) {
-                        if (data.hasOwnProperty(name)) {
-                            augmentedData[name] = data[name];
-                        }
-                    }
-                }
-
-                node.data = augmentedData;
-            }
+            node.data = data;
 
             nodes[nodeId] = node;
 
