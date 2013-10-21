@@ -99,9 +99,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             body.mass = 1 + graph.getLinks(nodeId).length / 3.0;
         },
 
-        isNodePinned = function(nodeId) {
-            var node = graph.getNode(nodeId);
-
+        isNodePinned = function(node) {
             return (node && (node.isPinned || (node.data && node.data.isPinned)));
         },
 
