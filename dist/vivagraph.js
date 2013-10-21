@@ -36,112 +36,33 @@ Viva.lazyExtend = function (target, options) {
     return target;
 };
 /**
- * Implenetation of seeded pseudo random number generator, based on LFIB4 algorithm.
+ * Implenetation of seeded pseudo random number generator, based on Robert Jenkin's 32 bit integer hash function
  *
  * Usage example:
- *  var random = Viva.random('random seed', 'can', 'be', 'multiple strings'),
+ *  var random = Viva.random(seedNumber),
  *      i = random.next(100); // returns random number from [0 .. 100) range.
  */
 
 Viva.random = function () {
-    // From http://baagoe.com/en/RandomMusings/javascript/
-    function getMash() {
-        var n = 0xefc8249d;
-
-        var mash = function (data) {
-            var i;
-            data = data.toString();
-            for (i = 0; i < data.length; i++) {
-                n += data.charCodeAt(i);
-                var h = 0.02519603282416938 * n;
-                n = h >>> 0;
-                h -= n;
-                h *= n;
-                n = h >>> 0;
-                h -= n;
-                n += h * 0x100000000; // 2^32
-            }
-            return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    var firstArg = arguments[0];
+    var seed;
+    if (typeof firstArg === 'number') {
+        seed = firstArg;
+    } else if (typeof firstArg === 'string') {
+        seed = firstArg.length;
+    } else {
+        seed = +new Date();
+    }
+    var randomFunc = function() {
+            // Robert Jenkins' 32 bit integer hash function.
+            seed = ((seed + 0x7ed55d16) + (seed << 12))  & 0xffffffff;
+            seed = ((seed ^ 0xc761c23c) ^ (seed >>> 19)) & 0xffffffff;
+            seed = ((seed + 0x165667b1) + (seed << 5))   & 0xffffffff;
+            seed = ((seed + 0xd3a2646c) ^ (seed << 9))   & 0xffffffff;
+            seed = ((seed + 0xfd7046c5) + (seed << 3))   & 0xffffffff;
+            seed = ((seed ^ 0xb55a4f09) ^ (seed >>> 16)) & 0xffffffff;
+            return (seed & 0xfffffff) / 0x10000000;
         };
-
-        mash.version = 'Mash 0.9';
-        return mash;
-    }
-
-    function LFIB4(args) {
-        return (function (args) {
-            // George Marsaglia's LFIB4,
-            //http://groups.google.com/group/sci.crypt/msg/eb4ddde782b17051
-            var k0 = 0,
-                k1 = 58,
-                k2 = 119,
-                k3 = 178,
-                j,
-                i,
-                s = [],
-                mash = getMash();
-
-            if (args.length === 0) {
-                args = [+new Date()];
-            }
-
-            for (j = 0; j < 256; j++) {
-                s[j] = mash(' ');
-                s[j] -= mash(' ') * 4.76837158203125e-7; // 2^-21
-                if (s[j] < 0) {
-                    s[j] += 1;
-                }
-            }
-
-            for (i = 0; i < args.length; i++) {
-                for (j = 0; j < 256; j++) {
-                    s[j] -= mash(args[i]);
-                    s[j] -= mash(args[i]) * 4.76837158203125e-7; // 2^-21
-                    if (s[j] < 0) {
-                        s[j] += 1;
-                    }
-                }
-            }
-
-            mash = null;
-
-            var random = function () {
-                var x;
-
-                k0 = (k0 + 1) & 255;
-                k1 = (k1 + 1) & 255;
-                k2 = (k2 + 1) & 255;
-                k3 = (k3 + 1) & 255;
-
-                x = s[k0] - s[k1];
-                if (x < 0) {
-                    x += 1;
-                }
-                x -= s[k2];
-                if (x < 0) {
-                    x += 1;
-                }
-                x -= s[k3];
-                if (x < 0) {
-                    x += 1;
-                }
-
-                s[k0] = x;
-                return x;
-            };
-
-            random.uint32 = function () {
-                return random() * 0x100000000 >>> 0; // 2^32
-            };
-            random.fract53 = random;
-            random.version = 'LFIB4 0.9';
-            random.args = args;
-
-            return random;
-        }(args));
-    }
-
-    var randomFunc = new LFIB4(Array.prototype.slice.call(arguments));
 
     return {
         /**
@@ -1165,26 +1086,7 @@ Viva.Graph.graph = function () {
                 recordNodeChange(node, 'update');
             }
 
-            if (data) {
-                var augmentedData = node.data || {},
-                    dataType = typeof data,
-                    name;
-
-                if (dataType === 'string' || isArray(data) ||
-                        dataType === 'number' || dataType === 'boolean') {
-                    augmentedData = data;
-                } else if (dataType === 'undefined') {
-                    augmentedData = null;
-                } else {
-                    for (name in data) {
-                        if (data.hasOwnProperty(name)) {
-                            augmentedData[name] = data[name];
-                        }
-                    }
-                }
-
-                node.data = augmentedData;
-            }
+            node.data = data;
 
             nodes[nodeId] = node;
 
@@ -2283,9 +2185,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             body.mass = 1 + graph.getLinks(nodeId).length / 3.0;
         },
 
-        isNodePinned = function(nodeId) {
-            var node = graph.getNode(nodeId);
-
+        isNodePinned = function(node) {
             return (node && (node.isPinned || (node.data && node.data.isPinned)));
         },
 
@@ -2335,7 +2235,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 toBody  = getBody(link.toId),
                 spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
 
-            // TODO: this has a bug, with multiple springs between same nodes
             springs[link.id] = spring;
         },
 
