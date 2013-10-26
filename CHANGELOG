@@ -1,14 +1,14 @@
 v0.5.0
   data: Oct 20, 2013
-	BREAKING CHANGES:
-	  - graph.addNode() no longer augments old data model with whatever passed
-		to method. Instead it stores direct reference to passed node's model
-		- node/link objects no longer store layout specific properties. Instead you can
-		query all layout properties from layout class itself. This allows the same
-		graph to be layed out by two different layout algorithm, without stepping
-		on toes of each other
-		- node/link objects no longer store ui specific properties. Instead you
-		can query them from specific UI provider
+  BREAKING CHANGES:
+  - graph.addNode() no longer augments old data model with whatever passed
+    to method. Instead it stores direct reference to passed node's model
+  - node/link objects no longer store layout specific properties. Instead you can
+    query all layout properties from layout class itself. This allows the same
+    graph to be layed out by two different layout algorithm, without stepping
+    on toes of each other
+  - node/link objects no longer store ui specific properties. Instead you
+    can query them from specific UI provider
 v0.4.1
   data: Jul 20, 2013
 	changes:
