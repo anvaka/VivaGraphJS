@@ -141,6 +141,10 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 releaseBody(node.id);
 
                 forceSimulator.removeBody(body);
+                if (graph.getNodesCount() === 0) {
+                    graphRect.x1 = graphRect.y1 = 0;
+                    graphRect.x2 = graphRect.y2 = 0;
+                }
             }
         },
 
