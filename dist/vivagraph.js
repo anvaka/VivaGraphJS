@@ -2150,6 +2150,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
             // How about center of mass?
+            if (node.position) {
+              return node.position;
+            }
             var baseX = (graphRect.x1 + graphRect.x2) / 2,
                 baseY = (graphRect.y1 + graphRect.y2) / 2,
                 springLength = settings.springLength;
