@@ -2018,7 +2018,7 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
         /**
          * Adds a spring to this simulation.
          */
-        addSpring: function (body1, body2, springLength, springCoefficient, springWeight) {
+        addSpring: function (body1, body2, springLength, springWeight, springCoefficient) {
             if (!body1 || !body2) {
                 throw {
                     message : 'Cannot add null spring to force simulator'
