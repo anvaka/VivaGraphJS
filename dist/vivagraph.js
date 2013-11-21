@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.0';
+Viva.Graph.version = '0.5.1';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -2127,7 +2127,37 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
          * Drag force coefficient. Used to slow down system, thus should be less than 1.
          * The closer it is to 0 the less tight system will be.
          */
-        dragCoeff: 0.02
+        dragCoeff: 0.02,
+
+        /**
+         * Allows to transfor physical spring associated with a link. this allows clients
+         * to specify custom length for a link.
+         *
+         * @param {Viva.Graph.Link} link actual link for which transform is performed
+         * @param {Viva.Graph.Physics.Spring} spring physical spring which is associated with
+         * a link. Most interesting property will be 'length'
+         *
+         * @example
+         * // Let's say your graph represent friendship. Each link has associated
+         * // 'strength' of connection, distributed from 0 (not a strong connection) to
+         * // 1 (very strong connection)
+         * //
+         * // You want your graph to have uniformly distributed links, but stronger
+         * // connection should pull nodes closer:
+         *
+         * graph.addLink(user1, user2, { friendshipStrength: 0.9 });
+         * var layout = Viva.Graph.Layout.forceDirected(graph, {
+         *   springLength: 80, // 80 pixels is our ideal link length
+         *   springTransform: function (link, spring) {
+         *     // We can set custom desired length of a spring, based on
+         *     // link's data:
+         *     spring.length = 80 * (1 - link.data.friendshipStrength);
+         *   }
+         * }
+         */
+        springTransform: function (link, spring) {
+          // By default, it is a no-op
+        }
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
@@ -2242,6 +2272,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 toBody  = getBody(link.toId),
                 spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
 
+            settings.springTransform(link, spring);
             springs[link.id] = spring;
         },
 
