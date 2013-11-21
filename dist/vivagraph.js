@@ -2166,7 +2166,7 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
         /**
          * Adds a spring to this simulation.
          */
-        addSpring: function (body1, body2, springLength, springCoefficient, springWeight) {
+        addSpring: function (body1, body2, springLength, springWeight, springCoefficient) {
             if (!body1 || !body2) {
                 throw {
                     message : 'Cannot add null spring to force simulator'
@@ -2222,7 +2222,8 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
             springForces.push(force);
         }
     };
-};// I don't like to suppress this, but I'm afraid 'force_directed_body'
+};
+// I don't like to suppress this, but I'm afraid 'force_directed_body'
 // could already be used by someone. Don't want to break it now.
 /* jshint camelcase:false */
 
@@ -2384,7 +2385,6 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                         releaseLink(change.link);
                     }
                 }
-                // Probably we don't need to care about 'update' event here;
             }
         },
 
