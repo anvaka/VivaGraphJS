@@ -1,15 +1,15 @@
 v0.4.2
   date: Nov 20, 2013
-	changes:
-	  - Added customization point to force directed layout to allow specify
-		  custom links length.
-		- Fixed a bug with wrong arguments order in physics simulator.
+  changes:
+    - Added customization point to force directed layout to allow specify custom links length.
+    - Fixed a bug with wrong arguments order in physics simulator.
+
 v0.4.1
   date: Jul 20, 2013
-	changes:
-	  - Layout algorithm now listens to changes from graph directly. Public API
-		  to add/remove nodes or links is dropped from layout algorithms.
-		- Added small performance test for node.js
+  changes:
+    - Layout algorithm now listens to changes from graph directly. Public API to add/remove nodes or links is dropped from layout algorithms.
+    - Added small performance test for node.js
+
 v0.4.0
   date: April 7, 2013
   changes:
