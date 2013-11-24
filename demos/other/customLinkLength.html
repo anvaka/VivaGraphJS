@@ -25,6 +25,9 @@
                   timeStep: 10,
                   springCoeff : 0.004,
                   gravity : -10,
+                  // This is the main part of this example. We are telling force directed
+                  // layout, that we want to change length of each physical spring
+                  // by overriding `springTransform` method:
                   springTransform: function (link, spring) {
                     spring.length = idealLength * (1 - link.data.connectionStrength);
                   }
