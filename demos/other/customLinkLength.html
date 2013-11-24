@@ -19,10 +19,11 @@
               graph.addLink(5, 6, { connectionStrength: 0.1 });
 
 
-              var idealLength = 90;
+              var idealLength = 100;
               var layout = Viva.Graph.Layout.forceDirected(graph, {
                   springLength: idealLength,
-                  springCoeff : 0.0008,
+                  timeStep: 10,
+                  springCoeff : 0.004,
                   gravity : -10,
                   springTransform: function (link, spring) {
                     spring.length = idealLength * (1 - link.data.connectionStrength);

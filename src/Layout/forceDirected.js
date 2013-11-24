@@ -71,7 +71,12 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
          */
         springTransform: function (link, spring) {
           // By default, it is a no-op
-        }
+        },
+
+        /**
+         * Default time step (dt) for forces integration
+         */
+        timeStep : 20
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
@@ -300,7 +305,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
          * Performs one step of iterative layout algorithm
          */
         step: function() {
-            var energy = forceSimulator.run(20);
+            var energy = forceSimulator.run(settings.timeStep);
             updateNodePositions();
 
             return energy < STABLE_THRESHOLD;
