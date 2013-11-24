@@ -1,3 +1,7 @@
+v0.5.2
+  date: Nov 23, 2013
+	- Euler integrator now supports custom time step
+
 v0.5.1
   date: Nov 20, 2013
 	- Merged changes from v0.4.2: custom links length + fixed bug in arguments
