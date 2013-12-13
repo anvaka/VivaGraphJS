@@ -51,12 +51,12 @@ _v.0.4.*_
 
 _v.0.5.*_
 ``` js
-    //  "position" is now part of layouter:
+    //  "ui" is now part of graphics:
     graph.forEachNode(function (node) {
       // graphics here can be instance of Viva.Graph.View.svgGraphics or Viva.Graph.View.webglGraphics:
       console.dir(graphics.getNodeUI(node.id));
     });
-    //  "position" is now part of layouter:
+    //  "ui" is now part of graphics:
     graph.forEachLink(function (link) {
       // graphics here can be instance of Viva.Graph.View.svgGraphics or Viva.Graph.View.webglGraphics:
       console.dir(graphics.getLinkUI(link.id));
