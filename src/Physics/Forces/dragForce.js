@@ -8,7 +8,6 @@ Viva.Graph.Physics.dragForce = function (options) {
     };
 
     return {
-        init : function (forceSimulator) {},
         update : function (body) {
             body.force.x -= currentOptions.coeff * body.velocity.x;
             body.force.y -= currentOptions.coeff * body.velocity.y;

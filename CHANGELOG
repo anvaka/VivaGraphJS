@@ -1,3 +1,24 @@
+v0.5.2
+  date: Nov 23, 2013
+	- Euler integrator now supports custom time step
+
+v0.5.1
+  date: Nov 20, 2013
+	- Merged changes from v0.4.2: custom links length + fixed bug in arguments
+	order
+
+v0.5.0
+  date: Oct 20, 2013
+  BREAKING CHANGES:
+  - graph.addNode() no longer augments old data model with whatever passed
+    to method. Instead it stores direct reference to passed node's model
+  - node/link objects no longer store layout specific properties. Instead you can
+    query all layout properties from layout class itself. This allows the same
+    graph to be layed out by two different layout algorithm, without stepping
+    on toes of each other
+  - node/link objects no longer store ui specific properties. Instead you
+    can query them from specific UI provider
+
 v0.4.2
   date: Nov 20, 2013
   changes:
@@ -6,9 +27,10 @@ v0.4.2
 
 v0.4.1
   date: Jul 20, 2013
-  changes:
-    - Layout algorithm now listens to changes from graph directly. Public API to add/remove nodes or links is dropped from layout algorithms.
-    - Added small performance test for node.js
+	changes:
+	  - Layout algorithm now listens to changes from graph directly. Public API
+		  to add/remove nodes or links is dropped from layout algorithms.
+		- Added small performance test for node.js
 
 v0.4.0
   date: April 7, 2013

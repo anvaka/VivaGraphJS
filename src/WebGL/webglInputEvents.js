@@ -2,18 +2,17 @@
  * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
  *
  * @param {Viva.Graph.View.webglGraphics} webglGraphics
- * @param {Viva.Graph.graph} graph
  */
-Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
+Viva.Graph.webglInputEvents = function (webglGraphics) {
     if (webglGraphics.webglInputEvents) {
         // Don't listen twice, if we are already attached to this graphics:
         return webglGraphics.webglInputEvents;
     }
 
-    var preciseCheck = function (node, x, y) {
-            if (node.ui && node.ui.size) {
-                var pos = node.position,
-                    half = node.ui.size;
+    var preciseCheck = function (nodeUI, x, y) {
+            if (nodeUI && nodeUI.size) {
+                var pos = nodeUI.position,
+                    half = nodeUI.size;
 
                 return pos.x - half < x && x < pos.x + half &&
                        pos.y - half < y && y < pos.y + half;
@@ -21,9 +20,11 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
 
             return true;
         },
+        getNodeAtClientPos = function (pos) {
+            return webglGraphics.getNodeAtClientPos(pos, preciseCheck);
+        },
         mouseCapturedNode = null,
 
-        spatialIndex = Viva.Graph.spatialIndex(graph, preciseCheck),
         mouseEnterCallback = [],
         mouseLeaveCallback = [],
         mouseDownCallback = [],
@@ -92,8 +93,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
 
-                    webglGraphics.getGraphCoordinates(pos);
-                    node = spatialIndex.getNodeAt(pos.x, pos.y);
+                    node = getNodeAtClientPos(pos);
 
                     if (node && lastFound !== node) {
                         lastFound = node;
@@ -113,9 +113,8 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
 
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
-                    webglGraphics.getGraphCoordinates(pos);
 
-                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
+                    args = [getNodeAtClientPos(pos), e];
                     if (args[0]) {
                         cancelBubble = invoke(mouseDownCallback, args);
                         // we clicked on a node. Following drag should be handled on document events:
@@ -140,9 +139,8 @@ Viva.Graph.webglInputEvents = function (webglGraphics, graph) {
 
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
-                    webglGraphics.getGraphCoordinates(pos);
 
-                    args = [spatialIndex.getNodeAt(pos.x, pos.y), e];
+                    args = [getNodeAtClientPos(pos), e];
                     if (args[0]) {
                         window.document.onselectstart = prevSelectStart;
 

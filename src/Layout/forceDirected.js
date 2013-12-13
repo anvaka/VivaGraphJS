@@ -71,7 +71,12 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
          */
         springTransform: function (link, spring) {
           // By default, it is a no-op
-        }
+        },
+
+        /**
+         * Default time step (dt) for forces integration
+         */
+        timeStep : 20
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
@@ -89,20 +94,24 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         graphRect = new Viva.Graph.Rect(),
         random = Viva.random('ted.com', 103, 114, 101, 97, 116),
 
+        nodeBodies = {},
         getBestNodePosition = function(node) {
             // TODO: Initial position could be picked better, e.g. take into
             // account all neighbouring nodes/links, not only one.
-            // TODO: this is the same as in gem layout. consider refactoring.
+            // How about center of mass?
+            if (node.position) {
+                return node.position;
+            }
             var baseX = (graphRect.x1 + graphRect.x2) / 2,
                 baseY = (graphRect.y1 + graphRect.y2) / 2,
                 springLength = settings.springLength;
 
             if (node.links && node.links.length > 0) {
                 var firstLink = node.links[0],
-                    otherNode = firstLink.fromId !== node.id ? graph.getNode(firstLink.fromId) : graph.getNode(firstLink.toId);
-                if (otherNode.position) {
-                    baseX = otherNode.position.x;
-                    baseY = otherNode.position.y;
+                    otherNode = firstLink.fromId !== node.id ? nodeBodies[firstLink.fromId] : nodeBodies[firstLink.toId];
+                if (otherNode && otherNode.location) {
+                    baseX = otherNode.location.x;
+                    baseY = otherNode.location.y;
                 }
             }
 
@@ -112,62 +121,92 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             };
         },
 
-        updateNodeMass = function(node) {
-            var body = node.force_directed_body;
-            body.mass = 1 + graph.getLinks(node.id).length / 3.0;
+        getBody = function (nodeId) {
+            return nodeBodies[nodeId];
         },
 
-        initNode = function(node) {
-            var body = node.force_directed_body;
+        releaseBody = function (nodeId) {
+            nodeBodies[nodeId] = null;
+            delete nodeBodies[nodeId];
+        },
+
+        springs = {},
+
+        updateBodyMass = function(nodeId) {
+            var body = getBody(nodeId);
+            body.mass = 1 + graph.getLinks(nodeId).length / 3.0;
+        },
+
+        isNodePinned = function(node) {
+            return (node && (node.isPinned || (node.data && node.data.isPinned)));
+        },
+
+        isBodyPinned = function (body) {
+            return body.isPinned;
+        },
+
+        initNode = function(nodeId) {
+            var body = getBody(nodeId);
             if (!body) {
-                // TODO: rename position to location or location to position to be consistent with
-                // other places.
-                node.position = node.position || getBestNodePosition(node);
+                var node = graph.getNode(nodeId);
+                if (!node) {
+                    return; // what are you doing?
+                }
 
                 body = new Viva.Graph.Physics.Body();
-                node.force_directed_body = body;
-                updateNodeMass(node);
+                nodeBodies[nodeId] = body;
+                var position = getBestNodePosition(node);
+                body.loc(position);
+                updateBodyMass(nodeId);
 
-                body.loc(node.position);
+                if (isNodePinned(node)) {
+                    body.isPinned = true;
+                }
                 forceSimulator.addBody(body);
             }
         },
 
+        initNodeObject = function (node) {
+            initNode(node.id);
+        },
+
         releaseNode = function(node) {
-            var body = node.force_directed_body;
+            var body = getBody(node.id);
             if (body) {
-                node.force_directed_body = null;
-                delete node.force_directed_body;
+                releaseBody(node.id);
 
                 forceSimulator.removeBody(body);
+                if (graph.getNodesCount() === 0) {
+                    graphRect.x1 = graphRect.y1 = 0;
+                    graphRect.x2 = graphRect.y2 = 0;
+                }
             }
         },
 
         initLink = function(link) {
-            // TODO: what if bodies are not initialized?
-            var from = graph.getNode(link.fromId),
-                to = graph.getNode(link.toId);
+            updateBodyMass(link.fromId);
+            updateBodyMass(link.toId);
 
-            updateNodeMass(from);
-            updateNodeMass(to);
-            link.force_directed_spring = forceSimulator.addSpring(from.force_directed_body, to.force_directed_body, -1.0, link.weight);
-            settings.springTransform(link, link.force_directed_spring);
+            var fromBody = getBody(link.fromId),
+                toBody  = getBody(link.toId),
+                spring = forceSimulator.addSpring(fromBody, toBody, -1.0, link.weight);
+
+            settings.springTransform(link, spring);
+            springs[link.id] = spring;
         },
 
         releaseLink = function(link) {
-            var spring = link.force_directed_spring;
+            var spring = springs[link.id];
             if (spring) {
                 var from = graph.getNode(link.fromId),
                     to = graph.getNode(link.toId);
                 if (from) {
-                    updateNodeMass(from);
+                    updateBodyMass(from.id);
                 }
                 if (to) {
-                    updateNodeMass(to);
+                    updateBodyMass(to.id);
                 }
-
-                link.force_directed_spring = null;
-                delete link.force_directed_spring;
+                delete springs[link.id];
 
                 forceSimulator.removeSpring(spring);
             }
@@ -178,7 +217,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 var change = changes[i];
                 if (change.changeType === 'add') {
                     if (change.node) {
-                        initNode(change.node);
+                        initNode(change.node.id);
                     }
                     if (change.link) {
                         initLink(change.link);
@@ -195,17 +234,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         },
 
         initSimulator = function() {
-            graph.forEachNode(initNode);
+            graph.forEachNode(initNodeObject);
             graph.forEachLink(initLink);
             graph.addEventListener('changed', onGraphChanged);
-        },
-
-        isNodePinned = function(node) {
-            if (!node) {
-                return true;
-            }
-
-            return node.isPinned || (node.data && node.data.isPinned);
         },
 
         updateNodePositions = function() {
@@ -213,39 +244,35 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
                 y1 = Number.MAX_VALUE,
                 x2 = Number.MIN_VALUE,
                 y2 = Number.MIN_VALUE;
+
             if (graph.getNodesCount() === 0) {
                 return;
             }
-
-            graph.forEachNode(function(node) {
-                var body = node.force_directed_body;
-                if (!body) {
-                    // This could be a sign someone removed the propery.
-                    // I should really decouple force related stuff from node
-                    return;
+            for (var key in nodeBodies) {
+                if (nodeBodies.hasOwnProperty(key)) {
+                    // how about pinned nodes?
+                    var body = nodeBodies[key];
+                    if (isBodyPinned(body)) {
+                        body.location.x = body.prevLocation.x;
+                        body.location.y = body.prevLocation.y;
+                    } else {
+                        body.prevLocation.x = body.location.x;
+                        body.prevLocation.y = body.location.y;
+                    }
+                    if (body.location.x < x1) {
+                        x1 = body.location.x;
+                    }
+                    if (body.location.x > x2) {
+                        x2 = body.location.x;
+                    }
+                    if (body.location.y < y1) {
+                        y1 = body.location.y;
+                    }
+                    if (body.location.y > y2) {
+                        y2 = body.location.y;
+                    }
                 }
-
-                if (isNodePinned(node)) {
-                    body.loc(node.position);
-                }
-
-                // TODO: once again: use one name to be consistent (position vs location)
-                node.position.x = body.location.x;
-                node.position.y = body.location.y;
-
-                if (node.position.x < x1) {
-                    x1 = node.position.x;
-                }
-                if (node.position.x > x2) {
-                    x2 = node.position.x;
-                }
-                if (node.position.y < y1) {
-                    y1 = node.position.y;
-                }
-                if (node.position.y > y2) {
-                    y2 = node.position.y;
-                }
-            });
+            }
 
             graphRect.x1 = x1;
             graphRect.x2 = x2;
@@ -253,9 +280,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             graphRect.y2 = y2;
         };
 
-    forceSimulator.addSpringForce(springForce);
-    forceSimulator.addBodyForce(nbodyForce);
-    forceSimulator.addBodyForce(dragForce);
+    forceSimulator.setSpringForce(springForce);
+    forceSimulator.setNbodyForce(nbodyForce);
+    forceSimulator.setDragForce(dragForce);
 
     initSimulator();
 
@@ -274,11 +301,71 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             }
         },
 
+        /**
+         * Performs one step of iterative layout algorithm
+         */
         step: function() {
-            var energy = forceSimulator.run(20);
+            var energy = forceSimulator.run(settings.timeStep);
             updateNodePositions();
 
             return energy < STABLE_THRESHOLD;
+        },
+
+        /*
+         * Checks whether given node is pinned;
+         */
+        isNodePinned: function (node) {
+            var body = getBody(node.id);
+            if (body) {
+                return isBodyPinned(body);
+            }
+        },
+
+        /*
+         * Requests layout algorithm to pin/unpin node to its current position
+         * Pinned nodes should not be affected by layout algorithm and always
+         * remain at their position
+         */
+        pinNode: function (node, isPinned) {
+            var body = getBody(node.id);
+            body.isPinned = !!isPinned;
+        },
+
+        /*
+         * Gets position of a node by its id. If node was not seen by this
+         * layout algorithm undefined value is returned;
+         */
+        getNodePosition: function (nodeId) {
+            var body = getBody(nodeId);
+            if (!body) {
+                initNode(nodeId);
+                body = getBody(nodeId);
+            }
+            return body && body.location;
+        },
+
+        /**
+         * Returns {from, to} position of a link.
+         */
+        getLinkPosition: function (link) {
+            var from = this.getNodePosition(link.fromId),
+                to = this.getNodePosition(link.toId);
+
+            return {
+                from : from,
+                to : to
+            };
+        },
+
+        /**
+         * Sets position of a node to a given coordinates
+         */
+        setNodePosition: function (node, x, y) {
+            var body = getBody(node.id);
+            if (body) {
+                body.prevLocation.x = body.location.x = x;
+                body.prevLocation.y = body.location.y = y;
+            }
         },
 
         /**

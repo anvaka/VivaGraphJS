@@ -4,7 +4,7 @@
 
 Viva.Input = Viva.Input || {};
 Viva.Input.webglInputManager = function (graph, graphics) {
-    var inputEvents = Viva.Graph.webglInputEvents(graphics, graph),
+    var inputEvents = Viva.Graph.webglInputEvents(graphics),
         draggedNode = null,
         internalHandlers = {},
         pos = {x : 0, y : 0};
@@ -16,7 +16,7 @@ Viva.Input.webglInputManager = function (graph, graphics) {
 
         inputEvents.mouseCapture(draggedNode);
 
-        var handlers = internalHandlers[node.ui.id];
+        var handlers = internalHandlers[node.id];
         if (handlers && handlers.onStart) {
             handlers.onStart(e, pos);
         }
@@ -26,14 +26,14 @@ Viva.Input.webglInputManager = function (graph, graphics) {
         inputEvents.releaseMouseCapture(draggedNode);
 
         draggedNode = null;
-        var handlers = internalHandlers[node.ui.id];
+        var handlers = internalHandlers[node.id];
         if (handlers && handlers.onStop) {
             handlers.onStop();
         }
         return true;
     }).mouseMove(function (node, e) {
         if (draggedNode) {
-            var handlers = internalHandlers[draggedNode.ui.id];
+            var handlers = internalHandlers[draggedNode.id];
             if (handlers && handlers.onDrag) {
                 handlers.onDrag(e, {x : e.clientX - pos.x, y : e.clientY - pos.y });
             }
@@ -57,7 +57,10 @@ Viva.Input.webglInputManager = function (graph, graphics) {
          *   onStop: function()
          */
         bindDragNDrop : function (node, handlers) {
-            internalHandlers[node.ui.id] = handlers;
+            internalHandlers[node.id] = handlers;
+            if (!handlers) {
+                delete internalHandlers[node.id];
+            }
         }
     };
 };

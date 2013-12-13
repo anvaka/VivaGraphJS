@@ -35,7 +35,8 @@
                          .attr("height", 10)
                          .attr("fill", "#00a2e8");
                     ui.addEventListener('click', function () {
-                        node.isPinned = !node.isPinned
+                        // toggle pinned mode
+                        layout.pinNode(node, !layout.isNodePinned(node));
                     });
                     return ui;
                 });

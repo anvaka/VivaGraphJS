@@ -6,7 +6,7 @@
     <script type="text/javascript">
         function main () {
             // This demo shows how to create an SVG node which is a bit more complex
-            // than single image. Do accomplish this we use 'g' element and 
+            // than single image. Do accomplish this we use 'g' element and
             // compose group of elements to represent a node.
             var graph = Viva.Graph.graph();
 
@@ -26,18 +26,18 @@
                      .attr('width', nodeSize)
                      .attr('height', nodeSize)
                      .link('https://secure.gravatar.com/avatar/' + node.data);
-            
+
               ui.append(svgText);
               ui.append(img);
               return ui;
             }).placeNode(function(nodeUI, pos) {
                 // 'g' element doesn't have convenient (x,y) attributes, instead
-                // we have to deal with transforms: http://www.w3.org/TR/SVG/coords.html#SVGGlobalTransformAttribute 
-                nodeUI.attr('transform', 
-                            'translate(' + 
-                                  (pos.x - nodeSize/2) + ',' + (pos.y - nodeSize/2) + 
+                // we have to deal with transforms: http://www.w3.org/TR/SVG/coords.html#SVGGlobalTransformAttribute
+                nodeUI.attr('transform',
+                            'translate(' +
+                                  (pos.x - nodeSize/2) + ',' + (pos.y - nodeSize/2) +
                             ')');
-            }); 
+            });
 
             // Render the graph
             var renderer = Viva.Graph.View.renderer(graph, {
@@ -46,7 +46,7 @@
             renderer.run();
         }
     </script>
-    
+
     <style type="text/css" media="screen">
         html, body, svg { width: 100%; height: 100%;}
     </style>

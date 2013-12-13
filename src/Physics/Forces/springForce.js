@@ -7,8 +7,6 @@ Viva.Graph.Physics.springForce = function (currentOptions) {
     var random = Viva.random('Random number 4.', 'Chosen by fair dice roll');
 
     return {
-        init : function (forceSimulator) {},
-
         update : function (spring) {
             var body1 = spring.body1,
                 body2 = spring.body2,

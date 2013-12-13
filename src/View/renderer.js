@@ -83,49 +83,19 @@ Viva.Graph.View.renderer = function (graph, settings) {
             settings.prerender = settings.prerender || 0;
             inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
         },
-        // Cache positions object to prevent GC pressure
-        cachedFromPos = {x : 0, y : 0, node: null},
-        cachedToPos = {x : 0, y : 0, node: null},
-        cachedNodePos = { x: 0, y: 0},
         windowEvents = Viva.Graph.Utils.events(window),
         publicEvents = Viva.Graph.Utils.events({}).extend(),
         graphEvents,
         containerDrag,
 
-
-        renderLink = function (link) {
-            var fromNode = graph.getNode(link.fromId),
-                toNode = graph.getNode(link.toId);
-
-            if (!fromNode || !toNode) {
-                return;
-            }
-
-            cachedFromPos.x = fromNode.position.x;
-            cachedFromPos.y = fromNode.position.y;
-            cachedFromPos.node = fromNode;
-
-            cachedToPos.x = toNode.position.x;
-            cachedToPos.y = toNode.position.y;
-            cachedToPos.node = toNode;
-
-            graphics.updateLinkPosition(link.ui, cachedFromPos, cachedToPos);
-        },
-
-        renderNode = function (node) {
-            cachedNodePos.x = node.position.x;
-            cachedNodePos.y = node.position.y;
-
-            graphics.updateNodePosition(node.ui, cachedNodePos);
-        },
-
         renderGraph = function () {
             graphics.beginRender();
-            if (settings.renderLinks && !graphics.omitLinksRendering) {
-                graph.forEachLink(renderLink);
-            }
 
-            graph.forEachNode(renderNode);
+            // todo: move this check graphics
+            if (settings.renderLinks) {
+                graphics.renderLinks();
+            }
+            graphics.renderNodes();
             graphics.endRender();
         },
 
@@ -184,38 +154,21 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createNodeUi = function (node) {
-            var nodeUI = graphics.node(node);
-            node.ui = nodeUI;
-            graphics.initNode(nodeUI);
-
-            renderNode(node);
+            var nodePosition = layout.getNodePosition(node.id);
+            graphics.addNode(node, nodePosition);
         },
 
         removeNodeUi = function (node) {
-            if (node.hasOwnProperty('ui')) {
-                graphics.releaseNode(node.ui);
-
-                node.ui = null;
-                delete node.ui;
-            }
+            graphics.releaseNode(node);
         },
 
         createLinkUi = function (link) {
-            var linkUI = graphics.link(link);
-            link.ui = linkUI;
-            graphics.initLink(linkUI);
-
-            if (!graphics.omitLinksRendering) {
-                renderLink(link);
-            }
+            var linkPosition = layout.getLinkPosition(link);
+            graphics.addLink(link, linkPosition);
         },
 
         removeLinkUi = function (link) {
-            if (link.hasOwnProperty('ui')) {
-                graphics.releaseLink(link.ui);
-                link.ui = null;
-                delete link.ui;
-            }
+            graphics.releaseLink(link);
         },
 
         listenNodeEvents = function (node) {
@@ -224,20 +177,23 @@ Viva.Graph.View.renderer = function (graph, settings) {
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
                 onStart : function () {
-                    wasPinned = node.isPinned;
-                    node.isPinned = true;
+                    wasPinned = layout.isNodePinned(node);
+                    layout.pinNode(node, true);
                     userInteraction = true;
                     resetStable();
                 },
                 onDrag : function (e, offset) {
-                    node.position.x += offset.x / transform.scale;
-                    node.position.y += offset.y / transform.scale;
+                    var oldPos = layout.getNodePosition(node.id);
+                    layout.setNodePosition(node,
+                                           oldPos.x + offset.x / transform.scale,
+                                           oldPos.y + offset.y / transform.scale);
+
                     userInteraction = true;
 
                     renderGraph();
                 },
                 onStop : function () {
-                    node.isPinned = wasPinned;
+                    layout.pinNode(node, wasPinned);
                     userInteraction = false;
                 }
             });

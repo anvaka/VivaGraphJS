@@ -35,6 +35,10 @@
                   }
               });
 
+              // let's pin middle node:
+              var middle = graph.getNode(3);
+              layout.pinNode(middle, true);
+
               var renderer = Viva.Graph.View.renderer(graph, {
                   layout : layout
               });

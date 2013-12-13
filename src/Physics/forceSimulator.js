@@ -12,8 +12,9 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
     var integrator = forceIntegrator,
         bodies = [], // Bodies in this simulation.
         springs = [], // Springs in this simulation.
-        bodyForces = [], // Forces acting on bodies.
-        springForces = []; // Forces acting on springs.
+        springForce,
+        nBodyForce,
+        dragForce;
 
     return {
 
@@ -31,18 +32,9 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
          * Accumulates all forces acting on the bodies and springs.
          */
         accumulate : function () {
-            var i, j, body;
+            var i, body;
 
-            // Reinitialize all forces
-            i = bodyForces.length;
-            while (i--) {
-                bodyForces[i].init(this);
-            }
-
-            i = springForces.length;
-            while (i--) {
-                springForces[i].init(this);
-            }
+            nBodyForce.init(this);
 
             // Accumulate forces acting on bodies.
             i = bodies.length;
@@ -51,16 +43,14 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
                 body.force.x = 0;
                 body.force.y = 0;
 
-                for (j = 0; j < bodyForces.length; j++) {
-                    bodyForces[j].update(body);
-                }
+                nBodyForce.update(body);
+                dragForce.update(body);
             }
 
             // Accumulate forces acting on springs.
-            for (i = 0; i < springs.length; ++i) {
-                for (j = 0; j < springForces.length; j++) {
-                    springForces[j].update(springs[i]);
-                }
+            i = springs.length;
+            while(i--) {
+                springForce.update(springs[i]);
             }
         },
 
@@ -135,29 +125,38 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
         },
 
         /**
-         * Adds a force acting on all bodies in this simulation
+         * Sets n-body force acting on all bodies in this simulation
          */
-        addBodyForce: function (force) {
+        setNbodyForce: function (force) {
             if (!force) {
                 throw {
                     message : 'Cannot add mighty (unknown) force to the simulator'
                 };
             }
 
-            bodyForces.push(force);
+            nBodyForce = force;
         },
 
+        setDragForce: function (force) {
+            if (!force) {
+                throw {
+                    message : 'Cannot add mighty (unknown) force to the simulator'
+                };
+            }
+
+            dragForce = force;
+        },
         /**
          * Adds a spring force acting on all springs in this simulation.
          */
-        addSpringForce : function (force) {
+        setSpringForce : function (force) {
             if (!force) {
                 throw {
                     message : 'Cannot add unknown force to the simulator'
                 };
             }
 
-            springForces.push(force);
+            springForce =  force;
         }
     };
 };

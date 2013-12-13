@@ -3,7 +3,8 @@
  */
 
 Viva.Input = Viva.Input || {};
-Viva.Input.domInputManager = function () {
+Viva.Input.domInputManager = function (graph, graphics) {
+    var nodeEvents = {};
     return {
         /**
          * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
@@ -17,8 +18,10 @@ Viva.Input.domInputManager = function () {
          *   onStop: function()
          */
         bindDragNDrop : function (node, handlers) {
+            var events;
             if (handlers) {
-                var events = Viva.Graph.Utils.dragndrop(node.ui);
+                var nodeUI = graphics.getNodeUI(node.id);
+                events = Viva.Graph.Utils.dragndrop(nodeUI);
                 if (typeof handlers.onStart === 'function') {
                     events.onStart(handlers.onStart);
                 }
@@ -29,12 +32,10 @@ Viva.Input.domInputManager = function () {
                     events.onStop(handlers.onStop);
                 }
 
-                node.events = events;
-            } else if (node.events) {
-                // TODO: i'm not sure if this is required in JS world...
-                node.events.release();
-                node.events = null;
-                delete node.events;
+                nodeEvents[node.id] = events;
+            } else if (( events = nodeEvents[node.id] )) {
+                events.release();
+                delete nodeEvents[node.id];
             }
         }
     };

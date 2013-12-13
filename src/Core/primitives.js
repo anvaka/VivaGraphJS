@@ -28,8 +28,9 @@ Viva.Graph.Node = function (id) {
 /**
  * Internal structure to represent links;
  */
-Viva.Graph.Link = function (fromId, toId, data) {
+Viva.Graph.Link = function (fromId, toId, data, id) {
     this.fromId = fromId;
     this.toId = toId;
     this.data = data;
+    this.id = id;
 };
