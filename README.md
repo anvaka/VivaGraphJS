@@ -166,6 +166,11 @@ grunt
 ```
 The combined/minified code should be stored in ```dist``` folder.
 
+Upgrade guide
+-------------
+
+Please refer the [upgrade guide](https://github.com/anvaka/VivaGraphJS/blob/master/docs/upgrade_guide.md) to see how to update older versions of the library to the latest one.
+
 
 I need your feedback
 ----------------------------------------------------
