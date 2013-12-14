@@ -286,6 +286,22 @@ Viva.Graph.View.renderer = function (graph, settings) {
             }
         },
 
+        scale = function (out, scrollPoint) {
+            if (!scrollPoint) {
+                var containerSize = Viva.Graph.Utils.getDimension(container);
+                scrollPoint = {
+                  x: containerSize.width/2,
+                  y: containerSize.height/2
+                };
+            }
+            scrollPoint =  scrollPoint || {};
+            var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
+            transform.scale = graphics.scale(scaleFactor, scrollPoint);
+
+            renderGraph();
+            publicEvents.fire('scale', transform.scale);
+        },
+
         listenToEvents = function () {
             windowEvents.on('resize', onWindowResized);
 
@@ -300,11 +316,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
             });
 
             containerDrag.onScroll(function (e, scaleOffset, scrollPoint) {
-                var scaleFactor = Math.pow(1 + 0.4, scaleOffset < 0 ? -0.2 : 0.2);
-                transform.scale = graphics.scale(scaleFactor, scrollPoint);
-
-                renderGraph();
-                publicEvents.fire('scale', transform.scale);
+              scale(scaleOffset < 0, scrollPoint);
             });
 
             graph.forEachNode(listenNodeEvents);
@@ -380,6 +392,14 @@ Viva.Graph.View.renderer = function (graph, settings) {
         rerender : function () {
             renderGraph();
             return this;
+        },
+
+        zoomOut: function () {
+          scale(true);
+        },
+
+        zoomIn: function () {
+          scale(false);
         },
 
         /**
