@@ -294,7 +294,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                   y: containerSize.height/2
                 };
             }
-            scrollPoint =  scrollPoint || {};
             var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
             transform.scale = graphics.scale(scaleFactor, scrollPoint);
 
