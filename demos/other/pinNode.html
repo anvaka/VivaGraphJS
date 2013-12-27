@@ -23,12 +23,7 @@
                 // to not update node's position. Effectively the node looks
                 // like it is pinned to the canvas.
 
-                // One way to achieve pinning is to have "isPinned" attribute on
-                // node object:
-                // var node = graph.addNode('yourNodeId', {some: data});
-                // node.isPinned = true; // now the node will not move.
-
-                // You can also pin/unpin node any time you want:
+                // You can pin/unpin node any time you want:
                 graphics.node(function (node) {
                     var ui = Viva.Graph.svg("rect")
                          .attr("width", 10)
