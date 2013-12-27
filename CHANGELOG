@@ -1,3 +1,8 @@
+v0.5.3
+  date: Dec 27, 2013
+	- Small clean up in renderer
+	- Added pan/zoom API for SVG
+
 v0.5.2
   date: Nov 23, 2013
 	- Euler integrator now supports custom time step

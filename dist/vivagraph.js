@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.2';
+Viva.Graph.version = '0.5.3';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -5996,7 +5996,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 links[srcLinkId].id = srcLinkId;
             }
         },
-/*jshint unused: false */
+
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */

@@ -186,7 +186,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 links[srcLinkId].id = srcLinkId;
             }
         },
-/*jshint unused: false */
+
         /**
          * Sets translate operation that should be applied to all nodes and links.
          */
