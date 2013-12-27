@@ -18,11 +18,12 @@
                 });
 
                 var renderer = Viva.Graph.View.renderer(graph, {
-                        layout : layout,
-                    });
+                  layout : layout
+                });
 
                 renderer.run();
 
+                var graphics = renderer.getGraphics();
                 $('.zoom').click(function (e) {
                     e.preventDefault();
                     if ($(this).hasClass('in')) {
@@ -31,9 +32,32 @@
                         renderer.zoomOut();
                     }
                 });
+
+
+                $('#centerForm').submit(function(e) {
+                    e.preventDefault();
+                    var nodeId = $('#nodeid').val();
+                    if (graph.getNode(nodeId)) {
+                      var pos = layout.getNodePosition(nodeId);
+                      renderer.moveTo(pos.x, pos.y);
+
+                      highlightNode(nodeId);
+                    }
+                });
+
                 $('.reset').click(function () {
                     renderer.reset()
                 });
+
+                var prevSelected;
+                function highlightNode(nodeId) {
+                  var ui = graphics.getNodeUI(nodeId);
+                  if (prevSelected) {
+                    prevSelected.attr('fill', '#00a2e8')
+                  }
+                  prevSelected = ui;
+                  ui.attr('fill', 'orange');
+                }
             }
 
         </script>
@@ -51,6 +75,9 @@
       <div style="color: white; margin: 10px; position: absolute;">
         <span class='button zoom in'>Zoom In</span> | <span class='button zoom out'>Zoom Out</span> <br />
         <span class='button reset'>Reset</span>
+        <form id='centerForm'>
+        Center on node (0-99): <input type='text' id='nodeid'/><input type='submit' value='center'/>
+        </form>
       </div>
       <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     </body>

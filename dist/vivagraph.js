@@ -2889,7 +2889,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
             viewPortOffset.x = viewPortOffset.y = 0;
             transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
             transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
-            graphics.graphCenterChanged(transform.offsetX + viewPortOffset.x, transform.offsetY + viewPortOffset.y);
+            graphics.graphCenterChanged(transform.offsetX, transform.offsetY);
 
             updateCenterRequired = false;
         },
@@ -3035,7 +3035,6 @@ Viva.Graph.View.renderer = function (graph, settings) {
                   y: containerSize.height/2
                 };
             }
-            scrollPoint =  scrollPoint || {};
             var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
             transform.scale = graphics.scale(scaleFactor, scrollPoint);
 
@@ -3141,6 +3140,21 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
         zoomIn: function () {
           scale(false);
+        },
+
+        /**
+         * Centers renderer at x,y graph's coordinates
+         */
+        moveTo: function (x, y) {
+          graphics.graphCenterChanged(transform.offsetX - x * transform.scale, transform.offsetY - y * transform.scale);
+          renderGraph();
+        },
+
+        /**
+         * Gets current graphics object
+         */
+        getGraphics: function () {
+          return graphics;
         },
 
         /**
