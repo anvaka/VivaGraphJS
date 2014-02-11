@@ -16,13 +16,25 @@ Viva.Graph.operations = function () {
          * 
          * @returns density of the graph if graph has nodes. NaN otherwise 
          */
-        density : function (graph) {
+         
+         /*
+          * Extended the function to give density for a directed graph (since the library usually creates directed graphs)
+          * If specifically needed the a true value can be passed to the function which will return the value for
+          * a undirected graph.
+          * 
+          * I am planning to implement a direced - undirected character to the graphs and expand this operations sections.
+          * --Bala.
+         */
+        density : function (graph,undirected) {
             var nodes = graph.getNodesCount();
             if (nodes === 0) {
                 return NaN;
             }
-
-            return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+            if(undirected){
+                return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+            } else {
+                return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+            }
         }
     };
 };
