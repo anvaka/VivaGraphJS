@@ -33,7 +33,7 @@ Viva.Graph.operations = function () {
             if(undirected){
                 return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
             } else {
-                return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+                return graph.getLinksCount() / (nodes * (nodes - 1));
             }
         }
     };
