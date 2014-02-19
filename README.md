@@ -1,4 +1,4 @@
-VivaGraphJS - JavaScript Graph Drawing Library
+Graph Drawing Library
 ==================================================
 **VivaGraphJS** is a free [graph drawing](http://en.wikipedia.org/wiki/Graph_drawing) library for JavaScript.
 It is designed to be extensible and to support different rendering engines and layout algorithms. At the moment
