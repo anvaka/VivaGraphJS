@@ -5846,7 +5846,12 @@ Viva.Graph.View.webglGraphics = function (options) {
         height,
         nodesCount = 0,
         linksCount = 0,
-        transform,
+        transform = [
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ],
         userPlaceNodeCallback,
         userPlaceLinkCallback,
         nodes = [],
@@ -6001,7 +6006,9 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Sets translate operation that should be applied to all nodes and links.
          */
         graphCenterChanged : function (x, y) {
-            updateSize();
+            transform[12] = (2 * x / width) - 1;
+            transform[13] = 1 - (2 * y / height);
+            updateTransformUniform();
         },
 
         /**
