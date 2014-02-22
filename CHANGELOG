@@ -1,3 +1,11 @@
+v0.5.5
+  date: Feb 22, 2013
+	- Stable threshold can now be configured via options (Tnanks to @grnadav)
+
+v0.5.4
+  date: Feb 19, 2014
+	- Webgl renderer supports centering API (Thanks to @sgerard)
+
 v0.5.3
   date: Dec 27, 2013
 	- Small clean up in renderer

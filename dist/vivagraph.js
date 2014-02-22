@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.3';
+Viva.Graph.version = '0.5.4';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -2090,8 +2090,6 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
 
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 Viva.Graph.Layout.forceDirected = function(graph, settings) {
-    var STABLE_THRESHOLD = 0.001; // Maximum movement of the system which can be considered as stabilized
-
     if (!graph) {
         throw {
             message: 'Graph structure cannot be undefined'
@@ -2162,7 +2160,12 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Default time step (dt) for forces integration
          */
-        timeStep : 20
+        timeStep : 20,
+
+        /**
+         * Maximum movement of the system which can be considered as stabilized
+         */
+        stableThreshold: 0.001
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
@@ -2394,7 +2397,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
             var energy = forceSimulator.run(settings.timeStep);
             updateNodePositions();
 
-            return energy < STABLE_THRESHOLD;
+            return energy < settings.stableThreshold;
         },
 
         /*
