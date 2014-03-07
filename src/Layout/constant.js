@@ -82,7 +82,7 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         step : function () {
             updateNodePositions();
 
-            return false; // no need to continue.
+            return true; // no need to continue.
         },
 
         /**
