@@ -1,5 +1,11 @@
+v0.5.6
+  date: Apr 05, 2014
+	- Using Object.create where possible to avoid node id collision with
+	standard object property names (e.g. `constructor`)
+	- Fixed bug in constant layout
+
 v0.5.5
-  date: Feb 22, 2013
+  date: Feb 22, 2014
 	- Stable threshold can now be configured via options (Tnanks to @grnadav)
 
 v0.5.4
