@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.4';
+Viva.Graph.version = '0.5.6';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -1004,7 +1004,7 @@ Viva.Graph.graph = function () {
     // in terms of memory, but simplifies coding. Furthermore, the graph structure
     // is isolated from outter world, and can be changed to adjacency matrix later.
 
-    var nodes = {},
+    var nodes = (typeof Object.create === 'function') ? Object.create(null) : {},
         links = [],
         // Hash of multi-edges. Used to track ids of edges between same nodes
         multiEdges = {},
@@ -1044,14 +1044,6 @@ Viva.Graph.graph = function () {
         recordLinkChange = function (link, changeType) {
             // TODO: Could add change type verification;
             changes.push({link : link, changeType : changeType});
-        },
-
-        isArray = function (value) {
-            return value &&
-                   typeof value === 'object' &&
-                   typeof value.length === 'number' &&
-                   typeof value.splice === 'function' &&
-                   !(value.propertyIsEnumerable('length'));
         };
 
     /** @scope Viva.Graph.graph */
@@ -1259,11 +1251,8 @@ Viva.Graph.graph = function () {
             // TODO: could it be faster for nodes iteration if we had indexed access?
             // I.e. use array + 'for' iterator instead of dictionary + 'for .. in'?
             for (node in nodes) {
-                // For performance reasons you might want to sacrifice this sanity check:
-                if (nodes.hasOwnProperty(node)) {
-                    if (callback(nodes[node])) {
-                        return; // client doesn't want to proceed. return.
-                    }
+                if (callback(nodes[node])) {
+                    return; // client doesn't want to proceed. return.
                 }
             }
         },
@@ -1393,16 +1382,20 @@ Viva.Graph.operations = function () {
          * Density 0 - graph has no edges. Runtime: O(1)
          * 
          * @param graph represents oriented graph structure.
+         * @param directed (optional boolean) represents if the graph should be treated as a directed graph.
          * 
-         * @returns density of the graph if graph has nodes. NaN otherwise 
+         * @returns density of the graph if graph has nodes. NaN otherwise. Returns density for undirected graph by default but returns density for directed graph if a boolean 'true' is passed along with the graph.
          */
-        density : function (graph) {
+        density : function (graph,directed) {
             var nodes = graph.getNodesCount();
             if (nodes === 0) {
                 return NaN;
             }
-
-            return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+            if(directed){
+                return graph.getLinksCount() / (nodes * (nodes - 1));
+            } else {
+                return 2 * graph.getLinksCount() / (nodes * (nodes - 1));
+            }
         }
     };
 };
@@ -2591,13 +2584,11 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             if (position.y > graphRect.y2) { graphRect.y2 = position.y; }
         },
 
-        layoutNodes = {},
+        layoutNodes = typeof Object.create === 'function' ? Object.create(null) : {},
 
         ensureNodeInitialized = function (node) {
             if (!node) { return; }
-            if (!layoutNodes[node.id]) {
-                layoutNodes[node.id] = placeNodeCallback(node);
-            }
+            layoutNodes[node.id] = placeNodeCallback(node);
             updateGraphRect(layoutNodes[node.id], graphRect);
         },
 
@@ -2615,16 +2606,17 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         onGraphChanged = function(changes) {
             for (var i = 0; i < changes.length; ++i) {
                 var change = changes[i];
-                if (change.changeType === 'add' && change.node) {
-                    ensureNodeInitialized(change.node);
+                if (change.node) {
+                    if (change.changeType === 'add') {
+                        ensureNodeInitialized(change.node);
+                    } else {
+                        delete layoutNodes[change.node.id];
+                    }
                 }
             }
-        },
-
-        initLayout = function () {
-            updateNodePositions();
-            graph.addEventListener('changed', onGraphChanged);
         };
+
+    graph.addEventListener('changed', onGraphChanged);
 
     return {
         /**
@@ -2643,7 +2635,7 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         step : function () {
             updateNodePositions();
 
-            return false; // no need to continue.
+            return true; // no need to continue.
         },
 
         /**

@@ -30,13 +30,11 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             if (position.y > graphRect.y2) { graphRect.y2 = position.y; }
         },
 
-        layoutNodes = {},
+        layoutNodes = typeof Object.create === 'function' ? Object.create(null) : {},
 
         ensureNodeInitialized = function (node) {
             if (!node) { return; }
-            if (!layoutNodes[node.id]) {
-                layoutNodes[node.id] = placeNodeCallback(node);
-            }
+            layoutNodes[node.id] = placeNodeCallback(node);
             updateGraphRect(layoutNodes[node.id], graphRect);
         },
 
@@ -54,16 +52,17 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         onGraphChanged = function(changes) {
             for (var i = 0; i < changes.length; ++i) {
                 var change = changes[i];
-                if (change.changeType === 'add' && change.node) {
-                    ensureNodeInitialized(change.node);
+                if (change.node) {
+                    if (change.changeType === 'add') {
+                        ensureNodeInitialized(change.node);
+                    } else {
+                        delete layoutNodes[change.node.id];
+                    }
                 }
             }
-        },
-
-        initLayout = function () {
-            updateNodePositions();
-            graph.addEventListener('changed', onGraphChanged);
         };
+
+    graph.addEventListener('changed', onGraphChanged);
 
     return {
         /**
