@@ -310,6 +310,35 @@ Viva.Graph.graph = function () {
         },
 
         /**
+         * Invokes callback on every unlinked node to the given node.
+         * Useful for dimming down unconnected nodes and links, while highlighting direct links to a given node.
+         *
+         * @param nodeId Identifier of the requested node.
+         * @param {Function(node, link)} callback Function to be called on all linked nodes.
+         *   The function is passed two parameters: adjacent node and link object itself.
+         * @param oriented if true graph treated as oriented.
+         */
+        forEachUnlinkedNode : function (nodeId, callback, oriented) {
+            var graph = this,
+                node = graph.getNode(nodeId),
+                linkedNodeId,
+                currentNodeId;
+
+            if (node && typeof callback === 'function') {
+                var linkedNodes = {};
+
+                graph.forEachLinkedNode(nodeId, function (node) { linkedNodes[node.id] = true; }, oriented);
+
+                for (currentNodeId in nodes) {
+                    if (nodes.hasOwnProperty(currentNodeId) &&
+                        !linkedNodes.hasOwnProperty(currentNodeId)) {
+                        callback(nodes[currentNodeId]);
+                    }
+                }
+           }
+        },
+
+        /**
          * Enumerates all links in the graph
          *
          * @param {Function(link)} callback Function to be called on all links in the graph.
