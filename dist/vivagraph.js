@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.6';
+Viva.Graph.version = '0.5.7';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -360,7 +360,8 @@ Viva.Graph.Utils.events = function (element) {
             return eventuality(element);
         }
     };
-};/**
+};
+/**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
@@ -2761,6 +2762,9 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // might depend on it.
  *     container : document.body,
  *
+ *     // Defines whether graph can respond to use input
+ *     interactive: true,
+ *
  *     // Layout algorithm to be used. The algorithm is expected to comply with defined
  *     // interface and is expected to be iterative. Renderer will use it then to calculate
  *     // grpaph's layout. For examples of the interface refer to Viva.Graph.Layout.forceDirected()
@@ -2786,6 +2790,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
     var layout = settings.layout,
         graphics = settings.graphics,
         container = settings.container,
+        interactive = settings.interactive !== undefined ? settings.interactive : true,
         inputManager,
         animationTimer,
         rendererInitialized = false,
@@ -2909,6 +2914,10 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
         listenNodeEvents = function (node) {
             var wasPinned = false;
+            var nodeInteractive = (typeof interactive === 'string' && interactive.indexOf('node') !== -1) || interactive;
+            if (!nodeInteractive) {
+                return;
+            }
 
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
@@ -3026,8 +3035,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
             if (!scrollPoint) {
                 var containerSize = Viva.Graph.Utils.getDimension(container);
                 scrollPoint = {
-                  x: containerSize.width/2,
-                  y: containerSize.height/2
+                    x: containerSize.width/2,
+                    y: containerSize.height/2
                 };
             }
             var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
@@ -3041,18 +3050,24 @@ Viva.Graph.View.renderer = function (graph, settings) {
             windowEvents.on('resize', onWindowResized);
 
             releaseContainerDragManager();
-            containerDrag = Viva.Graph.Utils.dragndrop(container);
-            containerDrag.onDrag(function (e, offset) {
-                viewPortOffset.x += offset.x;
-                viewPortOffset.y += offset.y;
-                graphics.translateRel(offset.x, offset.y);
+            var canDrag = (typeof interactive === 'string' && interactive.indexOf('drag') !== -1) || interactive;
+            if (canDrag) {
+                containerDrag = Viva.Graph.Utils.dragndrop(container);
+                containerDrag.onDrag(function (e, offset) {
+                    viewPortOffset.x += offset.x;
+                    viewPortOffset.y += offset.y;
+                    graphics.translateRel(offset.x, offset.y);
 
-                renderGraph();
-            });
+                    renderGraph();
+                });
+            }
 
-            containerDrag.onScroll(function (e, scaleOffset, scrollPoint) {
-              scale(scaleOffset < 0, scrollPoint);
-            });
+            var canScroll = (typeof interactive === 'string' && interactive.indexOf('scroll') !== -1) || interactive;
+            if (canScroll) {
+                containerDrag.onScroll(function (e, scaleOffset, scrollPoint) {
+                    scale(scaleOffset < 0, scrollPoint);
+                });
+            }
 
             graph.forEachNode(listenNodeEvents);
 
@@ -3130,26 +3145,26 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         zoomOut: function () {
-          scale(true);
+            scale(true);
         },
 
         zoomIn: function () {
-          scale(false);
+            scale(false);
         },
 
         /**
          * Centers renderer at x,y graph's coordinates
          */
         moveTo: function (x, y) {
-          graphics.graphCenterChanged(transform.offsetX - x * transform.scale, transform.offsetY - y * transform.scale);
-          renderGraph();
+            graphics.graphCenterChanged(transform.offsetX - x * transform.scale, transform.offsetY - y * transform.scale);
+            renderGraph();
         },
 
         /**
          * Gets current graphics object
          */
         getGraphics: function () {
-          return graphics;
+            return graphics;
         },
 
         /**
