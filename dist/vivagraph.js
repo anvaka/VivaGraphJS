@@ -4636,7 +4636,9 @@ Viva.Graph.View.svgGraphics = function () {
         * provider prepare to render.
         */
         init : function (container) {
-            svgRoot = Viva.Graph.svg("svg");
+            var svgBody = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>';
+            container.innerHTML = svgBody;
+            svgRoot = container.getElementsByTagName("svg")[0];
 
             svgContainer = Viva.Graph.svg("g")
                  .attr("buffered-rendering", "dynamic");
