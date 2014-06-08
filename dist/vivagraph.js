@@ -1304,7 +1304,7 @@ Viva.Graph.graph = function () {
         forEachUnlinkedNode : function (nodeId, callback, oriented) {
             var graph = this,
                 node = graph.getNode(nodeId),
-                // linkedNodeId,
+                linkedNodeId,
                 currentNodeId;
 
             if (node && typeof callback === 'function') {
@@ -1313,8 +1313,7 @@ Viva.Graph.graph = function () {
                 graph.forEachLinkedNode(nodeId, function (node) { linkedNodes[node.id] = true; }, oriented);
 
                 for (currentNodeId in nodes) {
-                    if (nodes.hasOwnProperty(currentNodeId) &&
-                        !linkedNodes.hasOwnProperty(currentNodeId)) {
+                    if (!linkedNodes.hasOwnProperty(currentNodeId)) { // nodes.hasOwnProperty(currentNodeId) &&
                         callback(nodes[currentNodeId]);
                     }
                 }
