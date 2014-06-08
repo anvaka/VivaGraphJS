@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.71';
+Viva.Graph.version = '0.5.72';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -1490,8 +1490,8 @@ Viva.Graph.Physics.eulerIntegrator = function () {
          */
         integrate : function (simulator, timeStep) {
             var speedLimit = simulator.speedLimit,
-                tx = 0,
-                ty = 0,
+                tx = 0, dx = 0,
+                ty = 0, dy = 0,
                 i,
                 max = simulator.bodies.length;
 
@@ -1510,13 +1510,17 @@ Viva.Graph.Physics.eulerIntegrator = function () {
                     body.velocity.y = speedLimit * vy / v;
                 }
 
-                tx = timeStep * body.velocity.x;
-                ty = timeStep * body.velocity.y;
-                body.location.x += tx;
-                body.location.y += ty;
+                dx = timeStep * body.velocity.x;
+                dy = timeStep * body.velocity.y;
+
+                body.location.x += dx;
+                body.location.y += dy;
+
+                tx += dx;
+                ty += dy;
             }
 
-            return tx * tx + ty * ty;
+            return (tx * tx + ty * ty)/max;
         }
     };
 };
