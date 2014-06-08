@@ -335,7 +335,7 @@ Viva.Graph.graph = function () {
                         callback(nodes[currentNodeId]);
                     }
                 }
-           }
+            }
         },
 
         /**
