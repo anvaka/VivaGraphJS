@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.7';
+Viva.Graph.version = '0.5.71';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -3044,6 +3044,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
             renderGraph();
             publicEvents.fire('scale', transform.scale);
+
+            return transform.scale;
         },
 
         listenToEvents = function () {
@@ -3145,11 +3147,11 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         zoomOut: function () {
-            scale(true);
+            return scale(true);
         },
 
         zoomIn: function () {
-            scale(false);
+            return scale(false);
         },
 
         /**
