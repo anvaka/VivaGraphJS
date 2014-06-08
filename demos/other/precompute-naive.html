@@ -8,6 +8,10 @@
     <script type='text/javascript'>
       /*global Viva*/
       function onLoad() {
+        // this example shows very basic version of how to precompute graph nodes
+        // before rendering them on a screen. It is very simple, but will
+        // freeze your browser if you have very large graph. See
+        // precompute-advanced.html folder for more advanced solution.
         var graphGenerator = Viva.Graph.generator();
 
         var graph = graphGenerator.ladder(1000);
@@ -44,6 +48,7 @@
         height: 100%;
         width: 100%;
         position: absolute;
+        overflow: hidden;
       }
       canvas {
         width: 100%;
