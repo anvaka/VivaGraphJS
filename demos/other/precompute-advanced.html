@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>VivaGraphs WebGL Precomupte - Advanced</title>
+    <script src="../../dist/vivagraph.js"></script>
+
+    <script type='text/javascript'>
+      /*global Viva*/
+      function onLoad() {
+        var graphGenerator = Viva.Graph.generator();
+
+        var graph = graphGenerator.ladder(1000);
+
+        // let's create layout first, but not render anything
+        var layout = Viva.Graph.Layout.forceDirected(graph, {
+           springLength : 30,
+           springCoeff : 0.0008,
+           dragCoeff : 0.01,
+           gravity : -1.2,
+           theta : 1
+        });
+
+        var processingElement = document.getElementById('log');
+
+        // we need to compute layout, but we don't want to freeze the browser
+        precompute(1000, renderGraph);
+
+        function precompute(iterations, callback) {
+          // let's run 10 iterations per event loop cycle:
+          var i = 0;
+          while (iterations > 0 && i < 10) {
+            layout.step();
+            iterations--;
+            i++;
+          }
+          processingElement.innerHTML = 'Layout precompute: ' + iterations;
+          if (iterations > 0) {
+            setTimeout(function () {
+                precompute(iterations, callback);
+            }, 0); // keep going in next even cycle
+          } else {
+            // we are done!
+            callback();
+          }
+        }
+
+        function renderGraph() {
+          var graphics = Viva.Graph.View.webglGraphics();
+
+          var renderer = Viva.Graph.View.renderer(graph, {
+              layout   : layout,
+              graphics   : graphics,
+              renderLinks : true,
+              prerender  : true
+            });
+
+          renderer.run();
+
+          // Final bit: most likely graph will take more space than available
+          // screen. Let's zoom out to fit it into the view:
+          var graphRect = layout.getGraphRect();
+          var graphSize = Math.min(graphRect.x2 - graphRect.x1, graphRect.y2 - graphRect.y1);
+          var screenSize = Math.min(document.body.clientWidth, document.body.clientHeight);
+
+          var desiredScale = screenSize / graphSize;
+          zoomOut(desiredScale, 1);
+
+          function zoomOut(desiredScale, currentScale) {
+            // zoom API in vivagraph 0.5.x is silly. There is no way to pass transform
+            // directly. Maybe it will be fixed in future, for now this is the best I could do:
+            if (desiredScale < currentScale) {
+              currentScale = renderer.zoomOut();
+              setTimeout(function () {
+                  zoomOut(desiredScale, currentScale);
+              }, 16);
+            }
+          }
+        }
+      }
+    </script>
+    <style type='text/css'>
+      body, canvas {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        overflow: hidden;
+        left: 0;
+        top: 0;
+      }
+      #log {
+        color: deepskyblue;
+        font-size:32px;
+      }
+    </style>
+  </head>
+  <body onload="onLoad()" style="background-color: black;">
+    <div id='log'></div>
+  </body>
+</html>

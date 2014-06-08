@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>VivaGraphs WebGL Precomupte - Naive</title>
+    <script src="../../dist/vivagraph.js"></script>
+
+    <script type='text/javascript'>
+      /*global Viva*/
+      function onLoad() {
+        // this example shows very basic version of how to precompute graph nodes
+        // before rendering them on a screen. It is very simple, but will
+        // freeze your browser if you have very large graph. See
+        // precompute-advanced.html folder for more advanced solution.
+        var graphGenerator = Viva.Graph.generator();
+
+        var graph = graphGenerator.ladder(1000);
+
+        // let's create layout first, but not render anything
+        var layout = Viva.Graph.Layout.forceDirected(graph, {
+           springLength : 30,
+           springCoeff : 0.0008,
+           dragCoeff : 0.01,
+           gravity : -1.2,
+           theta : 1
+        });
+
+        // run layout for as many iterations as we want:
+        for (var i = 0; i < 100; ++i) {
+          layout.step();
+        }
+
+        // now render it.
+        var graphics = Viva.Graph.View.webglGraphics();
+
+        var renderer = Viva.Graph.View.renderer(graph, {
+            layout   : layout,
+            graphics   : graphics,
+            renderLinks : true,
+            prerender  : true
+          });
+
+        renderer.run();
+      }
+    </script>
+    <style type='text/css'>
+      body {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        overflow: hidden;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body onload="onLoad()" style="background-color: black;">
+
+  </body>
+</html>

@@ -307,6 +307,8 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
             renderGraph();
             publicEvents.fire('scale', transform.scale);
+
+            return transform.scale;
         },
 
         listenToEvents = function () {
@@ -408,11 +410,11 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         zoomOut: function () {
-            scale(true);
+            return scale(true);
         },
 
         zoomIn: function () {
-            scale(false);
+            return scale(false);
         },
 
         /**
