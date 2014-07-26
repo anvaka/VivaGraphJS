@@ -169,6 +169,11 @@ Upgrade guide
 
 Please refer the [upgrade guide](https://github.com/anvaka/VivaGraphJS/blob/master/docs/upgrade_guide.md) to see how to update older versions of the library to the latest one.
 
+Looking for alternatives?
+-------------------------
+
+I'm trying to put up a list of all known graph drawing libraries.
+Please [find it here](http://anvaka.github.io/graph-drawing-libraries/#/all)
 
 I need your feedback
 ----------------------------------------------------
