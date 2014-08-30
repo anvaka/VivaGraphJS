@@ -71,7 +71,7 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         /**
-         * Sets the collback that creates node representation.
+         * Sets the callback that creates node representation.
          *
          * @param builderCallback a callback function that accepts graph node
          * as a parameter and must return an element representing this node.
