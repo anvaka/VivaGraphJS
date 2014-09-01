@@ -63,6 +63,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
         totalIterationsCount = 0,
         isStable = false,
         userInteraction = false,
+        isPaused = false,
 
         viewPortOffset = {
             x : 0,
@@ -130,6 +131,10 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         resetStable = function () {
+            if(isPaused) {
+                return;
+            }
+
             isStable = false;
             animationTimer.restart();
         },
@@ -397,10 +402,12 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         pause : function () {
+            isPaused = true;
             animationTimer.stop();
         },
 
         resume : function () {
+            isPaused = false;
             animationTimer.restart();
         },
 
