@@ -62,7 +62,7 @@
 
         </script>
         <style type='text/css'>
-            body {
+            body, svg {
                 height: 100%;
                 width: 100%;
                 position: absolute;
@@ -72,7 +72,7 @@
         </style>
     </head>
     <body onload="onLoad()" style="background-color: black;">
-      <div style="color: white; margin: 10px; position: absolute;">
+      <div style="color: white; z-index:2; margin: 10px; position: absolute;">
         <span class='button zoom in'>Zoom In</span> | <span class='button zoom out'>Zoom Out</span> <br />
         <span class='button reset'>Reset</span>
         <form id='centerForm'>
