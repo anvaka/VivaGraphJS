@@ -15,12 +15,6 @@
             var graphics = Viva.Graph.View.svgGraphics(),
                 nodeSize = 24;
 
-            // In this example we fire off renderer before anything is added to
-            // the graph:
-            var renderer = Viva.Graph.View.renderer(graph, {
-                    graphics : graphics
-                });
-            renderer.run();
 
             graphics.node(function(node) {
                 return Viva.Graph.svg('image')
@@ -104,11 +98,11 @@
             graph.addNode('indexzero', 'd43e8ea63b61e7669ded5b9d3c2e980f');
             graph.addLink('anvaka', 'indexzero');
 
-            // You might have noticed that the order in which
-            // we call renderer.run() and graph.addNode()/addLink() differs from
-            // previous tutorials. The reason for this is that graphics.getSVGRoot() returns
-            // null if it was not initialized by the renderer yet. Maybe this behavior will
-            // be fixed in future.
+            // All is ready. Render the graph:
+            var renderer = Viva.Graph.View.renderer(graph, {
+                    graphics : graphics
+                });
+            renderer.run();
         }
     </script>
 

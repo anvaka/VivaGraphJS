@@ -12,7 +12,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
- *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
+ *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer.
  *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
  */
 
@@ -87,6 +87,8 @@ Viva.Graph.View.webglGraphics = function (options) {
             graphics.fire("rescaled");
         };
 
+    graphicsRoot = window.document.createElement("canvas");
+
     var graphics = {
         getLinkUI: function (linkId) {
             return allLinks[linkId];
@@ -158,7 +160,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Called every time before renderer starts rendering.
          */
         beginRender : function () {
-            // this function could be replaced by this.init, 
+            // this function could be replaced by this.init,
             // based on user options.
         },
 
@@ -293,7 +295,6 @@ Viva.Graph.View.webglGraphics = function (options) {
 
             container = c;
 
-            graphicsRoot = window.document.createElement("canvas");
             updateSize();
             resetScaleInternal();
             container.appendChild(graphicsRoot);
@@ -512,7 +513,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         getNodeAtClientPos: function (clientPos, preciseCheck) {
             if (typeof preciseCheck !== "function") {
                 // we don't know anything about your node structure here :(
-                // potentially this could be delegated to node program, but for 
+                // potentially this could be delegated to node program, but for
                 // right now, we are giving up if you don't pass boundary check
                 // callback. It answers to a question is nodeUI covers  (x, y)
                 return null;

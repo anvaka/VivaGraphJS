@@ -61,6 +61,8 @@ Viva.Graph.View.svgGraphics = function () {
             }
         };
 
+    svgRoot = createSvgRoot();
+
     var graphics = {
         getNodeUI: function (nodeId) {
             return allNodes[nodeId];
@@ -199,12 +201,6 @@ Viva.Graph.View.svgGraphics = function () {
         * provider prepare to render.
         */
         init : function (container) {
-            svgRoot = Viva.Graph.svg("svg");
-
-            svgContainer = Viva.Graph.svg("g")
-                 .attr("buffered-rendering", "dynamic");
-
-            svgRoot.appendChild(svgContainer);
             container.appendChild(svgRoot);
             updateTransform();
             // Notify the world if someoen waited for update. TODO: should send an event
@@ -339,8 +335,19 @@ Viva.Graph.View.svgGraphics = function () {
         }
     };
 
+
     // Let graphics fire events before we return it to the caller.
     Viva.Graph.Utils.events(graphics).extend();
 
     return graphics;
+
+    function createSvgRoot() {
+        var svgRoot = Viva.Graph.svg("svg");
+
+        svgContainer = Viva.Graph.svg("g")
+              .attr("buffered-rendering", "dynamic");
+
+        svgRoot.appendChild(svgContainer);
+        return svgRoot;
+    }
 };

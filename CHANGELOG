@@ -1,3 +1,13 @@
+v0.5.8
+  date: Sep 28, 2014
+	- Graphics object no longer waits `init` method to create container. Fixes
+	https://github.com/anvaka/VivaGraphJS/issues/82
+	- When renderer is paused clicking on any node will not reset it. Fixes
+	https://github.com/anvaka/VivaGraphJS/issues/98
+	- Calculating stable threshold based on absolute value. Fixes
+	https://github.com/anvaka/VivaGraphJS/issues/100#issuecomment-55568513
+	- Minor code style improvements
+
 v0.5.6
   date: Apr 05, 2014
 	- Using Object.create where possible to avoid node id collision with

@@ -7,7 +7,7 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.72';
+Viva.Graph.version = '0.5.8';
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -1516,11 +1516,11 @@ Viva.Graph.Physics.eulerIntegrator = function () {
                 body.location.x += dx;
                 body.location.y += dy;
 
-                tx += dx;
-                ty += dy;
+                tx += Math.abs(dx);
+                ty += Math.abs(dy);
             }
 
-            return (tx * tx + ty * ty)/max;
+            return (tx + ty)/max;
         }
     };
 };
@@ -2163,7 +2163,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Maximum movement of the system which can be considered as stabilized
          */
-        stableThreshold: 0.001
+        stableThreshold: 0.009
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
@@ -4511,6 +4511,8 @@ Viva.Graph.View.svgGraphics = function () {
             }
         };
 
+    svgRoot = createSvgRoot();
+
     var graphics = {
         getNodeUI: function (nodeId) {
             return allNodes[nodeId];
@@ -4649,12 +4651,6 @@ Viva.Graph.View.svgGraphics = function () {
         * provider prepare to render.
         */
         init : function (container) {
-            svgRoot = Viva.Graph.svg("svg");
-
-            svgContainer = Viva.Graph.svg("g")
-                 .attr("buffered-rendering", "dynamic");
-
-            svgRoot.appendChild(svgContainer);
             container.appendChild(svgRoot);
             updateTransform();
             // Notify the world if someoen waited for update. TODO: should send an event
@@ -4789,10 +4785,21 @@ Viva.Graph.View.svgGraphics = function () {
         }
     };
 
+
     // Let graphics fire events before we return it to the caller.
     Viva.Graph.Utils.events(graphics).extend();
 
     return graphics;
+
+    function createSvgRoot() {
+        var svgRoot = Viva.Graph.svg("svg");
+
+        svgContainer = Viva.Graph.svg("g")
+              .attr("buffered-rendering", "dynamic");
+
+        svgRoot.appendChild(svgContainer);
+        return svgRoot;
+    }
 };
 /**
  * @fileOverview I used this class to render links UI within
@@ -5845,7 +5852,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
- *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer. 
+ *  preserveDrawingBuffer - false by default, tells webgl to preserve drawing buffer.
  *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
  */
 
@@ -5920,6 +5927,8 @@ Viva.Graph.View.webglGraphics = function (options) {
             graphics.fire("rescaled");
         };
 
+    graphicsRoot = window.document.createElement("canvas");
+
     var graphics = {
         getLinkUI: function (linkId) {
             return allLinks[linkId];
@@ -5991,7 +6000,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          * Called every time before renderer starts rendering.
          */
         beginRender : function () {
-            // this function could be replaced by this.init, 
+            // this function could be replaced by this.init,
             // based on user options.
         },
 
@@ -6126,7 +6135,6 @@ Viva.Graph.View.webglGraphics = function (options) {
 
             container = c;
 
-            graphicsRoot = window.document.createElement("canvas");
             updateSize();
             resetScaleInternal();
             container.appendChild(graphicsRoot);
@@ -6345,7 +6353,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         getNodeAtClientPos: function (clientPos, preciseCheck) {
             if (typeof preciseCheck !== "function") {
                 // we don't know anything about your node structure here :(
-                // potentially this could be delegated to node program, but for 
+                // potentially this could be delegated to node program, but for
                 // right now, we are giving up if you don't pass boundary check
                 // callback. It answers to a question is nodeUI covers  (x, y)
                 return null;
