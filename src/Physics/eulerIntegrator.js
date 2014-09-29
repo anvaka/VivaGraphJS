@@ -41,11 +41,11 @@ Viva.Graph.Physics.eulerIntegrator = function () {
                 body.location.x += dx;
                 body.location.y += dy;
 
-                tx += dx;
-                ty += dy;
+                tx += Math.abs(dx);
+                ty += Math.abs(dy);
             }
 
-            return (tx * tx + ty * ty)/max;
+            return (tx + ty)/max;
         }
     };
 };

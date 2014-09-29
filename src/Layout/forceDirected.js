@@ -79,7 +79,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Maximum movement of the system which can be considered as stabilized
          */
-        stableThreshold: 0.001
+        stableThreshold: 0.009
     });
 
     var forceSimulator = Viva.Graph.Physics.forceSimulator(Viva.Graph.Physics.eulerIntegrator()),
