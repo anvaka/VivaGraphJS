@@ -1,3 +1,7 @@
+/**
+ * this demo shows one possible way of implementing "area" selection with webgl
+ * renderer
+ */
 function onLoad() {
   var graphGenerator = Viva.Graph.generator();
   var graph = graphGenerator.grid(50, 10);
