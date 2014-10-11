@@ -15,18 +15,32 @@ function onLoad() {
     graphics: graphics,
     container: document.getElementById('graph-container')
   });
+  var multiSelectOverlay;
 
   renderer.run();
 
-  // we are calling this immediately, but this should probably be triggered by
-  // a "tool" button, where users can select ractangular nodes
-  selectNodes(graph, renderer, layout);
+  document.addEventListener('keydown', function(e) {
+    if (e.which === 16 && !multiSelectOverlay) { // shift key
+      multiSelectOverlay = startMultiSelect(graph, renderer, layout);
+    }
+  });
+  document.addEventListener('keyup', function(e) {
+    if (e.which === 16 && multiSelectOverlay) {
+      multiSelectOverlay.destroy();
+      multiSelectOverlay = null;
+    }
+  })
 }
 
-function selectNodes(graph, renderer, layout) {
+function startMultiSelect(graph, renderer, layout) {
   var graphics = renderer.getGraphics();
-  var overlay = createOverlay(document.querySelector('.graph-overlay'), document.getElementById('graph-container'));
-  overlay.onAreaSelected(function(area) {
+  var domOverlay = document.querySelector('.graph-overlay')
+  var overlay = createOverlay(domOverlay, document.getElementById('graph-container'));
+  overlay.onAreaSelected(handleAreaSelected);
+
+  return overlay;
+
+  function handleAreaSelected(area) {
     // For the sake of this demo we are using silly O(n) implementation.
     // Could be improved with spatial indexing if required.
     var topLeft = graphics.transformClientToGraphCoordinates({
@@ -60,13 +74,17 @@ function selectNodes(graph, renderer, layout) {
       return (topLeft.x < nodePos.x && nodePos.x < bottomRight.x &&
         topLeft.y < nodePos.y && nodePos.y < bottomRight.y);
     }
-  });
+  }
 }
 
 function createOverlay(overlayDom, underElement) {
-  var selectionIndicator = document.createElement('div');
-  selectionIndicator.className = 'graph-selection-indicator';
-  overlayDom.appendChild(selectionIndicator);
+  var selectionClasName = 'graph-selection-indicator';
+
+  if (!overlayDom.querySelector('.' + selectionClasName)) {
+    var selectionIndicator = document.createElement('div');
+    selectionIndicator.className = selectionClasName;
+    overlayDom.appendChild(selectionIndicator);
+  }
 
   var notify = [];
   var dragndrop = Viva.Graph.Utils.dragndrop(overlayDom);
@@ -98,14 +116,15 @@ function createOverlay(overlayDom, underElement) {
     selectionIndicator.style.display = 'none';
   });
 
-  dragndrop.onScroll(function (e) {
-    // instead of eating this event, let's propagate it to the renderer
-    var dispatched = new WheelEvent(e.type, e);
-    underElement.dispatchEvent(dispatched);
-  });
+  overlayDom.style.display = 'block';
+
   return {
     onAreaSelected: function(cb) {
       notify.push(cb);
+    },
+    destroy: function () {
+      overlayDom.style.display = 'none';
+      dragndrop.release();
     }
   }
 
