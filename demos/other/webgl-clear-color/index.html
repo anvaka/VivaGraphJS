@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>VivaGraphs WebGL renderer clear color</title>
+  <script src="../../../dist/vivagraph.js"></script>
+
+  <script type='text/javascript'>
+    /*global Viva*/
+    function onLoad() {
+      var graphGenerator = Viva.Graph.generator();
+      var graph = graphGenerator.path(100);
+
+      var layout = Viva.Graph.Layout.forceDirected(graph, {});
+
+      var graphicsOptions = {
+        clearColor: true, // we want to avoid rendering artifacts
+        clearColorValue: { // use black color to erase background
+          r: 0,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+      };
+      var graphics = Viva.Graph.View.webglGraphics(graphicsOptions);
+
+      var renderer = Viva.Graph.View.renderer(graph, {
+        layout: layout,
+        graphics: graphics
+      });
+
+      renderer.run();
+      for (var i = 0; i < 20; i++) {
+        renderer.zoomOut();
+      }
+      renderer.pause();
+    }
+  </script>
+  <style type='text/css'>
+    body {
+      height: 95%;
+      width: 95%;
+      position: absolute;
+      margin: 0px;
+    }
+  </style>
+</head>
+
+<body onload="onLoad()" style="background-color: black;"></body>
+
+</html>
