@@ -2,8 +2,8 @@
  * @fileOverview Defines a naive form of links for webglGraphics class.
  * This form allows to change color of links.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
+ **/
 
 /**
  * Defines UI for links in webgl renderer.

@@ -2,6 +2,7 @@
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * TODO: this should not be part of the library
  */
 // The file tries to conform generic interface:
 /*jshint unused: false */
@@ -10,10 +11,10 @@ Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs css-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  *
- * NOTE: Most likely I will remove this graphics engine due to superior svg support.
- * In certain cases it doesn't work and require further imporvments:
+ * NOTE: Most likely I will remove this graphics engine due to superior SVG support.
+ * In certain cases it doesn't work and require further improvements:
  *  * does not properly work for dragging.
  *  * does not support scaling.
  *  * does not support IE versions prior to IE9.

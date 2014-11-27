@@ -2,7 +2,7 @@
  * @fileOverview Defines a naive form of nodes for webglGraphics class.
  * This form allows to change color of node. Shape of nodes is rectangular.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 /**

@@ -2,7 +2,7 @@
  * @fileOverview Defines a model objects to represents graph rendering
  * primitives in webglGraphics.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View.WebglUtils = function () { };
@@ -60,7 +60,7 @@ Viva.Graph.View.webglLine = function (color) {
 Viva.Graph.View.webglSquare = function (size, color) {
     return {
         /**
-         * Gets or sets size of the sqare side.
+         * Gets or sets size of the square side.
          */
         size : typeof size === 'number' ? size : 10,
 
@@ -77,7 +77,7 @@ Viva.Graph.View.webglSquare = function (size, color) {
 Viva.Graph.View.webglImage = function (size, src) {
     return {
         /**
-         * Gets texture index where current image is placed.s
+         * Gets texture index where current image is placed.
          */
         _texture : 0,
 
@@ -92,7 +92,7 @@ Viva.Graph.View.webglImage = function (size, src) {
         size : typeof size === 'number' ? size : 32,
 
         /**
-         * Source of the image. If image is comming not from your domain
+         * Source of the image. If image is coming not from your domain
          * certain origin restrictions applies.
          * See http://www.khronos.org/registry/webgl/specs/latest/#4.2 for more details.
          */

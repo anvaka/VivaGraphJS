@@ -1,6 +1,6 @@
 /**
  * @fileOverview Defines an image nodes for webglGraphics class.
- * Shape of nodes is sqare.
+ * Shape of nodes is square.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
@@ -17,7 +17,7 @@ Viva.Graph.View.Texture = function (size) {
 
 /**
  * My naive implementation of textures atlas. It allows clients to load
- * multimple images into atlas and get canvas representing all of them.
+ * multiple images into atlas and get canvas representing all of them.
  *
  * @param tilesPerTexture - indicates how many images can be loaded to one
  *          texture of the atlas. If number of loaded images exceeds this
@@ -122,7 +122,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
         },
 
         /**
-         * Removes given url from colleciton of tiles in the atlas.
+         * Removes given url from collection of tiles in the atlas.
          */
         remove : function (imgUrl) {
             var coordinates = loadedImages[imgUrl];
