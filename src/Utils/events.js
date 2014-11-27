@@ -1,5 +1,5 @@
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.Utils = Viva.Graph.Utils || {};
@@ -8,7 +8,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // hard to understand. Refactor it.
 
 // TODO: This is really painful. Please don't use this class anymore, I will
-// definitely depricate it or update its interface.
+// definitely deprecate it or update its interface.
 
 /**
  * Allows to start/stop listen to element's events. An element can be arbitrary
@@ -27,7 +27,7 @@ Viva.Graph.Utils.events = function (element) {
      * This behavior is based on Crockford's eventuality example, but with a minor changes:
      *   - fire() method accepts parameters to pass to callbacks (instead of setting them in 'on' method)
      *   - on() method is replaced with addEventListener(), to let objects be used as a DOM objects.
-     *   - behavoir contract is simplified to "string as event name"/"function as callback" convention.
+     *   - behavior contract is simplified to "string as event name"/"function as callback" convention.
      *   - removeEventListener() method added to let unsubscribe from events.
      */
     var eventuality = function (that) {
@@ -113,10 +113,10 @@ Viva.Graph.Utils.events = function (element) {
 
     return {
         /**
-         * Registes callback to be called when element fires event with given event name.
+         * Registers callback to be called when element fires event with given event name.
          */
         on : function (eventName, callback) {
-            if (element.addEventListener) {// W3C DOM and eventuality objecets.
+            if (element.addEventListener) {// W3C DOM and eventuality objects.
                 element.addEventListener(eventName, callback, false);
             } else if (element.attachEvent) { // IE DOM
                 element.attachEvent("on" + eventName, callback);

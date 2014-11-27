@@ -27,7 +27,7 @@ Viva.Graph.geom = function () {
              */
 
             if (r3 !== 0 && r4 !== 0 && ((r3 >= 0) === (r4 >= 4))) {
-                return null; //no itersection.
+                return null; //no intersection.
             }
 
             /* Compute a2, b2, c2 */
@@ -92,7 +92,7 @@ Viva.Graph.geom = function () {
                                 dy = p.y - basePoint.y,
                                 sign = dx > 0 ? 1 : -1;
 
-                            // We use squared dx, to avoid Sqrt opertion and improve performance.
+                            // We use squared dx, to avoid Sqrt operation and improve performance.
                             // To avoid sign loss during dx * dx operation we precompute its sign:
                             return sign * dx * dx / (dx * dx + dy * dy);
                         },

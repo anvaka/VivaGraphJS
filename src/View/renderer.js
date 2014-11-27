@@ -1,7 +1,7 @@
 /**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View = Viva.Graph.View || {};
@@ -38,14 +38,14 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     renderLinks : true,
  *
  *     // Number of layout iterations to run before displaying the graph. The bigger you set this number
- *     // the closer to ideal position graph will apper first time. But be careful: for large graphs
+ *     // the closer to ideal position graph will appear first time. But be careful: for large graphs
  *     // it can freeze the browser.
  *     prerender : 0
  *   }
  */
 Viva.Graph.View.renderer = function (graph, settings) {
     // TODO: This class is getting hard to understand. Consider refactoring.
-    // TODO: I have a technical debt here: fix scaling/recentring! Currently it's total mess.
+    // TODO: I have a technical debt here: fix scaling/recentering! Currently it's a total mess.
     var FRAME_INTERVAL = 30;
 
     settings = settings || {};
@@ -293,7 +293,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
         releaseGraphEvents = function () {
             if (graphEvents) {
-                // Interesting.. why is it not null? Anyway:
+                // Interesting.. Why is it not null? Anyway:
                 graphEvents.stop('changed', onGraphChanged);
                 graphEvents = null;
             }

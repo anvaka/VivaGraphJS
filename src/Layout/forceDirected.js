@@ -28,7 +28,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         gravity: -1.2,
 
         /**
-         * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
+         * Theta coefficient from Barnes Hut simulation. Ranged between (0, 1).
          * The closer it's to 1 the more nodes algorithm will have to go through.
          * Setting it to one makes Barnes Hut simulation no different from
          * brute-force forces calculation (each node is considered).
@@ -42,7 +42,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         dragCoeff: 0.02,
 
         /**
-         * Allows to transfor physical spring associated with a link. this allows clients
+         * Allows to transform physical spring associated with a link. This allows clients
          * to specify custom length for a link.
          *
          * @param {Viva.Graph.Link} link actual link for which transform is performed
@@ -405,9 +405,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         },
 
         /**
-         * Gets or sets current spring coeffiсient.
+         * Gets or sets current spring coefficient.
          *
-         * @param coeff new spring coeffiсient.
+         * @param coeff new spring coefficient.
          * if this parameter is empty then its old value returned.
          */
         springCoeff: function(coeff) {
@@ -441,7 +441,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Gets or sets current theta value in the nbody simulation.
          *
-         * @param t new theta coeffiсient.
+         * @param t new theta coefficient.
          * if this parameter is empty then its old value returned.
          */
         theta: function(t) {
@@ -458,7 +458,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Gets or sets current theta value in the nbody simulation.
          *
-         * @param dragCoeff new drag coeffiсient.
+         * @param dragCoeff new drag coefficient.
          * if this parameter is empty then its old value returned.
          */
         drag: function(dragCoeff) {

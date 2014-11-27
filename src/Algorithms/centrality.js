@@ -1,16 +1,16 @@
 /**
- * @fileOverview Centrality calcuation algorithms.
- * 
+ * @fileOverview Centrality calculation algorithms.
+ *
  * @see http://en.wikipedia.org/wiki/Centrality
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.centrality = function () {
     var singleSourceShortestPath = function (graph, node, oriented) {
             // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
             // sorry about cryptic names.
-            var P = {}, // predcessors lists. 
+            var P = {}, // predecessors lists.
                 S = [],
                 sigma = {},
                 d = {},
@@ -101,26 +101,26 @@ Viva.Graph.centrality = function () {
 
         /**
          * Compute the shortest-path betweenness centrality for all nodes in a graph.
-         * 
-         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs 
+         *
+         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs
          * shortest paths that pass through `n`. Runtime O(n * v) for non-weighted graphs.
          *
          * @see http://en.wikipedia.org/wiki/Centrality#Betweenness_centrality
-         * 
-         * @see A Faster Algorithm for Betweenness Centrality. 
+         *
+         * @see A Faster Algorithm for Betweenness Centrality.
          *      Ulrik Brandes, Journal of Mathematical Sociology 25(2):163-177, 2001.
          *      http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
-         * 
-         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness 
+         *
+         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness
          *      Centrality and their Generic Computation.
          *      Social Networks 30(2):136-145, 2008.
          *      http://www.inf.uni-konstanz.de/algo/publications/b-vspbc-08.pdf
-         * 
+         *
          * @see Ulrik Brandes and Christian Pich: Centrality Estimation in Large Networks.
          *      International Journal of Bifurcation and Chaos 17(7):2303-2318, 2007.
          *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
-         * 
-         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
+         *
+         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported
          */
         betweennessCentrality : function (graph) {
             var betweennes = {},
@@ -139,9 +139,9 @@ Viva.Graph.centrality = function () {
 
         /**
          * Calculates graph nodes degree centrality (in/out or both).
-         * 
+         *
          * @see http://en.wikipedia.org/wiki/Centrality#Degree_centrality
-         * 
+         *
          * @param graph for which we are calculating centrality.
          * @param kind optional parameter. Valid values are
          *   'in'  - calculate in-degree centrality

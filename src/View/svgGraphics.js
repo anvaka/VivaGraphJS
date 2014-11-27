@@ -8,7 +8,7 @@ Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs svg-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  */
 Viva.Graph.View.svgGraphics = function () {
     var svgContainer,
@@ -28,7 +28,7 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         nodePositionCallback = function (nodeUI, pos) {
-            // TODO: Remove magic 5. It should be halfo of the width or height of the node.
+            // TODO: Remove magic 5. It should be half of the width or height of the node.
             nodeUI.attr("x", pos.x - 5)
                   .attr("y", pos.y - 5);
         },
@@ -83,7 +83,7 @@ Viva.Graph.View.svgGraphics = function () {
          */
         node : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             nodeBuilder = builderCallback;
@@ -98,11 +98,11 @@ Viva.Graph.View.svgGraphics = function () {
          * as a parameter and must return an element representing this link.
          *
          * @returns If builderCallback is a valid callback function, instance of this is returned;
-         * Otherwise undefined value is returend.
+         * Otherwise undefined value is returned.
          */
         link : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             linkBuilder = builderCallback;
@@ -172,7 +172,7 @@ Viva.Graph.View.svgGraphics = function () {
             p.x = scrollPoint.x;
             p.y = scrollPoint.y;
 
-            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
+            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to SVG coordinates
 
             // Compute new scale matrix in current mouse position
             var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
@@ -203,7 +203,7 @@ Viva.Graph.View.svgGraphics = function () {
         init : function (container) {
             container.appendChild(svgRoot);
             updateTransform();
-            // Notify the world if someoen waited for update. TODO: should send an event
+            // Notify the world if someone waited for update. TODO: should send an event
             if (typeof initCallback === "function") {
                 initCallback(svgRoot);
             }
@@ -326,7 +326,7 @@ Viva.Graph.View.svgGraphics = function () {
             return svgRoot;
         },
         /**
-         * Returns root svg element.
+         * Returns root SVG element.
          *
          * Note: This is internal method specific to this renderer
          */

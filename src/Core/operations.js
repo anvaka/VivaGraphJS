@@ -1,7 +1,7 @@
 /**
- * @fileOverview Contains collection of primitve operations under graph.
+ * @fileOverview Contains collection of primitive operations under graph.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.operations = function () {

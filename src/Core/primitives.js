@@ -1,5 +1,5 @@
 /**
- * Very generic rectangle. 
+ * Very generic rectangle.
  */
 Viva.Graph.Rect = function (x1, y1, x2, y2) {
     this.x1 = x1 || 0;

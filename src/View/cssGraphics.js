@@ -78,7 +78,7 @@ Viva.Graph.View.cssGraphics = function () {
                     // IE 6, 7 and 8 are screwed up when it comes to transforms;
                     // I could not find justification for their choice of "floating"
                     // matrix transform origin. The following ugly code was written
-                    // out of complete dispair.
+                    // out of complete despair.
                     if (angleRad < 0) {
                         angleRad = 2 * Math.PI + angleRad;
                     }
@@ -158,7 +158,7 @@ Viva.Graph.View.cssGraphics = function () {
 
     return {
         /**
-         * Sets the collback that creates node representation or creates a new node
+         * Sets the callback that creates node representation or creates a new node
          * presentation if builderCallbackOrNode is not a function.
          *
          * @param builderCallbackOrNode a callback function that accepts graph node
@@ -179,7 +179,7 @@ Viva.Graph.View.cssGraphics = function () {
         },
 
         /**
-         * Sets the collback that creates link representation or creates a new link
+         * Sets the callback that creates link representation or creates a new link
          * presentation if builderCallbackOrLink is not a function.
          *
          * @param builderCallbackOrLink a callback function that accepts graph link

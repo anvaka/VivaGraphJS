@@ -3,7 +3,7 @@ Viva.Graph.Physics = Viva.Graph.Physics || {};
 /**
  * Manages a simulation of physical forces acting on bodies.
  * To create a custom force simulator register forces of the system
- * via addForce() method, choos appropriate integrator and register
+ * via addForce() method, choose appropriate integrator and register
  * bodies.
  *
  * // TODO: Show example.

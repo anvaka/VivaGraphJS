@@ -4,7 +4,7 @@
  * but I'm not happy with the code result here. Probably this class
  * will be removed from future versions.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View.svgNodeFactory = function (graph) {
@@ -49,7 +49,7 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
         },
 
         /**
-         * Sets a callback function for custom nodes contnet.
+         * Sets a callback function for custom nodes content.
          * @param conentCreator(nodeUI, node) - callback function which returns a node content UI.
          *  Image, for example.
          * @param sizeProvider(nodeUI) - a callback function which accepts nodeUI returned by

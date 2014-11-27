@@ -26,7 +26,7 @@ Viva.lazyExtend = function (target, options) {
     return target;
 };
 /**
- * Implenetation of seeded pseudo random number generator, based on Robert Jenkin's 32 bit integer hash function
+ * Implementation of seeded pseudo random number generator, based on Robert Jenkin's 32 bit integer hash function
  *
  * Usage example:
  *  var random = Viva.random(seedNumber),
@@ -58,7 +58,7 @@ Viva.random = function () {
         /**
          * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
          *
-         * @param maxValue is REQUIRED. Ommitit this numbe will result in NaN values from PRNG.
+         * @param maxValue is REQUIRED. Omitting this number will result in NaN values from PRNG.
          */
         next : function (maxValue) {
             return Math.floor(randomFunc() * maxValue);
@@ -82,7 +82,7 @@ Viva.random = function () {
  *
  * @param array to be shuffled
  * @param random - a [seeded] random number generator to produce same sequences. This parameter
- * is optional. If you don't need determenistic randomness keep it blank.
+ * is optional. If you don't need deterministic randomness keep it blank.
  */
 Viva.randomIterator = function (array, random) {
     random = random || Viva.random();

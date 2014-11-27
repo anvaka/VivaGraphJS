@@ -1,7 +1,7 @@
 /**
  * This is Barnes Hut simulation algorithm. Implementation
  * is adopted to non-recursive solution, since certain browsers
- * handle recursion extremly bad.
+ * handle recursion extremely bad.
  *
  * http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
  */
@@ -159,7 +159,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     // To achieve this we have to convert current leaf into internal node
                     // and continue adding two nodes.
                     var oldBody = node.body;
-                    node.body = null; // internal nodes do not cary bodies
+                    node.body = null; // internal nodes do not carry bodies
                     node.isInternal = true;
 
                     if (isSamePosition(oldBody.location, body.location)) {
@@ -223,13 +223,13 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     r = Math.sqrt(dx * dx + dy * dy);
 
                     if (r === 0) {
-                        // Poor man's protection agains zero distance.
+                        // Poor man's protection against zero distance.
                         dx = (random.nextDouble() - 0.5) / 50;
                         dy = (random.nextDouble() - 0.5) / 50;
                         r = Math.sqrt(dx * dx + dy * dy);
                     }
 
-                    // This is standard gravition force calculation but we divide
+                    // This is standard gravitation force calculation but we divide
                     // by r^3 to save two operations when normalizing force vector.
                     v = gravity * body.mass * sourceBody.mass / (r * r * r);
                     sourceBody.force.x = sourceBody.force.x + v * dx;
@@ -243,7 +243,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     r = Math.sqrt(dx * dx + dy * dy);
 
                     if (r === 0) {
-                        // Sorry about code duplucation. I don't want to create many functions
+                        // Sorry about code duplication. I don't want to create many functions
                         // right away. Just want to see performance first.
                         dx = (random.nextDouble() - 0.5) / 50;
                         dy = (random.nextDouble() - 0.5) / 50;

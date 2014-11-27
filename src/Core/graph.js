@@ -1,7 +1,7 @@
 /**
  * @fileOverview Contains definition of the core graph object.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 /**
@@ -20,7 +20,7 @@ Viva.Graph.graph = function () {
     // hold all links related to that node. And general links
     // array is used to speed up all links enumeration. This is inefficient
     // in terms of memory, but simplifies coding. Furthermore, the graph structure
-    // is isolated from outter world, and can be changed to adjacency matrix later.
+    // is isolated from outer world, and can be changed to adjacency matrix later.
 
     var nodes = (typeof Object.create === 'function') ? Object.create(null) : {},
         links = [],
@@ -29,7 +29,7 @@ Viva.Graph.graph = function () {
         nodesCount = 0,
         suspendEvents = 0,
 
-        // Accumlates all changes made during graph updates.
+        // Accumulates all changes made during graph updates.
         // Each change element contains:
         //  changeType - one of the strings: 'add', 'remove' or 'update';
         //  node - if change is related to node this property is set to changed graph's node;
@@ -41,7 +41,7 @@ Viva.Graph.graph = function () {
             graph.fire('changed', changes);
         },
 
-        // Enter, Exit Mofidication allows bulk graph updates without firing events.
+        // Enter, Exit modification allows bulk graph updates without firing events.
         enterModification = function () {
             suspendEvents += 1;
         },
@@ -270,7 +270,7 @@ Viva.Graph.graph = function () {
             // I.e. use array + 'for' iterator instead of dictionary + 'for .. in'?
             for (node in nodes) {
                 if (callback(nodes[node])) {
-                    return; // client doesn't want to proceed. return.
+                    return; // client doesn't want to proceed.
                 }
             }
         },
@@ -290,7 +290,7 @@ Viva.Graph.graph = function () {
                 linkedNodeId;
 
             if (node && node.links && typeof callback === 'function') {
-                // Extraced orientation check out of the loop to increase performance
+                // Extracted orientation check out of the loop to increase performance
                 if (oriented) {
                     for (i = 0; i < node.links.length; ++i) {
                         link = node.links[i];

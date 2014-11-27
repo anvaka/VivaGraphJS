@@ -6,7 +6,7 @@ it supports rendering graphs using WebGL, SVG or CSS formats.
 
 **Note:** Please visit [anvaka/ngraph](https://github.com/anvaka/ngraph) to check
 next evolution step of this library. `ngraph` supports rendering graphs to images,
-3d graphs rendering, integration with [gephi](https://gephi.org/) and more.
+3D graphs rendering, integration with [gephi](https://gephi.org/) and more.
 
 
 Enough talking. Show me the demo!

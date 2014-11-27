@@ -1,14 +1,14 @@
 /**
  * @fileOverview Defines a graph renderer that uses WebGL based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs webgl-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
@@ -99,7 +99,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         },
 
         /**
-         * Sets the collback that creates node representation.
+         * Sets the callback that creates node representation.
          *
          * @param builderCallback a callback function that accepts graph node
          * as a parameter and must return an element representing this node.
@@ -109,7 +109,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          */
         node : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             nodeUIBuilder = builderCallback;
@@ -124,11 +124,11 @@ Viva.Graph.View.webglGraphics = function (options) {
          * as a parameter and must return an element representing this link.
          *
          * @returns If builderCallback is a valid callback function, instance of this is returned;
-         * Otherwise undefined value is returend.
+         * Otherwise undefined value is returned.
          */
         link : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             linkUIBuilder = builderCallback;
@@ -314,7 +314,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 var color = options.clearColorValue;
                 gl.clearColor(color.r, color.g, color.b, color.a);
                 // TODO: not the best way, really. Should come up with something better
-                // what if we need more updates inisde beginRender, like depth buffer?
+                // what if we need more updates inside beginRender, like depth buffer?
                 this.beginRender = function () {
                     gl.clear(gl.COLOR_BUFFER_BIT);
                 };
@@ -328,7 +328,7 @@ Viva.Graph.View.webglGraphics = function (options) {
 
             updateTransformUniform();
 
-            // Notify the world if someoen waited for update. TODO: should send an event
+            // Notify the world if someone waited for update. TODO: should send an event
             if (typeof initCallback === "function") {
                 initCallback(graphicsRoot);
             }
@@ -403,7 +403,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 nodes[nodeIdToRemove] = lastNodeUI;
                 lastNodeUI.id = nodeIdToRemove;
 
-                // Since concrete shaders may cache properties in the ui element
+                // Since concrete shaders may cache properties in the UI element
                 // we are letting them to make this swap (e.g. image node shader
                 // uses this approach to update node's offset in the atlas)
                 nodeProgram.replaceProperties(nodeUI, lastNodeUI);
@@ -474,7 +474,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // and let initialization logic take care about the rest.
                 nodeProgram = newProgram;
             } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                throw "Not implemented. Cannot swap shader on the fly... Yet.";
                 // TODO: unload old shader and reinit.
             }
         },
@@ -490,7 +490,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // and let initialization logic take care about the rest.
                 linkProgram = newProgram;
             } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                throw "Not implemented. Cannot swap shader on the fly... Yet.";
                 // TODO: unload old shader and reinit.
             }
         },

@@ -130,7 +130,7 @@ Viva.Graph._community.slpaAlgorithm = function (graph, T, r) {
  * A data structure which serves as node memory during SLPA execution. The main idea is to
  * simplify operations on memory such as
  *  - add word to memory,
- *  - get random word from memory, with probablity proportional to word occurrence in the memory
+ *  - get random word from memory, with probability proportional to word occurrence in the memory
  *  - get the most popular word in memory
  *
  * TODO: currently this structure is extremely inefficient in terms of memory. I think it could be
@@ -160,9 +160,9 @@ Viva.Graph._community.occuranceMap = function (random) {
                     return result;
                 }
 
-                // Not only number of occurances matters but order of keys also does.
+                // Not only number of occurrences matters but order of keys also does.
                 // for ... in implementation in different browsers results in different
-                // order, and if we want to have same categories accross all browsers
+                // order, and if we want to have same categories across all browsers
                 // we should order words by key names too:
                 if (x < y) { return -1; }
                 if (x > y) { return 1; }
@@ -196,7 +196,7 @@ Viva.Graph._community.occuranceMap = function (random) {
         },
 
         /**
-         * Gets number of occurances for a given word. If word is not present in the dictionary
+         * Gets number of occurrences for a given word. If word is not present in the dictionary
          * zero is returned.
          */
         getWordCount : function (word) {
@@ -205,7 +205,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
         /**
          * Gets the most popular word in the map. If multiple words are at the same position
-         * random word among them is choosen.
+         * random word among them is chosen.
          *
          */
         getMostPopularFair : function () {
@@ -220,7 +220,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
             for (i = 1; i < uniqueWords.length; ++i) {
                 if (wordsCount[uniqueWords[i - 1]] !== wordsCount[uniqueWords[i]]) {
-                    break; // other words are less popular... not interested.
+                    break; // other words are less popular... Not interested.
                 } else {
                     maxCount += 1;
                 }
@@ -236,7 +236,7 @@ Viva.Graph._community.occuranceMap = function (random) {
          */
         getRandomWord : function () {
             if (allWords.length === 0) {
-                throw 'The occurance map is empty. Cannot get empty word';
+                throw 'The occurrence map is empty. Cannot get empty word';
             }
 
             return allWords[random.next(allWords.length)];
@@ -244,7 +244,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
         /**
          * Enumerates all unique words in the map, and calls
-         *  callback(word, occuranceCount) function on each word. Callback
+         *  callback(word, occurrenceCount) function on each word. Callback
          * can return true value to stop enumeration.
          *
          * Note: enumeration is guaranteed in to run in decreasing order.

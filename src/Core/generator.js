@@ -1,7 +1,7 @@
 /**
  * @fileOverview Contains collection of graph generators.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.generator = function () {
@@ -43,7 +43,7 @@ Viva.Graph.generator = function () {
          */
         completeBipartite : function (n, m) {
             if (!n || !m || n < 0 || m < 0) {
-                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greate than 0" };
+                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greater than 0" };
             }
 
             var g = Viva.Graph.graph(),
