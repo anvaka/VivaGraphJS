@@ -1,5 +1,5 @@
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 var Viva = Viva || {};
 
@@ -7,7 +7,9 @@ Viva.Graph = Viva.Graph || {};
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
-Viva.Graph.version = '0.5.8';
+
+Viva.Graph.version = '0.6.0';
+
 /** 
  * Extends target object with given fields/values in the options object.
  * Unlike jQuery's extend this method does not override target object
@@ -36,7 +38,7 @@ Viva.lazyExtend = function (target, options) {
     return target;
 };
 /**
- * Implenetation of seeded pseudo random number generator, based on Robert Jenkin's 32 bit integer hash function
+ * Implementation of seeded pseudo random number generator, based on Robert Jenkin's 32 bit integer hash function
  *
  * Usage example:
  *  var random = Viva.random(seedNumber),
@@ -68,7 +70,7 @@ Viva.random = function () {
         /**
          * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
          *
-         * @param maxValue is REQUIRED. Ommitit this numbe will result in NaN values from PRNG.
+         * @param maxValue is REQUIRED. Omitting this number will result in NaN values from PRNG.
          */
         next : function (maxValue) {
             return Math.floor(randomFunc() * maxValue);
@@ -92,7 +94,7 @@ Viva.random = function () {
  *
  * @param array to be shuffled
  * @param random - a [seeded] random number generator to produce same sequences. This parameter
- * is optional. If you don't need determenistic randomness keep it blank.
+ * is optional. If you don't need deterministic randomness keep it blank.
  */
 Viva.randomIterator = function (array, random) {
     random = random || Viva.random();
@@ -130,6 +132,7 @@ Viva.randomIterator = function (array, random) {
         }
     };
 };
+
 Viva.BrowserInfo = (function () {
     if (typeof window === "undefined" || !window.hasOwnProperty("navigator")) {
         return {
@@ -155,8 +158,9 @@ Viva.BrowserInfo = (function () {
         version: match[2] || "0"
     };
 }());
+
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.Utils = Viva.Graph.Utils || {};
@@ -177,6 +181,7 @@ Viva.Graph.Utils.indexOfElementInArray = function (element, array) {
 
     return -1;
 };
+
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 Viva.Graph.Utils.getDimension = function (container) {
@@ -212,8 +217,9 @@ Viva.Graph.Utils.findElementPosition = function (obj) {
     }
 
     return [curleft, curtop];
-};/**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+};
+/**
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.Utils = Viva.Graph.Utils || {};
@@ -222,7 +228,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
 // hard to understand. Refactor it.
 
 // TODO: This is really painful. Please don't use this class anymore, I will
-// definitely depricate it or update its interface.
+// definitely deprecate it or update its interface.
 
 /**
  * Allows to start/stop listen to element's events. An element can be arbitrary
@@ -241,7 +247,7 @@ Viva.Graph.Utils.events = function (element) {
      * This behavior is based on Crockford's eventuality example, but with a minor changes:
      *   - fire() method accepts parameters to pass to callbacks (instead of setting them in 'on' method)
      *   - on() method is replaced with addEventListener(), to let objects be used as a DOM objects.
-     *   - behavoir contract is simplified to "string as event name"/"function as callback" convention.
+     *   - behavior contract is simplified to "string as event name"/"function as callback" convention.
      *   - removeEventListener() method added to let unsubscribe from events.
      */
     var eventuality = function (that) {
@@ -327,10 +333,10 @@ Viva.Graph.Utils.events = function (element) {
 
     return {
         /**
-         * Registes callback to be called when element fires event with given event name.
+         * Registers callback to be called when element fires event with given event name.
          */
         on : function (eventName, callback) {
-            if (element.addEventListener) {// W3C DOM and eventuality objecets.
+            if (element.addEventListener) {// W3C DOM and eventuality objects.
                 element.addEventListener(eventName, callback, false);
             } else if (element.attachEvent) { // IE DOM
                 element.attachEvent("on" + eventName, callback);
@@ -361,8 +367,9 @@ Viva.Graph.Utils.events = function (element) {
         }
     };
 };
+
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.Utils = Viva.Graph.Utils || {};
@@ -640,8 +647,9 @@ Viva.Graph.Utils.dragndrop = function (element) {
         }
     };
 };
+
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Input = Viva.Input || {};
@@ -682,6 +690,7 @@ Viva.Input.domInputManager = function (graph, graphics) {
         }
     };
 };
+
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
@@ -760,7 +769,8 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
             }
         };
     };
-}());Viva.Graph.geom = function () {
+}());
+Viva.Graph.geom = function () {
 
     return {
         // function from Graphics GEM to determine lines intersection:
@@ -789,7 +799,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
              */
 
             if (r3 !== 0 && r4 !== 0 && ((r3 >= 0) === (r4 >= 4))) {
-                return null; //no itersection.
+                return null; //no intersection.
             }
 
             /* Compute a2, b2, c2 */
@@ -854,7 +864,7 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
                                 dy = p.y - basePoint.y,
                                 sign = dx > 0 ? 1 : -1;
 
-                            // We use squared dx, to avoid Sqrt opertion and improve performance.
+                            // We use squared dx, to avoid Sqrt operation and improve performance.
                             // To avoid sign loss during dx * dx operation we precompute its sign:
                             return sign * dx * dx / (dx * dx + dy * dy);
                         },
@@ -945,8 +955,10 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
             return s;
         }
     };
-};/**
- * Very generic rectangle. 
+};
+
+/**
+ * Very generic rectangle.
  */
 Viva.Graph.Rect = function (x1, y1, x2, y2) {
     this.x1 = x1 || 0;
@@ -981,10 +993,11 @@ Viva.Graph.Link = function (fromId, toId, data, id) {
     this.data = data;
     this.id = id;
 };
+
 /**
  * @fileOverview Contains definition of the core graph object.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 /**
@@ -1003,7 +1016,7 @@ Viva.Graph.graph = function () {
     // hold all links related to that node. And general links
     // array is used to speed up all links enumeration. This is inefficient
     // in terms of memory, but simplifies coding. Furthermore, the graph structure
-    // is isolated from outter world, and can be changed to adjacency matrix later.
+    // is isolated from outer world, and can be changed to adjacency matrix later.
 
     var nodes = (typeof Object.create === 'function') ? Object.create(null) : {},
         links = [],
@@ -1012,7 +1025,7 @@ Viva.Graph.graph = function () {
         nodesCount = 0,
         suspendEvents = 0,
 
-        // Accumlates all changes made during graph updates.
+        // Accumulates all changes made during graph updates.
         // Each change element contains:
         //  changeType - one of the strings: 'add', 'remove' or 'update';
         //  node - if change is related to node this property is set to changed graph's node;
@@ -1024,7 +1037,7 @@ Viva.Graph.graph = function () {
             graph.fire('changed', changes);
         },
 
-        // Enter, Exit Mofidication allows bulk graph updates without firing events.
+        // Enter, Exit modification allows bulk graph updates without firing events.
         enterModification = function () {
             suspendEvents += 1;
         },
@@ -1253,7 +1266,7 @@ Viva.Graph.graph = function () {
             // I.e. use array + 'for' iterator instead of dictionary + 'for .. in'?
             for (node in nodes) {
                 if (callback(nodes[node])) {
-                    return; // client doesn't want to proceed. return.
+                    return; // client doesn't want to proceed.
                 }
             }
         },
@@ -1273,7 +1286,7 @@ Viva.Graph.graph = function () {
                 linkedNodeId;
 
             if (node && node.links && typeof callback === 'function') {
-                // Extraced orientation check out of the loop to increase performance
+                // Extracted orientation check out of the loop to increase performance
                 if (oriented) {
                     for (i = 0; i < node.links.length; ++i) {
                         link = node.links[i];
@@ -1368,10 +1381,11 @@ Viva.Graph.graph = function () {
 
     return graphPart;
 };
+
 /**
- * @fileOverview Contains collection of primitve operations under graph.
+ * @fileOverview Contains collection of primitive operations under graph.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.operations = function () {
@@ -1400,6 +1414,7 @@ Viva.Graph.operations = function () {
         }
     };
 };
+
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 Viva.Graph.Physics.Vector = function (x, y) {
@@ -1473,6 +1488,7 @@ Viva.Graph.Physics.QuadTreeNode = function () {
     this.x2 = 0;
     this.y2 = 0;
 };
+
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 /**
@@ -1524,10 +1540,11 @@ Viva.Graph.Physics.eulerIntegrator = function () {
         }
     };
 };
+
 /**
  * This is Barnes Hut simulation algorithm. Implementation
  * is adopted to non-recursive solution, since certain browsers
- * handle recursion extremly bad.
+ * handle recursion extremely bad.
  *
  * http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
  */
@@ -1685,7 +1702,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     // To achieve this we have to convert current leaf into internal node
                     // and continue adding two nodes.
                     var oldBody = node.body;
-                    node.body = null; // internal nodes do not cary bodies
+                    node.body = null; // internal nodes do not carry bodies
                     node.isInternal = true;
 
                     if (isSamePosition(oldBody.location, body.location)) {
@@ -1749,13 +1766,13 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     r = Math.sqrt(dx * dx + dy * dy);
 
                     if (r === 0) {
-                        // Poor man's protection agains zero distance.
+                        // Poor man's protection against zero distance.
                         dx = (random.nextDouble() - 0.5) / 50;
                         dy = (random.nextDouble() - 0.5) / 50;
                         r = Math.sqrt(dx * dx + dy * dy);
                     }
 
-                    // This is standard gravition force calculation but we divide
+                    // This is standard gravitation force calculation but we divide
                     // by r^3 to save two operations when normalizing force vector.
                     v = gravity * body.mass * sourceBody.mass / (r * r * r);
                     sourceBody.force.x = sourceBody.force.x + v * dx;
@@ -1769,7 +1786,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
                     r = Math.sqrt(dx * dx + dy * dy);
 
                     if (r === 0) {
-                        // Sorry about code duplucation. I don't want to create many functions
+                        // Sorry about code duplication. I don't want to create many functions
                         // right away. Just want to see performance first.
                         dx = (random.nextDouble() - 0.5) / 50;
                         dy = (random.nextDouble() - 0.5) / 50;
@@ -1851,6 +1868,7 @@ Viva.Graph.Physics.nbodyForce = function (options) {
         }
     };
 };
+
 Viva.Graph.Physics.dragForce = function (options) {
     if (!options) {
         options = {};
@@ -1876,6 +1894,7 @@ Viva.Graph.Physics.dragForce = function (options) {
         }
     };
 };
+
 Viva.Graph.Physics.springForce = function (currentOptions) {
     currentOptions = Viva.lazyExtend(currentOptions, {
         length : 50,
@@ -1920,12 +1939,13 @@ Viva.Graph.Physics.springForce = function (currentOptions) {
         }
     };
 };
+
 Viva.Graph.Physics = Viva.Graph.Physics || {};
 
 /**
  * Manages a simulation of physical forces acting on bodies.
  * To create a custom force simulator register forces of the system
- * via addForce() method, choos appropriate integrator and register
+ * via addForce() method, choose appropriate integrator and register
  * bodies.
  *
  * // TODO: Show example.
@@ -2082,6 +2102,7 @@ Viva.Graph.Physics.forceSimulator = function (forceIntegrator) {
         }
     };
 };
+
 // I don't like to suppress this, but I'm afraid 'force_directed_body'
 // could already be used by someone. Don't want to break it now.
 /* jshint camelcase:false */
@@ -2112,7 +2133,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         gravity: -1.2,
 
         /**
-         * Theta coeffiecient from Barnes Hut simulation. Ranged between (0, 1).
+         * Theta coefficient from Barnes Hut simulation. Ranged between (0, 1).
          * The closer it's to 1 the more nodes algorithm will have to go through.
          * Setting it to one makes Barnes Hut simulation no different from
          * brute-force forces calculation (each node is considered).
@@ -2126,7 +2147,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         dragCoeff: 0.02,
 
         /**
-         * Allows to transfor physical spring associated with a link. this allows clients
+         * Allows to transform physical spring associated with a link. This allows clients
          * to specify custom length for a link.
          *
          * @param {Viva.Graph.Link} link actual link for which transform is performed
@@ -2489,9 +2510,9 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         },
 
         /**
-         * Gets or sets current spring coeffiсient.
+         * Gets or sets current spring coefficient.
          *
-         * @param coeff new spring coeffiсient.
+         * @param coeff new spring coefficient.
          * if this parameter is empty then its old value returned.
          */
         springCoeff: function(coeff) {
@@ -2525,7 +2546,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Gets or sets current theta value in the nbody simulation.
          *
-         * @param t new theta coeffiсient.
+         * @param t new theta coefficient.
          * if this parameter is empty then its old value returned.
          */
         theta: function(t) {
@@ -2542,7 +2563,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         /**
          * Gets or sets current theta value in the nbody simulation.
          *
-         * @param dragCoeff new drag coeffiсient.
+         * @param dragCoeff new drag coefficient.
          * if this parameter is empty then its old value returned.
          */
         drag: function(dragCoeff) {
@@ -2557,6 +2578,7 @@ Viva.Graph.Layout.forceDirected = function(graph, settings) {
         }
     };
 };
+
 Viva.Graph.Layout = Viva.Graph.Layout || {};
 
 /**
@@ -2739,10 +2761,11 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
 
     };
 };
+
 /**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View = Viva.Graph.View || {};
@@ -2779,14 +2802,14 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     renderLinks : true,
  *
  *     // Number of layout iterations to run before displaying the graph. The bigger you set this number
- *     // the closer to ideal position graph will apper first time. But be careful: for large graphs
+ *     // the closer to ideal position graph will appear first time. But be careful: for large graphs
  *     // it can freeze the browser.
  *     prerender : 0
  *   }
  */
 Viva.Graph.View.renderer = function (graph, settings) {
     // TODO: This class is getting hard to understand. Consider refactoring.
-    // TODO: I have a technical debt here: fix scaling/recentring! Currently it's total mess.
+    // TODO: I have a technical debt here: fix scaling/recentering! Currently it's a total mess.
     var FRAME_INTERVAL = 30;
 
     settings = settings || {};
@@ -3034,7 +3057,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
         releaseGraphEvents = function () {
             if (graphEvents) {
-                // Interesting.. why is it not null? Anyway:
+                // Interesting.. Why is it not null? Anyway:
                 graphEvents.stop('changed', onGraphChanged);
                 graphEvents = null;
             }
@@ -3198,6 +3221,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
         }
     };
 };
+
 Viva.Graph.serializer = function () {
     var checkJSON = function () {
             if (typeof JSON === 'undefined' || !JSON.stringify || !JSON.parse) {
@@ -3297,19 +3321,20 @@ Viva.Graph.serializer = function () {
         }
     };
 };
+
 /**
- * @fileOverview Centrality calcuation algorithms.
- * 
+ * @fileOverview Centrality calculation algorithms.
+ *
  * @see http://en.wikipedia.org/wiki/Centrality
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.centrality = function () {
     var singleSourceShortestPath = function (graph, node, oriented) {
             // I'm using the same naming convention used in http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
             // sorry about cryptic names.
-            var P = {}, // predcessors lists. 
+            var P = {}, // predecessors lists.
                 S = [],
                 sigma = {},
                 d = {},
@@ -3400,26 +3425,26 @@ Viva.Graph.centrality = function () {
 
         /**
          * Compute the shortest-path betweenness centrality for all nodes in a graph.
-         * 
-         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs 
+         *
+         * Betweenness centrality of a node `n` is the sum of the fraction of all-pairs
          * shortest paths that pass through `n`. Runtime O(n * v) for non-weighted graphs.
          *
          * @see http://en.wikipedia.org/wiki/Centrality#Betweenness_centrality
-         * 
-         * @see A Faster Algorithm for Betweenness Centrality. 
+         *
+         * @see A Faster Algorithm for Betweenness Centrality.
          *      Ulrik Brandes, Journal of Mathematical Sociology 25(2):163-177, 2001.
          *      http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
-         * 
-         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness 
+         *
+         * @see Ulrik Brandes: On Variants of Shortest-Path Betweenness
          *      Centrality and their Generic Computation.
          *      Social Networks 30(2):136-145, 2008.
          *      http://www.inf.uni-konstanz.de/algo/publications/b-vspbc-08.pdf
-         * 
+         *
          * @see Ulrik Brandes and Christian Pich: Centrality Estimation in Large Networks.
          *      International Journal of Bifurcation and Chaos 17(7):2303-2318, 2007.
          *      http://www.inf.uni-konstanz.de/algo/publications/bp-celn-06.pdf
-         * 
-         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported 
+         *
+         * @param graph for which we are calculating betweenness centrality. Non-weighted graphs are only supported
          */
         betweennessCentrality : function (graph) {
             var betweennes = {},
@@ -3438,9 +3463,9 @@ Viva.Graph.centrality = function () {
 
         /**
          * Calculates graph nodes degree centrality (in/out or both).
-         * 
+         *
          * @see http://en.wikipedia.org/wiki/Centrality#Degree_centrality
-         * 
+         *
          * @param graph for which we are calculating centrality.
          * @param kind optional parameter. Valid values are
          *   'in'  - calculate in-degree centrality
@@ -3506,29 +3531,33 @@ Viva.Graph.centrality = function () {
             return result;
         }
     };
-};/**
+};
+
+/**
  * @fileOverview Community structure detection algorithms
- * 
+ *
  * @see http://en.wikipedia.org/wiki/Community_structure
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.community = function () {
     return {
         /**
          * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
-         * Jierui Xie and Boleslaw K. Szymanski. 
-         * 
+         * Jierui Xie and Boleslaw K. Szymanski.
+         *
          * @see http://arxiv.org/pdf/1109.5720v3.pdf
-         * @see https://sites.google.com/site/communitydetectionslpa/ 
+         * @see https://sites.google.com/site/communitydetectionslpa/
          */
         slpa : function (graph, T, r) {
             var algorithm = Viva.Graph._community.slpaAlgorithm(graph, T, r);
             return algorithm.run();
         }
     };
-};Viva.Graph._community = {};
+};
+
+Viva.Graph._community = {};
 
 /**
  * Implementation of Speaker-listener Label Propagation Algorithm (SLPA) of
@@ -3660,7 +3689,7 @@ Viva.Graph._community.slpaAlgorithm = function (graph, T, r) {
  * A data structure which serves as node memory during SLPA execution. The main idea is to
  * simplify operations on memory such as
  *  - add word to memory,
- *  - get random word from memory, with probablity proportional to word occurrence in the memory
+ *  - get random word from memory, with probability proportional to word occurrence in the memory
  *  - get the most popular word in memory
  *
  * TODO: currently this structure is extremely inefficient in terms of memory. I think it could be
@@ -3690,9 +3719,9 @@ Viva.Graph._community.occuranceMap = function (random) {
                     return result;
                 }
 
-                // Not only number of occurances matters but order of keys also does.
+                // Not only number of occurrences matters but order of keys also does.
                 // for ... in implementation in different browsers results in different
-                // order, and if we want to have same categories accross all browsers
+                // order, and if we want to have same categories across all browsers
                 // we should order words by key names too:
                 if (x < y) { return -1; }
                 if (x > y) { return 1; }
@@ -3726,7 +3755,7 @@ Viva.Graph._community.occuranceMap = function (random) {
         },
 
         /**
-         * Gets number of occurances for a given word. If word is not present in the dictionary
+         * Gets number of occurrences for a given word. If word is not present in the dictionary
          * zero is returned.
          */
         getWordCount : function (word) {
@@ -3735,7 +3764,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
         /**
          * Gets the most popular word in the map. If multiple words are at the same position
-         * random word among them is choosen.
+         * random word among them is chosen.
          *
          */
         getMostPopularFair : function () {
@@ -3750,7 +3779,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
             for (i = 1; i < uniqueWords.length; ++i) {
                 if (wordsCount[uniqueWords[i - 1]] !== wordsCount[uniqueWords[i]]) {
-                    break; // other words are less popular... not interested.
+                    break; // other words are less popular... Not interested.
                 } else {
                     maxCount += 1;
                 }
@@ -3766,7 +3795,7 @@ Viva.Graph._community.occuranceMap = function (random) {
          */
         getRandomWord : function () {
             if (allWords.length === 0) {
-                throw 'The occurance map is empty. Cannot get empty word';
+                throw 'The occurrence map is empty. Cannot get empty word';
             }
 
             return allWords[random.next(allWords.length)];
@@ -3774,7 +3803,7 @@ Viva.Graph._community.occuranceMap = function (random) {
 
         /**
          * Enumerates all unique words in the map, and calls
-         *  callback(word, occuranceCount) function on each word. Callback
+         *  callback(word, occurrenceCount) function on each word. Callback
          * can return true value to stop enumeration.
          *
          * Note: enumeration is guaranteed in to run in decreasing order.
@@ -3798,10 +3827,12 @@ Viva.Graph._community.occuranceMap = function (random) {
             }
         }
     };
-};/**
+};
+
+/**
  * @fileOverview Contains collection of graph generators.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.generator = function () {
@@ -3843,7 +3874,7 @@ Viva.Graph.generator = function () {
          */
         completeBipartite : function (n, m) {
             if (!n || !m || n < 0 || m < 0) {
-                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greate than 0" };
+                throw { message: "Graph dimensions are invalid. Number of nodes in each partition should be greater than 0" };
             }
 
             var g = Viva.Graph.graph(),
@@ -4001,10 +4032,12 @@ Viva.Graph.generator = function () {
         }
     };
 };
+
 /**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * TODO: this should not be part of the library
  */
 // The file tries to conform generic interface:
 /*jshint unused: false */
@@ -4013,10 +4046,10 @@ Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs css-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  *
- * NOTE: Most likely I will remove this graphics engine due to superior svg support.
- * In certain cases it doesn't work and require further imporvments:
+ * NOTE: Most likely I will remove this graphics engine due to superior SVG support.
+ * In certain cases it doesn't work and require further improvements:
  *  * does not properly work for dragging.
  *  * does not support scaling.
  *  * does not support IE versions prior to IE9.
@@ -4080,7 +4113,7 @@ Viva.Graph.View.cssGraphics = function () {
                     // IE 6, 7 and 8 are screwed up when it comes to transforms;
                     // I could not find justification for their choice of "floating"
                     // matrix transform origin. The following ugly code was written
-                    // out of complete dispair.
+                    // out of complete despair.
                     if (angleRad < 0) {
                         angleRad = 2 * Math.PI + angleRad;
                     }
@@ -4160,7 +4193,7 @@ Viva.Graph.View.cssGraphics = function () {
 
     return {
         /**
-         * Sets the collback that creates node representation or creates a new node
+         * Sets the callback that creates node representation or creates a new node
          * presentation if builderCallbackOrNode is not a function.
          *
          * @param builderCallbackOrNode a callback function that accepts graph node
@@ -4181,7 +4214,7 @@ Viva.Graph.View.cssGraphics = function () {
         },
 
         /**
-         * Sets the collback that creates link representation or creates a new link
+         * Sets the callback that creates link representation or creates a new link
          * presentation if builderCallbackOrLink is not a function.
          *
          * @param builderCallbackOrLink a callback function that accepts graph link
@@ -4324,8 +4357,9 @@ Viva.Graph.View.cssGraphics = function () {
         }
     };
 };
+
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 /**
@@ -4448,6 +4482,7 @@ Viva.Graph.svg = function (element) {
 
     return svgElement;
 };
+
 /**
  * @fileOverview Defines a graph renderer that uses SVG based drawings.
  *
@@ -4458,7 +4493,7 @@ Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs svg-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  */
 Viva.Graph.View.svgGraphics = function () {
     var svgContainer,
@@ -4478,7 +4513,7 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         nodePositionCallback = function (nodeUI, pos) {
-            // TODO: Remove magic 5. It should be halfo of the width or height of the node.
+            // TODO: Remove magic 5. It should be half of the width or height of the node.
             nodeUI.attr("x", pos.x - 5)
                   .attr("y", pos.y - 5);
         },
@@ -4533,7 +4568,7 @@ Viva.Graph.View.svgGraphics = function () {
          */
         node : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             nodeBuilder = builderCallback;
@@ -4548,11 +4583,11 @@ Viva.Graph.View.svgGraphics = function () {
          * as a parameter and must return an element representing this link.
          *
          * @returns If builderCallback is a valid callback function, instance of this is returned;
-         * Otherwise undefined value is returend.
+         * Otherwise undefined value is returned.
          */
         link : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             linkBuilder = builderCallback;
@@ -4622,7 +4657,7 @@ Viva.Graph.View.svgGraphics = function () {
             p.x = scrollPoint.x;
             p.y = scrollPoint.y;
 
-            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to svg coordinates
+            p = p.matrixTransform(svgContainer.getCTM().inverse()); // translate to SVG coordinates
 
             // Compute new scale matrix in current mouse position
             var k = svgRoot.createSVGMatrix().translate(p.x, p.y).scale(scaleFactor).translate(-p.x, -p.y),
@@ -4653,7 +4688,7 @@ Viva.Graph.View.svgGraphics = function () {
         init : function (container) {
             container.appendChild(svgRoot);
             updateTransform();
-            // Notify the world if someoen waited for update. TODO: should send an event
+            // Notify the world if someone waited for update. TODO: should send an event
             if (typeof initCallback === "function") {
                 initCallback(svgRoot);
             }
@@ -4776,7 +4811,7 @@ Viva.Graph.View.svgGraphics = function () {
             return svgRoot;
         },
         /**
-         * Returns root svg element.
+         * Returns root SVG element.
          *
          * Note: This is internal method specific to this renderer
          */
@@ -4801,13 +4836,14 @@ Viva.Graph.View.svgGraphics = function () {
         return svgRoot;
     }
 };
+
 /**
  * @fileOverview I used this class to render links UI within
  * node. Lesser SVG elements is proven to improve performance
  * but I'm not happy with the code result here. Probably this class
  * will be removed from future versions.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View.svgNodeFactory = function (graph) {
@@ -4852,7 +4888,7 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
         },
 
         /**
-         * Sets a callback function for custom nodes contnet.
+         * Sets a callback function for custom nodes content.
          * @param conentCreator(nodeUI, node) - callback function which returns a node content UI.
          *  Image, for example.
          * @param sizeProvider(nodeUI) - a callback function which accepts nodeUI returned by
@@ -4924,6 +4960,7 @@ Viva.Graph.View.svgNodeFactory = function (graph) {
 
     };
 };
+
 /**
  * @fileOverview Utility functions for webgl rendering.
  *
@@ -5024,11 +5061,12 @@ Viva.Graph.webgl = function (gl) {
         context : gl
     };
 };
+
 /**
  * @fileOverview Defines a model objects to represents graph rendering
  * primitives in webglGraphics.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View.WebglUtils = function () { };
@@ -5086,7 +5124,7 @@ Viva.Graph.View.webglLine = function (color) {
 Viva.Graph.View.webglSquare = function (size, color) {
     return {
         /**
-         * Gets or sets size of the sqare side.
+         * Gets or sets size of the square side.
          */
         size : typeof size === 'number' ? size : 10,
 
@@ -5103,7 +5141,7 @@ Viva.Graph.View.webglSquare = function (size, color) {
 Viva.Graph.View.webglImage = function (size, src) {
     return {
         /**
-         * Gets texture index where current image is placed.s
+         * Gets texture index where current image is placed.
          */
         _texture : 0,
 
@@ -5118,17 +5156,19 @@ Viva.Graph.View.webglImage = function (size, src) {
         size : typeof size === 'number' ? size : 32,
 
         /**
-         * Source of the image. If image is comming not from your domain
+         * Source of the image. If image is coming not from your domain
          * certain origin restrictions applies.
          * See http://www.khronos.org/registry/webgl/specs/latest/#4.2 for more details.
          */
         src  : src
     };
-};/**
+};
+
+/**
  * @fileOverview Defines a naive form of nodes for webglGraphics class.
  * This form allows to change color of node. Shape of nodes is rectangular.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 /**
@@ -5266,12 +5306,13 @@ Viva.Graph.View.webglNodeProgram = function () {
         }
     };
 };
+
 /**
  * @fileOverview Defines a naive form of links for webglGraphics class.
  * This form allows to change color of links.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
- */
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
+ **/
 
 /**
  * Defines UI for links in webgl renderer.
@@ -5420,9 +5461,10 @@ Viva.Graph.View.webglLinkProgram = function () {
         }
     };
 };
+
 /**
  * @fileOverview Defines an image nodes for webglGraphics class.
- * Shape of nodes is sqare.
+ * Shape of nodes is square.
  *
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
@@ -5439,7 +5481,7 @@ Viva.Graph.View.Texture = function (size) {
 
 /**
  * My naive implementation of textures atlas. It allows clients to load
- * multimple images into atlas and get canvas representing all of them.
+ * multiple images into atlas and get canvas representing all of them.
  *
  * @param tilesPerTexture - indicates how many images can be loaded to one
  *          texture of the atlas. If number of loaded images exceeds this
@@ -5544,7 +5586,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
         },
 
         /**
-         * Removes given url from colleciton of tiles in the atlas.
+         * Removes given url from collection of tiles in the atlas.
          */
         remove : function (imgUrl) {
             var coordinates = loadedImages[imgUrl];
@@ -5838,17 +5880,19 @@ Viva.Graph.View.webglImageNodeProgram = function () {
             gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
         }
     };
-};/**
+};
+
+/**
  * @fileOverview Defines a graph renderer that uses WebGL based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Graph.View = Viva.Graph.View || {};
 
 /**
  * Performs webgl-based graph rendering. This module does not perform
- * layout, but only visualizes nodes and edeges of the graph.
+ * layout, but only visualizes nodes and edges of the graph.
  *
  * @param options - to customize graphics  behavior. Currently supported parameter
  *  enableBlending - true by default, allows to use transparency in node/links colors.
@@ -5939,7 +5983,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         },
 
         /**
-         * Sets the collback that creates node representation.
+         * Sets the callback that creates node representation.
          *
          * @param builderCallback a callback function that accepts graph node
          * as a parameter and must return an element representing this node.
@@ -5949,7 +5993,7 @@ Viva.Graph.View.webglGraphics = function (options) {
          */
         node : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             nodeUIBuilder = builderCallback;
@@ -5964,11 +6008,11 @@ Viva.Graph.View.webglGraphics = function (options) {
          * as a parameter and must return an element representing this link.
          *
          * @returns If builderCallback is a valid callback function, instance of this is returned;
-         * Otherwise undefined value is returend.
+         * Otherwise undefined value is returned.
          */
         link : function (builderCallback) {
             if (typeof builderCallback !== "function") {
-                return; // todo: throw? this is not compatible with old versions
+                return; // todo: throw? This is not compatible with old versions
             }
 
             linkUIBuilder = builderCallback;
@@ -6154,7 +6198,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 var color = options.clearColorValue;
                 gl.clearColor(color.r, color.g, color.b, color.a);
                 // TODO: not the best way, really. Should come up with something better
-                // what if we need more updates inisde beginRender, like depth buffer?
+                // what if we need more updates inside beginRender, like depth buffer?
                 this.beginRender = function () {
                     gl.clear(gl.COLOR_BUFFER_BIT);
                 };
@@ -6168,7 +6212,7 @@ Viva.Graph.View.webglGraphics = function (options) {
 
             updateTransformUniform();
 
-            // Notify the world if someoen waited for update. TODO: should send an event
+            // Notify the world if someone waited for update. TODO: should send an event
             if (typeof initCallback === "function") {
                 initCallback(graphicsRoot);
             }
@@ -6243,7 +6287,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 nodes[nodeIdToRemove] = lastNodeUI;
                 lastNodeUI.id = nodeIdToRemove;
 
-                // Since concrete shaders may cache properties in the ui element
+                // Since concrete shaders may cache properties in the UI element
                 // we are letting them to make this swap (e.g. image node shader
                 // uses this approach to update node's offset in the atlas)
                 nodeProgram.replaceProperties(nodeUI, lastNodeUI);
@@ -6314,7 +6358,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // and let initialization logic take care about the rest.
                 nodeProgram = newProgram;
             } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                throw "Not implemented. Cannot swap shader on the fly... Yet.";
                 // TODO: unload old shader and reinit.
             }
         },
@@ -6330,7 +6374,7 @@ Viva.Graph.View.webglGraphics = function (options) {
                 // and let initialization logic take care about the rest.
                 linkProgram = newProgram;
             } else if (newProgram) {
-                throw "Not implemented. Cannot swap shader on the fly... yet.";
+                throw "Not implemented. Cannot swap shader on the fly... Yet.";
                 // TODO: unload old shader and reinit.
             }
         },
@@ -6376,6 +6420,7 @@ Viva.Graph.View.webglGraphics = function (options) {
 
     return graphics;
 };
+
 /**
  * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
  *
@@ -6593,8 +6638,9 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
 
     return webglGraphics.webglInputEvents;
 };
+
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 Viva.Input = Viva.Input || {};

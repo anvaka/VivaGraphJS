@@ -1,3 +1,7 @@
+v0.6.0
+  date Dec 27, 2014
+	 - Migrated to gulp. First step towards commonjs.
+	 - Fixed spelling, grammar.
 v0.5.8
   date: Sep 28, 2014
 	- Graphics object no longer waits `init` method to create container. Fixes
