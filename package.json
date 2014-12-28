@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "gulp",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tap unit_tests/*.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,10 @@
     "gulp": "^3.8.10",
     "gulp-concat": "^2.4.2",
     "gulp-rename": "^1.2.0",
-    "gulp-uglify": "^1.0.2"
+    "gulp-uglify": "^1.0.2",
+    "tap": "^0.4.13"
+  },
+  "dependencies": {
+    "gulp-run": "^1.6.5"
   }
 }

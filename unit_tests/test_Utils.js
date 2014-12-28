@@ -1,68 +1,106 @@
-var test_Utils = function (test) {
-    return {
-        randomIteratorReturnsAllItems : function () {
-            var a = [1, 2, 3, 4, 5, 6],
-                aCopy = a.map(function (i) { return i; }),
-                shuffle = Viva.randomIterator(aCopy),
-                iterated = [];
-            shuffle.forEach(function (i) {
-                iterated.push(i);
-                test.assert(a.indexOf(i) !== -1, 'Shuffle iterator should return only items from original array. Unexpected ' + i);
-            });
+var test = require('tap').test;
+var Viva = require('../dist/vivagraph.js');
 
-            test.assertEqual(iterated.length, a.length, 'Number of iterated items does not match number of original array items');
-        },
+test('randomIteratorReturnsAllItems', function(t) {
+  var a = [1, 2, 3, 4, 5, 6],
+    aCopy = a.map(function(i) {
+      return i;
+    }),
+    shuffle = Viva.randomIterator(aCopy),
+    iterated = [];
+  shuffle.forEach(function(i) {
+    iterated.push(i);
+    t.ok(a.indexOf(i) !== -1, 'Shuffle iterator should return only items from original array. Unexpected ' + i);
+  });
 
-        lazyExtendDoesNotExtendExistingValues : function () {
-            var options = { age : 42 };
+  t.equals(iterated.length, a.length, 'Number of iterated items does not match number of original array items');
+  t.end();
+});
 
-            Viva.lazyExtend(options, { age : 24 });
+test('lazyExtendDoesNotExtendExistingValues', function(t) {
+  var options = {
+    age: 42
+  };
 
-            test.assertEqual(options.age, 42, 'Should not touch properties when types match');
-        },
+  Viva.lazyExtend(options, {
+    age: 24
+  });
 
-        lazyExtendUpdatesWhenTypeDoesNotMatch : function () {
-            var options = { age : '42' };
+  t.equals(options.age, 42, 'Should not touch properties when types match');
+  t.end();
+});
 
-            Viva.lazyExtend(options, { age : 24 });
+test('lazyExtendUpdatesWhenTypeDoesNotMatch', function(t) {
+  var options = {
+    age: '42'
+  };
 
-            test.assertEqual(options.age, 24, 'Should extend, because types are different');
-        },
+  Viva.lazyExtend(options, {
+    age: 24
+  });
 
-        lazyExtendUpdatesWhenNewProperty : function () {
-            var options = { age : '42' };
+  t.equals(options.age, 24, 'Should extend, because types are different');
+  t.end();
+});
 
-            Viva.lazyExtend(options, { newProperty : 24 });
+test('lazyExtendUpdatesWhenNewProperty', function(t) {
+  var options = {
+    age: '42'
+  };
 
-            test.assertEqual(options.age, '42', 'Should preserve old values');
-            test.assertEqual(options.newProperty, 24, 'Should extend, because new property');
-        },
+  Viva.lazyExtend(options, {
+    newProperty: 24
+  });
 
-        lazyExtendDeepNewObjects : function () {
-            var options = { age : '42' };
+  t.equals(options.age, '42', 'Should preserve old values');
+  t.equals(options.newProperty, 24, 'Should extend, because new property');
+  t.end();
+});
 
-            Viva.lazyExtend(options, { nested : { name : 'deep'} });
+test('lazyExtendDeepNewObjects', function(t) {
+  var options = {
+    age: '42'
+  };
 
-            test.assertEqual(options.age, '42', 'Should preserve old values');
-            test.assertEqual(options.nested.name, 'deep', 'Should extend deep properties');
-        },
+  Viva.lazyExtend(options, {
+    nested: {
+      name: 'deep'
+    }
+  });
 
-        lazyExtendDeepLogic : function () {
-            var options = { age : '42', nested: { first : 'Mark', age : '22'}};
+  t.equals(options.age, '42', 'Should preserve old values');
+  t.equals(options.nested.name, 'deep', 'Should extend deep properties');
+  t.end();
+});
 
-            Viva.lazyExtend(options, { nested : { first : '', last : 'Twain', age : 20} });
+test('lazyExtendDeepLogic', function(t) {
+  var options = {
+    age: '42',
+    nested: {
+      first: 'Mark',
+      age: '22'
+    }
+  };
 
-            test.assertEqual(options.age, '42', 'Should preserve old values');
-            test.assertEqual(options.nested.first, 'Mark', 'Should preserve deep properties with same types');
-            test.assertEqual(options.nested.last, 'Twain', 'Should create new deep properties');
-            test.assertEqual(options.nested.age, 20, 'Should fix deep properties with wrong types');
-        },
+  Viva.lazyExtend(options, {
+    nested: {
+      first: '',
+      last: 'Twain',
+      age: 20
+    }
+  });
 
-        lazyExtendCreatesNewObject : function () {
-            var options,
-                extended = Viva.lazyExtend(options, {});
+  t.equals(options.age, '42', 'Should preserve old values');
+  t.equals(options.nested.first, 'Mark', 'Should preserve deep properties with same types');
+  t.equals(options.nested.last, 'Twain', 'Should create new deep properties');
+  t.equals(options.nested.age, 20, 'Should fix deep properties with wrong types');
+  t.end();
+});
 
-            test.assert(extended, 'New object should be created');
-        }
-    };
-};
+test('lazyExtendCreatesNewObject', function(t) {
+  var options,
+    extended = Viva.lazyExtend(options, {});
+
+  t.ok(extended, 'New object should be created');
+  t.end();
+});
