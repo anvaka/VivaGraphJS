@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "gulp",
-    "test": "tap tests/*.js"
+    "test": "tap test/*.js"
   },
   "repository": {
     "type": "git",
