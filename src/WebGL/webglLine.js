@@ -7,7 +7,6 @@ module.exports = webglLine;
  * it's just passed to corresponding shader and the shader should
  * figure out how to render it.
  *
- * @see Viva.Graph.View.webglLinkShader.position
  */
 function webglLine(color) {
   return {
