@@ -20,14 +20,18 @@
   "author": "Andrei Kashcha",
   "license": "BSD",
   "devDependencies": {
+    "browserify": "^8.0.3",
     "del": "^1.1.1",
     "gulp": "^3.8.10",
-    "gulp-concat": "^2.4.2",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^1.0.2",
+    "gulp-run": "^1.6.5",
+    "gulp-util": "^3.0.2",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.0.0",
     "tap": "^0.4.13"
   },
   "dependencies": {
-    "gulp-run": "^1.6.5"
+    "ngraph.graph": "0.0.6"
   }
 }

@@ -2,6 +2,8 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
+// TODO: Replace documentEvents with commonjs modulek
+
 Viva.Graph.Utils = Viva.Graph.Utils || {};
 
 // TODO: Move to input namespace
