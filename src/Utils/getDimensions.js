@@ -19,18 +19,3 @@ Viva.Graph.Utils.getDimension = function (container) {
     };
 };
 
-/**
- * Finds the absolute position of an element on a page
- */
-Viva.Graph.Utils.findElementPosition = function (obj) {
-    var curleft = 0,
-        curtop = 0;
-    if (obj.offsetParent) {
-        do {
-            curleft += obj.offsetLeft;
-            curtop += obj.offsetTop;
-        } while ((obj = obj.offsetParent) !== null);
-    }
-
-    return [curleft, curtop];
-};

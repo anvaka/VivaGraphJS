@@ -32,6 +32,8 @@
     "tap": "^0.4.13"
   },
   "dependencies": {
-    "ngraph.graph": "0.0.6"
+    "ngraph.events": "0.0.3",
+    "ngraph.graph": "0.0.6",
+    "simplesvg": "0.0.4"
   }
 }

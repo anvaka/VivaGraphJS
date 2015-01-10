@@ -11,6 +11,16 @@ Viva.Graph = {
   webgl: require('./WebGL/webgl.js'),
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
+  Input: {
+    domInputManager: require('./Input/domInputManager.js'),
+    webglInputManager: require('./Input/webglInputManager.js')
+  },
+  Utils: {
+    // TODO: move to Input
+    dragndrop: require('./Input/dragndrop.js'),
+    findElementPosition: require('./Utils/findElementPosition.js')
+  },
+
   View: {
     // TODO: Move `webglXXX` out to webgl namespace
     Texture: require('./WebGL/texture.js'),
@@ -27,11 +37,23 @@ Viva.Graph = {
       parseColor: require('./WebGL/parseColor.js')
     },
 
+    // TODO: move to svg namespace
+    svgGraphics: require('./View/svgGraphics.js'),
 
+    // deprecated
     cssGraphics: function () {
       throw new Error('cssGraphics is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
+    },
+
+    svgNodeFactory: function () {
+      throw new Error('svgNodeFactory is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
     }
-  }
+  },
+
+  svg: require('simplesvg'),
+
+  // TODO: should be camelCase
+  BrowserInfo: require('./Utils/browserInfo.js')
 };
 
 module.exports = Viva;

@@ -54,8 +54,6 @@ function getFiles() {
     "Utils/indexOf.js",
     "Utils/getDimensions.js",
     "Utils/events.js",
-    "Input/dragndrop.js",
-    "Input/domInputManager.js",
     "Input/spatialIndex.js", // TODO: Do I need this for SVG?
     "Utils/timer.js",
     "Utils/geom.js",
@@ -79,9 +77,7 @@ function getFiles() {
     "Algorithms/Community/community.js",
     "Algorithms/Community/slpa.js",
     "Core/generator.js",
-    "View/cssGraphics.js",
     // svg
-    "Svg/svg.js",
     "View/svgGraphics.js",
     "View/svgNodeFactory.js",
     // webgl
