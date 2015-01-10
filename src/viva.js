@@ -12,7 +12,7 @@ Viva.Graph = {
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
   View: {
-    // TODO: Move these out to webgl namespace
+    // TODO: Move `webglXXX` out to webgl namespace
     Texture: require('./WebGL/texture.js'),
     // TODO: This should not be even exported
     webglAtlas: require('./WebGL/webglAtlas.js'),
@@ -25,6 +25,11 @@ Viva.Graph = {
     // TODO: Deprecate this:
     _webglUtil: {
       parseColor: require('./WebGL/parseColor.js')
+    },
+
+
+    cssGraphics: function () {
+      throw new Error('cssGraphics is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
     }
   }
 };

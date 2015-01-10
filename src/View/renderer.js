@@ -17,7 +17,6 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // all graphics has to correspond to defined interface and can be later easily
  *     // replaced for specific needs (e.g. adding WebGL should be piece of cake as long
  *     // as WebGL has implemented required interface). See svgGraphics for example.
- *     // NOTE: current version supports Viva.Graph.View.cssGraphics() as well.
  *     graphics : Viva.Graph.View.svgGraphics(),
  *
  *     // Where the renderer should draw graph. Container size matters, because
