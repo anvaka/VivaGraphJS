@@ -11,14 +11,29 @@ Viva.Graph = {
   webgl: require('./WebGL/webgl.js'),
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
+  generator: function () {
+    return require('ngraph.generators');
+  },
+
   Input: {
     domInputManager: require('./Input/domInputManager.js'),
     webglInputManager: require('./Input/webglInputManager.js')
   },
+
   Utils: {
     // TODO: move to Input
     dragndrop: require('./Input/dragndrop.js'),
-    findElementPosition: require('./Utils/findElementPosition.js')
+    findElementPosition: require('./Utils/findElementPosition.js'),
+    timer: require('./Utils/timer.js'),
+    getDimension: require('./Utils/getDimensions.js'),
+    events: function (g) {
+      console.log("This method is deprecated. Please use graph.on()/grpah.off() directly");
+      return g;
+    }
+  },
+
+  Layout: {
+    forceDirected: require('ngraph.forcelayout')
   },
 
   View: {
@@ -40,6 +55,8 @@ Viva.Graph = {
 
     // TODO: move to svg namespace
     svgGraphics: require('./View/svgGraphics.js'),
+
+    renderer: require('./View/renderer.js'),
 
     // deprecated
     cssGraphics: function () {

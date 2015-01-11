@@ -1,4 +1,4 @@
-var nullEvents = createNullEvents();
+var nullEvents = require('./nullEvents.js');
 
 module.exports = createDocumentEvents();
 
@@ -20,13 +20,3 @@ function on(eventName, handler) {
 function off(eventName, handler) {
   document.removeEventListener(eventName, handler);
 }
-
-function createNullEvents() {
-  return {
-    on: noop,
-    off: noop,
-    stop: noop
-  };
-}
-
-function noop() { }

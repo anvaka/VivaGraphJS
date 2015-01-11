@@ -2,9 +2,9 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-Viva.Graph.Utils = Viva.Graph.Utils || {};
+module.exports = createTimer();
 
-(function () {
+function createTimer() {
     var lastTime = 0,
         vendors = ['ms', 'moz', 'webkit', 'o'],
         i,
@@ -43,11 +43,13 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
         };
     }
 
+    return timer;
+
     /**
      * Timer that fires callback with given interval (in ms) until
      * callback returns true;
      */
-    Viva.Graph.Utils.timer = function (callback) {
+    function timer(callback) {
         var intervalId,
             stopTimer = function () {
                 scope.cancelAnimationFrame(intervalId);
@@ -75,5 +77,5 @@ Viva.Graph.Utils = Viva.Graph.Utils || {};
                 }
             }
         };
-    };
-}());
+    }
+}

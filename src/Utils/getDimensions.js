@@ -1,6 +1,6 @@
-Viva.Graph.Utils = Viva.Graph.Utils || {};
+module.exports = getDimension;
 
-Viva.Graph.Utils.getDimension = function (container) {
+function getDimension(container) {
     if (!container) {
         throw {
             message : 'Cannot get dimensions of undefined container'
@@ -17,5 +17,4 @@ Viva.Graph.Utils.getDimension = function (container) {
         width : width,
         height : height
     };
-};
-
+}
