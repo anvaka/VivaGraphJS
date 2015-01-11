@@ -32,8 +32,7 @@ test('addLink', function(t) {
 test('addOneNodeFireChanged', function(t) {
   var graph = Viva.Graph.graph();
   var testNodeId = 'hello world';
-  var graphEvents = Viva.Graph.Utils.events(graph);
-  graphEvents.on('changed', function(changes) {
+  graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 1, "Only one change should be recorded");
     t.equals(changes[0].node.id, testNodeId, "Wrong node change notification");
     t.equals(changes[0].changeType, 'add', "Add change type expected.");
@@ -47,8 +46,8 @@ test('addLinkFireChanged', function(t) {
   var graph = Viva.Graph.graph();
   var fromId = 1,
     toId = 2;
-  var graphEvents = Viva.Graph.Utils.events(graph);
-  graphEvents.on('changed', function(changes) {
+  var graph = Viva.Graph.Utils.events(graph);
+  graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 3, "Three change should be recorded: node, node and link");
     t.equals(changes[2].link.fromId, fromId, "Wrong link from Id");
     t.equals(changes[2].link.toId, toId, "Wrong link toId");
@@ -86,10 +85,9 @@ test('removeLink', function(t) {
 
 test('removeIsolatedNodeFireChanged', function(t) {
   var graph = Viva.Graph.graph();
-  var graphEvents = Viva.Graph.Utils.events(graph);
   graph.addNode(1);
 
-  graphEvents.on('changed', function(changes) {
+  graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 1, "One change should be recorded: node removed");
     t.equals(changes[0].node.id, 1, "Wrong node Id");
     t.equals(changes[0].changeType, 'remove', "'remove' change type expected.");
@@ -101,10 +99,9 @@ test('removeIsolatedNodeFireChanged', function(t) {
 
 test('removeLinkFireChanged', function(t) {
   var graph = Viva.Graph.graph();
-  var graphEvents = Viva.Graph.Utils.events(graph);
   var link = graph.addLink(1, 2);
 
-  graphEvents.on('changed', function(changes) {
+  graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 1, "One change should be recorded: link removed");
     t.equals(changes[0].link, link, "Wrong link removed");
     t.equals(changes[0].changeType, 'remove', "'remove' change type expected.");
@@ -116,11 +113,10 @@ test('removeLinkFireChanged', function(t) {
 
 test('removeLinkedNodeFireChanged', function(t) {
   var graph = Viva.Graph.graph(),
-    graphEvents = Viva.Graph.Utils.events(graph),
     link = graph.addLink(1, 2),
     nodeIdToRemove = 1;
 
-  graphEvents.on('changed', function(changes) {
+  graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 2, "Two changes should be recorded: link and node removed");
     t.equals(changes[0].link, link, "Wrong link removed");
     t.equals(changes[0].changeType, 'remove', "'remove' change type expected.");
