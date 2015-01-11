@@ -4,7 +4,15 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-Viva.Graph.View = Viva.Graph.View || {};
+module.exports = webglGraphics;
+
+var webglInputManager = require('../Input/webglInputManager.js');
+var webglLinkProgram = require('../WebGL/webglLinkProgram.js');
+var webglNodeProgram = require('../WebGL/webglNodeProgram.js');
+var webglSquare = require('../WebGL/webglSquare.js');
+var webglLine = require('../WebGL/webglLine.js');
+var eventify = require('ngraph.events');
+var merge = require('ngraph.merge');
 
 /**
  * Performs webgl-based graph rendering. This module does not perform
@@ -16,8 +24,8 @@ Viva.Graph.View = Viva.Graph.View || {};
  *                    See https://www.khronos.org/registry/webgl/specs/1.0/#5.2
  */
 
-Viva.Graph.View.webglGraphics = function (options) {
-    options = Viva.lazyExtend(options, {
+function webglGraphics(options) {
+    options = merge(options, {
         enableBlending : true,
         preserveDrawingBuffer : false,
         clearColor: false,
@@ -50,15 +58,15 @@ Viva.Graph.View.webglGraphics = function (options) {
 
         allNodes = {},
         allLinks = {},
-        linkProgram = Viva.Graph.View.webglLinkProgram(),
-        nodeProgram = Viva.Graph.View.webglNodeProgram(),
+        linkProgram = webglLinkProgram(),
+        nodeProgram = webglNodeProgram(),
 /*jshint unused: false */
         nodeUIBuilder = function (node) {
-            return Viva.Graph.View.webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
+            return webglSquare(); // Just make a square, using provided gl context (a nodeProgram);
         },
 
         linkUIBuilder = function (link) {
-            return Viva.Graph.View.webglLine(0xb3b3b3ff);
+            return webglLine(0xb3b3b3ff);
         },
 /*jshint unused: true */
         updateTransformUniform = function () {
@@ -154,7 +162,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         /**
          * Custom input manager listens to mouse events to process nodes drag-n-drop inside WebGL canvas
          */
-        inputManager : Viva.Input.webglInputManager,
+        inputManager : webglInputManager,
 
         /**
          * Called every time before renderer starts rendering.
@@ -532,7 +540,7 @@ Viva.Graph.View.webglGraphics = function (options) {
     };
 
     // Let graphics fire events before we return it to the caller.
-    Viva.Graph.Utils.events(graphics).extend();
+    eventify(graphics);
 
     return graphics;
-};
+}

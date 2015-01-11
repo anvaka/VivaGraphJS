@@ -32,6 +32,7 @@ Viva.Graph = {
     webglLine: require('./WebGL/webglLine.js'),
     webglSquare: require('./WebGL/webglSquare.js'),
     webglImage: require('./WebGL/webglImage.js'),
+    webglGraphics: require('./View/webglGraphics.js'),
     // TODO: Deprecate this:
     _webglUtil: {
       parseColor: require('./WebGL/parseColor.js')
