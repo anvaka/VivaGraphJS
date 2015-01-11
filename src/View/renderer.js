@@ -178,7 +178,7 @@ function renderer(graph, settings) {
         },
 
         createLinkUi = function (link) {
-            var linkPosition = layout.getLinkPosition(link);
+            var linkPosition = layout.getLinkPosition(link.id);
             graphics.addLink(link, linkPosition);
         },
 
@@ -203,7 +203,7 @@ function renderer(graph, settings) {
                 },
                 onDrag : function (e, offset) {
                     var oldPos = layout.getNodePosition(node.id);
-                    layout.setNodePosition(node,
+                    layout.setNodePosition(node.id,
                                            oldPos.x + offset.x / transform.scale,
                                            oldPos.y + offset.y / transform.scale);
 

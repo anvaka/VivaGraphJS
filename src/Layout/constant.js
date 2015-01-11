@@ -22,6 +22,7 @@ function constant(graph, userSettings) {
     /*jshint unused: false */
     var rand = random(userSettings.seed),
         graphRect = new Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
+        layoutLinks = {},
 
         placeNodeCallback = function (node) {
             return {
@@ -40,7 +41,6 @@ function constant(graph, userSettings) {
         layoutNodes = typeof Object.create === 'function' ? Object.create(null) : {},
 
         ensureNodeInitialized = function (node) {
-            if (!node) { return; }
             layoutNodes[node.id] = placeNodeCallback(node);
             updateGraphRect(layoutNodes[node.id], graphRect);
         },
@@ -56,6 +56,13 @@ function constant(graph, userSettings) {
             graph.forEachNode(ensureNodeInitialized);
         },
 
+        ensureLinkInitialized = function (link) {
+          layoutLinks[link.id] = {
+            from: getNodePosition(link.fromId),
+            to: getNodePosition(link.toId)
+          };
+        },
+
         onGraphChanged = function(changes) {
             for (var i = 0; i < changes.length; ++i) {
                 var change = changes[i];
@@ -65,10 +72,18 @@ function constant(graph, userSettings) {
                     } else {
                         delete layoutNodes[change.node.id];
                     }
+                } if (change.link) {
+                    if (change.changeType === 'add') {
+                        ensureLinkInitialized(change.link);
+                    } else {
+                        delete layoutLinks[change.link.id];
+                    }
                 }
             }
         };
 
+    graph.forEachNode(ensureNodeInitialized);
+    graph.forEachLink(ensureLinkInitialized);
     graph.on('changed', onGraphChanged);
 
     return {
@@ -103,7 +118,7 @@ function constant(graph, userSettings) {
          * Request to release all resources
          */
         dispose : function () {
-            graph.removeEventListener('change', onGraphChanged);
+            graph.off('change', onGraphChanged);
         },
 
         /*
@@ -126,25 +141,13 @@ function constant(graph, userSettings) {
          * Gets position of a node by its id. If node was not seen by this
          * layout algorithm undefined value is returned;
          */
-        getNodePosition: function (nodeId) {
-            var pos = layoutNodes[nodeId];
-            if (!pos) {
-                ensureNodeInitialized(graph.getNode(nodeId));
-            }
-            return pos;
-        },
+        getNodePosition: getNodePosition,
 
         /**
          * Returns {from, to} position of a link.
          */
-        getLinkPosition: function (link) {
-            var from = this.getNodePosition(link.fromId),
-                to = this.getNodePosition(link.toId);
-
-            return {
-                from : from,
-                to : to
-            };
+        getLinkPosition: function (linkId) {
+            return layoutLinks[linkId];
         },
 
         /**
@@ -186,4 +189,8 @@ function constant(graph, userSettings) {
         }
 
     };
-};
+
+    function getNodePosition(nodeId) {
+        return layoutNodes[nodeId];
+    }
+}

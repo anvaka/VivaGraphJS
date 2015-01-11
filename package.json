@@ -34,10 +34,12 @@
   "dependencies": {
     "ngraph.events": "0.0.3",
     "ngraph.forcelayout": "0.0.12",
+    "ngraph.fromjson": "0.1.2",
     "ngraph.generators": "0.0.9",
     "ngraph.graph": "0.0.6",
     "ngraph.merge": "0.0.1",
     "ngraph.random": "0.0.1",
+    "ngraph.tojson": "0.1.1",
     "simplesvg": "0.0.4"
   }
 }

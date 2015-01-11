@@ -21,6 +21,12 @@ Viva.Graph = {
   version: require('./version.js'),
   graph: require('ngraph.graph'),
 
+  serializer: function () {
+    return {
+      loadFromJSON: require('ngraph.fromjson'),
+      storeToJSON: require('ngraph.tojson')
+    };
+  },
   webgl: require('./WebGL/webgl.js'),
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
