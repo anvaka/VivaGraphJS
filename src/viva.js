@@ -2,7 +2,20 @@
  * This is an entry point for global namespace. If you want to use separate
  * modules individually - you are more than welcome to do so.
  */
-var Viva = {};
+
+var random = require('ngraph.random');
+
+var Viva = {
+  lazyExtend: function () {
+    return require('ngraph.merge').apply(this, arguments);
+  },
+  randomIterator: function () {
+    return random.randomIterator.apply(random, arguments);
+  },
+  random: function() {
+    return random.random.apply(random, arguments);
+  }
+};
 
 Viva.Graph = {
   version: require('./version.js'),
@@ -33,7 +46,8 @@ Viva.Graph = {
   },
 
   Layout: {
-    forceDirected: require('ngraph.forcelayout')
+    forceDirected: require('ngraph.forcelayout'),
+    constant: require('./Layout/constant.js')
   },
 
   View: {
@@ -67,6 +81,8 @@ Viva.Graph = {
       throw new Error('svgNodeFactory is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
     }
   },
+
+  Rect: require('./Utils/rect.js'),
 
   svg: require('simplesvg'),
 

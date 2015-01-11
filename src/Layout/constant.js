@@ -1,4 +1,8 @@
-Viva.Graph.Layout = Viva.Graph.Layout || {};
+module.exports = constant;
+
+var merge = require('ngraph.merge');
+var random = require('ngraph.random').random;
+var Rect = require('../Utils/rect.js');
 
 /**
  * Does not really perform any layouting algorithm but is compliant
@@ -8,19 +12,22 @@ Viva.Graph.Layout = Viva.Graph.Layout || {};
  * @param {Viva.Graph.graph} graph to layout
  * @param {Object} userSettings
  */
-Viva.Graph.Layout.constant = function (graph, userSettings) {
-    userSettings = Viva.lazyExtend(userSettings, {
+function constant(graph, userSettings) {
+    userSettings = merge(userSettings, {
         maxX : 1024,
         maxY : 1024,
         seed : 'Deterministic randomness made me do this'
     });
     // This class simply follows API, it does not use some of the arguments:
     /*jshint unused: false */
-    var rand = Viva.random(userSettings.seed),
-        graphRect = new Viva.Graph.Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
+    var rand = random(userSettings.seed),
+        graphRect = new Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
 
         placeNodeCallback = function (node) {
-            return new Viva.Graph.Point2d(rand.next(userSettings.maxX), rand.next(userSettings.maxY));
+            return {
+              x: rand.next(userSettings.maxX),
+              y: rand.next(userSettings.maxY)
+            };
         },
 
         updateGraphRect = function (position, graphRect) {
@@ -62,7 +69,7 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             }
         };
 
-    graph.addEventListener('changed', onGraphChanged);
+    graph.on('changed', onGraphChanged);
 
     return {
         /**
