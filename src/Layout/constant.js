@@ -57,10 +57,7 @@ function constant(graph, userSettings) {
         },
 
         ensureLinkInitialized = function (link) {
-          layoutLinks[link.id] = {
-            from: getNodePosition(link.fromId),
-            to: getNodePosition(link.toId)
-          };
+          layoutLinks[link.id] = link;
         },
 
         onGraphChanged = function(changes) {
@@ -147,7 +144,11 @@ function constant(graph, userSettings) {
          * Returns {from, to} position of a link.
          */
         getLinkPosition: function (linkId) {
-            return layoutLinks[linkId];
+          var link = layoutLinks[linkId];
+          return {
+              from : getNodePosition(link.fromId),
+              to : getNodePosition(link.toId)
+          };
         },
 
         /**
