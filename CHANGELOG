@@ -1,3 +1,23 @@
+v0.7.0
+  date TBD
+	  - All files are now CommonJS Modules
+		- `Viva.Graph.svg` is replaced with npm module `simplesvg`
+		- `Viva.Graph.graph` is replaced with `ngraph.graph`
+		- `Viva.Graph.generator` is replaced with `ngraph.generators`. This module
+		contains all original grpah + new graphs.
+		Note: `randomNoLinks` is called `noLinks`.
+    - `Viva.graph.Layout.forceDirected` is replaced with npm module
+		'ngraph.forcelayout'. This module is faster than older one, and has better
+		test coverage. One major difference, is that now instead of passing `link`
+		object to `layout.getLinkPosition(link)`, you need to pas linkId:
+		`layout.getLinkPosition(link.id)`
+		- `Viva.Graph.Point2d` is removed. Use plain {x: 42, y: 42} object
+		- `Viva.Graph.graph.addEventListener` is replaced with `on` method
+		- `Viva.Graph.View.cssGraphcis` is deprecated
+		- `Viva.Graph.View.svgNodeFactory` is deprecated
+		- `geom.convexHull` is deprecated. Use https://github.com/anvaka/cnvx
+		instead.
+
 v0.6.0
   date Dec 27, 2014
 	 - Migrated to gulp. First step towards commonjs.
