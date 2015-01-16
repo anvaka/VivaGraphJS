@@ -27,6 +27,13 @@ Viva.Graph = {
       storeToJSON: require('ngraph.tojson')
     };
   },
+
+  geom: function () {
+    return {
+      intersect: require('gintersect'),
+      intersectRect: require('./Utils/intersectRect.js')
+    };
+  },
   webgl: require('./WebGL/webgl.js'),
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
