@@ -8,7 +8,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = Viva;
 }
 
-Viva.Graph.version = '0.6.0';
+Viva.Graph.version = '0.6.1';
 
 /** 
  * Extends target object with given fields/values in the options object.
@@ -6501,7 +6501,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                 };
 
             window.addEventListener('resize', updateBoundRect);
-            updateBoundRect();
+            setTimeout(updateBoundRect, 0);
 
             // mouse move inside container serves only to track mouse enter/leave events.
             root.addEventListener('mousemove',
