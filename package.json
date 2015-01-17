@@ -1,6 +1,6 @@
 {
   "name": "vivagraphjs",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "Graph Drawing Library",
   "main": "dist/vivagraph",
   "directories": {
