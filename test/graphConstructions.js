@@ -44,9 +44,7 @@ test('addOneNodeFireChanged', function(t) {
 
 test('addLinkFireChanged', function(t) {
   var graph = Viva.Graph.graph();
-  var fromId = 1,
-    toId = 2;
-  var graph = Viva.Graph.Utils.events(graph);
+  var fromId = 1, toId = 2;
   graph.on('changed', function(changes) {
     t.ok(changes && changes.length === 3, "Three change should be recorded: node, node and link");
     t.equals(changes[2].link.fromId, fromId, "Wrong link from Id");
