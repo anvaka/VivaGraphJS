@@ -110,10 +110,7 @@ function createNestedGraph(container, node) {
     .attr('width', '42')
     .attr('height', '42');
 
-  updateViewBox();
-
-  function updateViewBox() {
-    requestAnimationFrame(updateViewBox);
+  graphics.endRender = function updateViewBox() {
     var bbox = svgRoot.getBBox();
     var padding = bbox.width * 0.1;
     var x = bbox.x - padding,
