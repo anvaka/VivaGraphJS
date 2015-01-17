@@ -2,7 +2,7 @@ Graph Drawing Library
 ==================================================
 **VivaGraphJS** is a free [graph drawing](http://en.wikipedia.org/wiki/Graph_drawing) library for JavaScript.
 It is designed to be extensible and to support different rendering engines and layout algorithms. At the moment
-it supports rendering graphs using WebGL, SVG or CSS formats.
+it supports rendering graphs using WebGL, SVG formats.
 
 **Note:** Please visit [anvaka/ngraph](https://github.com/anvaka/ngraph) to check
 next evolution step of this library. `ngraph` supports rendering graphs to images,
