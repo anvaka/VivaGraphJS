@@ -8,6 +8,7 @@ it supports rendering graphs using WebGL, SVG or CSS formats.
 next evolution step of this library. `ngraph` supports rendering graphs to images,
 3D graphs rendering, integration with [gephi](https://gephi.org/) and more.
 
+[![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
 
 Enough talking. Show me the demo!
 ----------------------------------------------------
