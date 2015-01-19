@@ -28,6 +28,8 @@ Viva.Graph = {
     };
   },
 
+  centrality: require('./Algorithms/centrality.js'),
+
   geom: function () {
     return {
       intersect: require('gintersect'),

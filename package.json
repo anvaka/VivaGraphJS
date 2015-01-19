@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "gintersect": "0.1.0",
+    "ngraph.centrality": "^0.1.0",
     "ngraph.events": "0.0.3",
     "ngraph.forcelayout": "0.0.14",
     "ngraph.fromjson": "0.1.2",
