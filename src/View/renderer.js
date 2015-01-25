@@ -86,7 +86,10 @@ function renderer(graph, settings) {
 
     var prepareSettings = function () {
             container = container || window.document.body;
-            layout = layout || forceDirected(graph);
+            layout = layout || forceDirected(graph, forceDirected.simulator({
+                springLength: 80,
+                springCoeff: 0.0002,
+            }));
             graphics = graphics || svgGraphics(graph, {container : container});
 
             if (!settings.hasOwnProperty('renderLinks')) {
