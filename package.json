@@ -33,11 +33,11 @@
   },
   "dependencies": {
     "gintersect": "0.1.0",
-    "ngraph.centrality": "^0.1.0",
+    "ngraph.centrality": "0.1.1",
     "ngraph.events": "0.0.3",
     "ngraph.forcelayout": "0.0.14",
     "ngraph.fromjson": "0.1.2",
-    "ngraph.generators": "0.0.9",
+    "ngraph.generators": "0.0.11",
     "ngraph.graph": "0.0.6",
     "ngraph.merge": "0.0.1",
     "ngraph.random": "0.0.1",

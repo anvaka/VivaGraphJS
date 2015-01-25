@@ -6,10 +6,10 @@
 var random = require('ngraph.random');
 
 var Viva = {
-  lazyExtend: function () {
+  lazyExtend: function() {
     return require('ngraph.merge').apply(this, arguments);
   },
-  randomIterator: function () {
+  randomIterator: function() {
     return random.randomIterator.apply(random, arguments);
   },
   random: function() {
@@ -21,7 +21,7 @@ Viva.Graph = {
   version: require('./version.js'),
   graph: require('ngraph.graph'),
 
-  serializer: function () {
+  serializer: function() {
     return {
       loadFromJSON: require('ngraph.fromjson'),
       storeToJSON: require('ngraph.tojson')
@@ -29,17 +29,19 @@ Viva.Graph = {
   },
 
   centrality: require('./Algorithms/centrality.js'),
+  operations: require('./Algorithms/operations.js'),
 
-  geom: function () {
+  geom: function() {
     return {
       intersect: require('gintersect'),
       intersectRect: require('./Utils/intersectRect.js')
     };
   },
+
   webgl: require('./WebGL/webgl.js'),
   webglInputEvents: require('./WebGL/webglInputEvents.js'),
 
-  generator: function () {
+  generator: function() {
     return require('ngraph.generators');
   },
 
@@ -54,14 +56,14 @@ Viva.Graph = {
     findElementPosition: require('./Utils/findElementPosition.js'),
     timer: require('./Utils/timer.js'),
     getDimension: require('./Utils/getDimensions.js'),
-    events: function (g) {
+    events: function(g) {
       console.log("This method is deprecated. Please use graph.on()/grpah.off() directly");
       return g;
     }
   },
 
   Layout: {
-    forceDirected: function (graph, physicsSettings) {
+    forceDirected: function(graph, physicsSettings) {
       // vivagraph had slightly different API:
       var forceLayout = require('ngraph.forcelayout');
       return forceLayout(graph, forceLayout.simulator(physicsSettings));
@@ -92,12 +94,16 @@ Viva.Graph = {
     renderer: require('./View/renderer.js'),
 
     // deprecated
-    cssGraphics: function () {
-      throw new Error('cssGraphics is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
+    cssGraphics: function() {
+      throw new Error('cssGraphics is deprecated. Please use older version of vivagraph (< 0.7) if you need it');
     },
 
-    svgNodeFactory: function () {
-      throw new Error('svgNodeFactory is deprecated. Please use older version of vivagraph (< 0.7) if you need it)');
+    svgNodeFactory: function() {
+      throw new Error('svgNodeFactory is deprecated. Please use older version of vivagraph (< 0.7) if you need it');
+    },
+
+    community: function() {
+      throw new Error('community is deprecated. Please use vivagraph < 0.7 if you need it, or `https://github.com/anvaka/ngraph.slpa` module');
     }
   },
 
