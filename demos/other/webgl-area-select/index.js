@@ -29,13 +29,13 @@ function onLoad() {
       multiSelectOverlay.destroy();
       multiSelectOverlay = null;
     }
-  })
+  });
 }
 
 function startMultiSelect(graph, renderer, layout) {
   var graphics = renderer.getGraphics();
-  var domOverlay = document.querySelector('.graph-overlay')
-  var overlay = createOverlay(domOverlay, document.getElementById('graph-container'));
+  var domOverlay = document.querySelector('.graph-overlay');
+  var overlay = createOverlay(domOverlay);
   overlay.onAreaSelected(handleAreaSelected);
 
   return overlay;
@@ -59,7 +59,7 @@ function startMultiSelect(graph, renderer, layout) {
     return;
 
     function higlightIfInside(node) {
-      var nodeUI = graphics.getNodeUI(node.id)
+      var nodeUI = graphics.getNodeUI(node.id);
       if (isInside(node.id, topLeft, bottomRight)) {
         nodeUI.color = 0xFFA500ff;
         nodeUI.size = 20;
@@ -77,11 +77,11 @@ function startMultiSelect(graph, renderer, layout) {
   }
 }
 
-function createOverlay(overlayDom, underElement) {
+function createOverlay(overlayDom) {
   var selectionClasName = 'graph-selection-indicator';
-
-  if (!overlayDom.querySelector('.' + selectionClasName)) {
-    var selectionIndicator = document.createElement('div');
+  var selectionIndicator = overlayDom.querySelector('.' + selectionClasName);
+  if (!selectionIndicator) {
+    selectionIndicator = document.createElement('div');
     selectionIndicator.className = selectionClasName;
     overlayDom.appendChild(selectionIndicator);
   }
@@ -95,7 +95,7 @@ function createOverlay(overlayDom, underElement) {
     height: 0
   };
   var startX = 0;
-  startY = 0;
+  var startY = 0;
 
   dragndrop.onStart(function(e) {
     startX = selectedArea.x = e.clientX;
@@ -112,7 +112,7 @@ function createOverlay(overlayDom, underElement) {
     notifyAreaSelected();
   });
 
-  dragndrop.onStop(function(e) {
+  dragndrop.onStop(function() {
     selectionIndicator.style.display = 'none';
   });
 
@@ -126,7 +126,7 @@ function createOverlay(overlayDom, underElement) {
       overlayDom.style.display = 'none';
       dragndrop.release();
     }
-  }
+  };
 
   function notifyAreaSelected() {
     notify.forEach(function(cb) {
