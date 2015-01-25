@@ -12,7 +12,7 @@ var run = require('gulp-run');
 gulp.task('clean', clean);
 gulp.task('build', build);
 gulp.task('test', test);
-gulp.task('release', ['clean', 'build', 'test']);
+gulp.task('release', ['clean', 'build'], test);
 gulp.task('default', watch);
 
 function watch() {
