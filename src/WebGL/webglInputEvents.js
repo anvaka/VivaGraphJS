@@ -60,6 +60,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
         startListen = function (root) {
             var pos = {x : 0, y : 0},
                 lastFound = null,
+                lastUpdate = 1,
                 lastClickTime = +new Date(),
 
                 handleMouseMove = function (e) {
@@ -78,13 +79,19 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                 };
 
             window.addEventListener('resize', updateBoundRect);
-            setTimeout(updateBoundRect, 0);
+            updateBoundRect();
 
             // mouse move inside container serves only to track mouse enter/leave events.
             root.addEventListener('mousemove',
                 function (e) {
                     if (mouseCapturedNode) {
                         return;
+                    }
+                    if (lastUpdate++ % 7 === 0) {
+                        // since there is no bullet proof method to detect resize
+                        // event, we preemptively update the bounding rectangle
+                        updateBoundRect();
+                        lastUpdate = 1;
                     }
 
                     var cancelBubble = false,
@@ -110,6 +117,7 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                 function (e) {
                     var cancelBubble = false,
                         args;
+                    updateBoundRect();
 
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
