@@ -14,7 +14,8 @@ var Viva = {
   },
   random: function() {
     return random.random.apply(random, arguments);
-  }
+  },
+  events: require('ngraph.events')
 };
 
 Viva.Graph = {

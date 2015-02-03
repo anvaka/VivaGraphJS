@@ -17,6 +17,8 @@ v0.7.0
 		- `Viva.Graph.View.svgNodeFactory` is deprecated
 		- `geom.convexHull` is deprecated. Use https://github.com/anvaka/cnvx
 		instead.
+		- `Viva.Grpah.community` is deprecated. Use https://github.com/anvaka/ngraph.slpa
+		instead.
 
 v0.6.0
   date Dec 27, 2014
