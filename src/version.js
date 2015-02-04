@@ -1,2 +1,1 @@
-
-module.exports = '0.7.0.alpha';
+module.exports = '0.7.0';

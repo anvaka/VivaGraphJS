@@ -58,10 +58,7 @@ Viva.Graph = {
     findElementPosition: require('./Utils/findElementPosition.js'),
     timer: require('./Utils/timer.js'),
     getDimension: require('./Utils/getDimensions.js'),
-    events: function(g) {
-      console.log("This method is deprecated. Please use graph.on()/grpah.off() directly");
-      return g;
-    }
+    events: require('./Utils/backwardCompatibleEvents.js')
   },
 
   Layout: {
@@ -119,7 +116,7 @@ Viva.Graph = {
 
 module.exports = Viva;
 
-},{"./Algorithms/centrality.js":35,"./Algorithms/operations.js":36,"./Input/domInputManager.js":37,"./Input/dragndrop.js":38,"./Input/webglInputManager.js":39,"./Layout/constant.js":40,"./Utils/browserInfo.js":41,"./Utils/findElementPosition.js":43,"./Utils/getDimensions.js":44,"./Utils/intersectRect.js":45,"./Utils/rect.js":47,"./Utils/timer.js":48,"./View/renderer.js":50,"./View/svgGraphics.js":51,"./View/webglGraphics.js":52,"./WebGL/parseColor.js":53,"./WebGL/texture.js":54,"./WebGL/webgl.js":55,"./WebGL/webglAtlas.js":56,"./WebGL/webglImage.js":57,"./WebGL/webglImageNodeProgram.js":58,"./WebGL/webglInputEvents.js":59,"./WebGL/webglLine.js":60,"./WebGL/webglLinkProgram.js":61,"./WebGL/webglNodeProgram.js":62,"./WebGL/webglSquare.js":63,"./version.js":64,"gintersect":2,"ngraph.events":6,"ngraph.forcelayout":7,"ngraph.fromjson":24,"ngraph.generators":25,"ngraph.graph":26,"ngraph.merge":27,"ngraph.random":28,"ngraph.tojson":29,"simplesvg":30}],2:[function(require,module,exports){
+},{"./Algorithms/centrality.js":33,"./Algorithms/operations.js":34,"./Input/domInputManager.js":35,"./Input/dragndrop.js":36,"./Input/webglInputManager.js":37,"./Layout/constant.js":38,"./Utils/backwardCompatibleEvents.js":39,"./Utils/browserInfo.js":40,"./Utils/findElementPosition.js":42,"./Utils/getDimensions.js":43,"./Utils/intersectRect.js":44,"./Utils/rect.js":46,"./Utils/timer.js":47,"./View/renderer.js":49,"./View/svgGraphics.js":50,"./View/webglGraphics.js":51,"./WebGL/parseColor.js":52,"./WebGL/texture.js":53,"./WebGL/webgl.js":54,"./WebGL/webglAtlas.js":55,"./WebGL/webglImage.js":56,"./WebGL/webglImageNodeProgram.js":57,"./WebGL/webglInputEvents.js":58,"./WebGL/webglLine.js":59,"./WebGL/webglLinkProgram.js":60,"./WebGL/webglNodeProgram.js":61,"./WebGL/webglSquare.js":62,"./version.js":63,"gintersect":2,"ngraph.events":6,"ngraph.forcelayout":7,"ngraph.fromjson":22,"ngraph.generators":23,"ngraph.graph":24,"ngraph.merge":25,"ngraph.random":26,"ngraph.tojson":27,"simplesvg":28}],2:[function(require,module,exports){
 module.exports = intersect;
 
 /**
@@ -796,7 +793,7 @@ function createLayout(graph, physicsSimulator) {
 
 function noop() { }
 
-},{"ngraph.physics.simulator":8,"varta":23}],8:[function(require,module,exports){
+},{"ngraph.physics.simulator":8,"varta":21}],8:[function(require,module,exports){
 /**
  * Manages a simulation of physical forces acting on bodies and springs.
  */
@@ -1052,7 +1049,7 @@ function physicsSimulator(settings) {
   }
 };
 
-},{"./lib/bounds":9,"./lib/createBody":10,"./lib/dragForce":11,"./lib/eulerIntegrator":12,"./lib/spring":13,"./lib/springForce":14,"ngraph.expose":15,"ngraph.merge":16,"ngraph.quadtreebh":18}],9:[function(require,module,exports){
+},{"./lib/bounds":9,"./lib/createBody":10,"./lib/dragForce":11,"./lib/eulerIntegrator":12,"./lib/spring":13,"./lib/springForce":14,"ngraph.expose":15,"ngraph.merge":25,"ngraph.quadtreebh":17}],9:[function(require,module,exports){
 module.exports = function (bodies, settings) {
   var random = require('ngraph.random').random(42);
   var boundingBox =  { x1: 0, y1: 0, x2: 0, y2: 0 };
@@ -1134,14 +1131,14 @@ module.exports = function (bodies, settings) {
   }
 }
 
-},{"ngraph.random":22}],10:[function(require,module,exports){
+},{"ngraph.random":26}],10:[function(require,module,exports){
 var physics = require('ngraph.physics.primitives');
 
 module.exports = function(pos) {
   return new physics.Body(pos);
 }
 
-},{"ngraph.physics.primitives":17}],11:[function(require,module,exports){
+},{"ngraph.physics.primitives":16}],11:[function(require,module,exports){
 /**
  * Represents drag force, which reduces force value on each step by given
  * coefficient.
@@ -1170,7 +1167,7 @@ module.exports = function (options) {
   return api;
 };
 
-},{"ngraph.expose":15,"ngraph.merge":16}],12:[function(require,module,exports){
+},{"ngraph.expose":15,"ngraph.merge":25}],12:[function(require,module,exports){
 /**
  * Performs forces integration, using given timestep. Uses Euler method to solve
  * differential equation (http://en.wikipedia.org/wiki/Euler_method ).
@@ -1281,7 +1278,7 @@ module.exports = function (options) {
   return api;
 }
 
-},{"ngraph.expose":15,"ngraph.merge":16,"ngraph.random":22}],15:[function(require,module,exports){
+},{"ngraph.expose":15,"ngraph.merge":25,"ngraph.random":26}],15:[function(require,module,exports){
 module.exports = exposeProperties;
 
 /**
@@ -1328,39 +1325,6 @@ function augment(source, target, key) {
 }
 
 },{}],16:[function(require,module,exports){
-module.exports = merge;
-
-/**
- * Augments `target` with properties in `options`. Does not override
- * target's properties if they are defined and matches expected type in 
- * options
- *
- * @returns {Object} merged object
- */
-function merge(target, options) {
-  var key;
-  if (!target) { target = {}; }
-  if (options) {
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        var targetHasIt = target.hasOwnProperty(key),
-            optionsValueType = typeof options[key],
-            shouldReplace = !targetHasIt || (typeof target[key] !== optionsValueType);
-
-        if (shouldReplace) {
-          target[key] = options[key];
-        } else if (optionsValueType === 'object') {
-          // go deep, don't care about loops here, we are simple API!:
-          target[key] = merge(target[key], options[key]);
-        }
-      }
-    }
-  }
-
-  return target;
-}
-
-},{}],17:[function(require,module,exports){
 module.exports = {
   Body: Body,
   Vector2d: Vector2d,
@@ -1427,7 +1391,7 @@ Vector3d.prototype.reset = function () {
   this.x = this.y = this.z = 0;
 };
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * This is Barnes Hut simulation algorithm for 2d case. Implementation
  * is highly optimized (avoids recusion and gc pressure)
@@ -1740,7 +1704,7 @@ module.exports = function(options) {
   };
 };
 
-},{"./insertStack":19,"./isSamePosition":20,"./node":21,"ngraph.random":22}],19:[function(require,module,exports){
+},{"./insertStack":18,"./isSamePosition":19,"./node":20,"ngraph.random":26}],18:[function(require,module,exports){
 module.exports = InsertStack;
 
 /**
@@ -1784,7 +1748,7 @@ function InsertStackElement(node, body) {
     this.body = body; // physical body which needs to be inserted to node
 }
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = function isSamePosition(point1, point2) {
     var dx = Math.abs(point1.x - point2.x);
     var dy = Math.abs(point1.y - point2.y);
@@ -1792,7 +1756,7 @@ module.exports = function isSamePosition(point1, point2) {
     return (dx < 1e-8 && dy < 1e-8);
 };
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /**
  * Internal data structure to represent 2D QuadTree node
  */
@@ -1821,94 +1785,7 @@ module.exports = function Node() {
   this.right = 0;
 };
 
-},{}],22:[function(require,module,exports){
-module.exports = {
-  random: random,
-  randomIterator: randomIterator
-};
-
-/**
- * Creates seeded PRNG with two methods:
- *   next() and nextDouble()
- */
-function random(inputSeed) {
-  var seed = typeof inputSeed === 'number' ? inputSeed : (+ new Date());
-  var randomFunc = function() {
-      // Robert Jenkins' 32 bit integer hash function.
-      seed = ((seed + 0x7ed55d16) + (seed << 12))  & 0xffffffff;
-      seed = ((seed ^ 0xc761c23c) ^ (seed >>> 19)) & 0xffffffff;
-      seed = ((seed + 0x165667b1) + (seed << 5))   & 0xffffffff;
-      seed = ((seed + 0xd3a2646c) ^ (seed << 9))   & 0xffffffff;
-      seed = ((seed + 0xfd7046c5) + (seed << 3))   & 0xffffffff;
-      seed = ((seed ^ 0xb55a4f09) ^ (seed >>> 16)) & 0xffffffff;
-      return (seed & 0xfffffff) / 0x10000000;
-  };
-
-  return {
-      /**
-       * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
-       *
-       * @param maxValue Number REQUIRED. Ommitting this number will result in NaN values from PRNG.
-       */
-      next : function (maxValue) {
-          return Math.floor(randomFunc() * maxValue);
-      },
-
-      /**
-       * Generates random double number in the range from 0 (inclusive) to 1 (exclusive)
-       * This function is the same as Math.random() (except that it could be seeded)
-       */
-      nextDouble : function () {
-          return randomFunc();
-      }
-  };
-}
-
-/*
- * Creates iterator over array, which returns items of array in random order
- * Time complexity is guaranteed to be O(n);
- */
-function randomIterator(array, customRandom) {
-    var localRandom = customRandom || random();
-    if (typeof localRandom.next !== 'function') {
-      throw new Error('customRandom does not match expected API: next() function is missing');
-    }
-
-    return {
-        forEach : function (callback) {
-            var i, j, t;
-            for (i = array.length - 1; i > 0; --i) {
-                j = localRandom.next(i + 1); // i inclusive
-                t = array[j];
-                array[j] = array[i];
-                array[i] = t;
-
-                callback(t);
-            }
-
-            if (array.length) {
-                callback(array[0]);
-            }
-        },
-
-        /**
-         * Shuffles array randomly, in place.
-         */
-        shuffle : function () {
-            var i, j, t;
-            for (i = array.length - 1; i > 0; --i) {
-                j = localRandom.next(i + 1); // i inclusive
-                t = array[j];
-                array[j] = array[i];
-                array[i] = t;
-            }
-
-            return array;
-        }
-    };
-}
-
-},{}],23:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = varta;
 
 module.exports.has = delayedVerify;
@@ -1948,7 +1825,7 @@ function internalVerify(suspect, name, expectations) {
   return true;
 }
 
-},{}],24:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = load;
 
 var createGraph = require('ngraph.graph');
@@ -1993,7 +1870,7 @@ function load(jsonGraph, nodeTransform, linkTransform) {
 
 function id(x) { return x; }
 
-},{"ngraph.graph":26}],25:[function(require,module,exports){
+},{"ngraph.graph":24}],23:[function(require,module,exports){
 module.exports = {
   ladder: ladder,
   complete: complete,
@@ -2294,7 +2171,7 @@ function wattsStrogatz(n, k, p, seed) {
   return g;
 }
 
-},{"ngraph.graph":26,"ngraph.random":28}],26:[function(require,module,exports){
+},{"ngraph.graph":24,"ngraph.random":26}],24:[function(require,module,exports){
 /**
  * @fileOverview Contains definition of the core graph object.
  */
@@ -2600,7 +2477,10 @@ function createGraph() {
 
     // TODO: this is not cool. On large graphs potentially would consume more memory.
     fromNode.links.push(link);
-    toNode.links.push(link);
+    if (fromId !== toId) {
+      // make sure we are not duplicating links for self-loops
+      toNode.links.push(link);
+    }
 
     recordLinkChange(link, 'add');
 
@@ -2801,11 +2681,127 @@ function Link(fromId, toId, data, id) {
   this.id = id;
 }
 
-},{"ngraph.events":6}],27:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"dup":16}],28:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"dup":22}],29:[function(require,module,exports){
+},{"ngraph.events":6}],25:[function(require,module,exports){
+module.exports = merge;
+
+/**
+ * Augments `target` with properties in `options`. Does not override
+ * target's properties if they are defined and matches expected type in 
+ * options
+ *
+ * @returns {Object} merged object
+ */
+function merge(target, options) {
+  var key;
+  if (!target) { target = {}; }
+  if (options) {
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        var targetHasIt = target.hasOwnProperty(key),
+            optionsValueType = typeof options[key],
+            shouldReplace = !targetHasIt || (typeof target[key] !== optionsValueType);
+
+        if (shouldReplace) {
+          target[key] = options[key];
+        } else if (optionsValueType === 'object') {
+          // go deep, don't care about loops here, we are simple API!:
+          target[key] = merge(target[key], options[key]);
+        }
+      }
+    }
+  }
+
+  return target;
+}
+
+},{}],26:[function(require,module,exports){
+module.exports = {
+  random: random,
+  randomIterator: randomIterator
+};
+
+/**
+ * Creates seeded PRNG with two methods:
+ *   next() and nextDouble()
+ */
+function random(inputSeed) {
+  var seed = typeof inputSeed === 'number' ? inputSeed : (+ new Date());
+  var randomFunc = function() {
+      // Robert Jenkins' 32 bit integer hash function.
+      seed = ((seed + 0x7ed55d16) + (seed << 12))  & 0xffffffff;
+      seed = ((seed ^ 0xc761c23c) ^ (seed >>> 19)) & 0xffffffff;
+      seed = ((seed + 0x165667b1) + (seed << 5))   & 0xffffffff;
+      seed = ((seed + 0xd3a2646c) ^ (seed << 9))   & 0xffffffff;
+      seed = ((seed + 0xfd7046c5) + (seed << 3))   & 0xffffffff;
+      seed = ((seed ^ 0xb55a4f09) ^ (seed >>> 16)) & 0xffffffff;
+      return (seed & 0xfffffff) / 0x10000000;
+  };
+
+  return {
+      /**
+       * Generates random integer number in the range from 0 (inclusive) to maxValue (exclusive)
+       *
+       * @param maxValue Number REQUIRED. Ommitting this number will result in NaN values from PRNG.
+       */
+      next : function (maxValue) {
+          return Math.floor(randomFunc() * maxValue);
+      },
+
+      /**
+       * Generates random double number in the range from 0 (inclusive) to 1 (exclusive)
+       * This function is the same as Math.random() (except that it could be seeded)
+       */
+      nextDouble : function () {
+          return randomFunc();
+      }
+  };
+}
+
+/*
+ * Creates iterator over array, which returns items of array in random order
+ * Time complexity is guaranteed to be O(n);
+ */
+function randomIterator(array, customRandom) {
+    var localRandom = customRandom || random();
+    if (typeof localRandom.next !== 'function') {
+      throw new Error('customRandom does not match expected API: next() function is missing');
+    }
+
+    return {
+        forEach : function (callback) {
+            var i, j, t;
+            for (i = array.length - 1; i > 0; --i) {
+                j = localRandom.next(i + 1); // i inclusive
+                t = array[j];
+                array[j] = array[i];
+                array[i] = t;
+
+                callback(t);
+            }
+
+            if (array.length) {
+                callback(array[0]);
+            }
+        },
+
+        /**
+         * Shuffles array randomly, in place.
+         */
+        shuffle : function () {
+            var i, j, t;
+            for (i = array.length - 1; i > 0; --i) {
+                j = localRandom.next(i + 1); // i inclusive
+                t = array[j];
+                array[j] = array[i];
+                array[i] = t;
+            }
+
+            return array;
+        }
+    };
+}
+
+},{}],27:[function(require,module,exports){
 module.exports = save;
 
 function save(graph, customNodeTransform, customLinkTransform) {
@@ -2861,7 +2857,7 @@ function save(graph, customNodeTransform, customLinkTransform) {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = svg;
 
 svg.compile = require('./lib/compile');
@@ -2974,7 +2970,7 @@ function augment(element) {
   }
 }
 
-},{"./lib/compile":31,"./lib/compileTemplate":32,"add-event-listener":34}],31:[function(require,module,exports){
+},{"./lib/compile":29,"./lib/compileTemplate":30,"add-event-listener":32}],29:[function(require,module,exports){
 var parser = require('./domparser.js');
 var svg = require('../');
 
@@ -3002,7 +2998,7 @@ function addNamespaces(text) {
   }
 }
 
-},{"../":30,"./domparser.js":33}],32:[function(require,module,exports){
+},{"../":28,"./domparser.js":31}],30:[function(require,module,exports){
 module.exports = template;
 
 var BINDING_EXPR = /{{(.+?)}}/;
@@ -3096,7 +3092,7 @@ function bindTextContent(element, allBindings) {
   }
 }
 
-},{}],33:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = createDomparser();
 
 function createDomparser() {
@@ -3112,7 +3108,7 @@ function fail() {
   throw new Error('DOMParser is not supported by this platform. Please open issue here https://github.com/anvaka/simplesvg');
 }
 
-},{}],34:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 addEventListener.removeEventListener = removeEventListener
 addEventListener.addEventListener = addEventListener
 
@@ -3160,7 +3156,7 @@ function oldIEDetach(el, eventName, listener, useCapture) {
   el.detachEvent('on' + eventName, listener)
 }
 
-},{}],35:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 var centrality = require('ngraph.centrality');
 
 module.exports = centralityWrapper;
@@ -3198,7 +3194,7 @@ function toVivaGraphCentralityFormat(centrality) {
   }
 }
 
-},{"ngraph.centrality":3}],36:[function(require,module,exports){
+},{"ngraph.centrality":3}],34:[function(require,module,exports){
 /**
  * @fileOverview Contains collection of primitive operations under graph.
  *
@@ -3233,7 +3229,7 @@ function operations() {
     };
 };
 
-},{}],37:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
@@ -3280,7 +3276,7 @@ function domInputManager(graph, graphics) {
     };
 }
 
-},{"./dragndrop.js":38}],38:[function(require,module,exports){
+},{"./dragndrop.js":36}],36:[function(require,module,exports){
 /**
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
@@ -3563,7 +3559,7 @@ function dragndrop(element) {
     };
 }
 
-},{"../Utils/browserInfo.js":41,"../Utils/documentEvents.js":42,"../Utils/findElementPosition.js":43}],39:[function(require,module,exports){
+},{"../Utils/browserInfo.js":40,"../Utils/documentEvents.js":41,"../Utils/findElementPosition.js":42}],37:[function(require,module,exports){
 /**
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
@@ -3634,7 +3630,7 @@ function webglInputManager(graph, graphics) {
     };
 }
 
-},{"../WebGL/webglInputEvents.js":59}],40:[function(require,module,exports){
+},{"../WebGL/webglInputEvents.js":58}],38:[function(require,module,exports){
 module.exports = constant;
 
 var merge = require('ngraph.merge');
@@ -3791,8 +3787,8 @@ function constant(graph, userSettings) {
         /**
          * Sets position of a node to a given coordinates
          */
-        setNodePosition: function (node, x, y) {
-            var pos = layoutNodes[node.id];
+        setNodePosition: function (nodeId, x, y) {
+            var pos = layoutNodes[nodeId];
             if (pos) {
                 pos.x = x;
                 pos.y = y;
@@ -3833,7 +3829,52 @@ function constant(graph, userSettings) {
     }
 }
 
-},{"../Utils/rect.js":47,"ngraph.merge":27,"ngraph.random":28}],41:[function(require,module,exports){
+},{"../Utils/rect.js":46,"ngraph.merge":25,"ngraph.random":26}],39:[function(require,module,exports){
+/**
+ * This module provides compatibility layer with 0.6.x library. It will be
+ * removed in the next version
+ */
+
+var events = require('ngraph.events');
+
+module.exports = backwardCompatibleEvents;
+
+function backwardCompatibleEvents(g) {
+  console.log("This method is deprecated. Please use Viva.events() instead");
+
+  if (!g) {
+    return g;
+  }
+
+  var eventsDefined = (g.on !== undefined) ||
+    (g.off !== undefined) ||
+    (g.fire !== undefined);
+
+  if (eventsDefined) {
+    // events already defined, ignore
+    return {
+      extend: function() {
+        return g;
+      },
+      on: g.on,
+      stop: g.off
+    };
+  }
+
+  return {
+    extend: extend,
+    on: g.on,
+    stop: g.off
+  };
+
+  function extend() {
+    var backwardCompatible = events(g);
+    backwardCompatible.addEventListener = backwardCompatible.on;
+    return backwardCompatible;
+  }
+}
+
+},{"ngraph.events":6}],40:[function(require,module,exports){
 module.exports = browserInfo();
 
 function browserInfo() {
@@ -3862,7 +3903,7 @@ function browserInfo() {
   };
 }
 
-},{}],42:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 var nullEvents = require('./nullEvents.js');
 
 module.exports = createDocumentEvents();
@@ -3886,7 +3927,7 @@ function off(eventName, handler) {
   document.removeEventListener(eventName, handler);
 }
 
-},{"./nullEvents.js":46}],43:[function(require,module,exports){
+},{"./nullEvents.js":45}],42:[function(require,module,exports){
 /**
  * Finds the absolute position of an element on a page
  */
@@ -3905,7 +3946,7 @@ function findElementPosition(obj) {
     return [curleft, curtop];
 }
 
-},{}],44:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 module.exports = getDimension;
 
 function getDimension(container) {
@@ -3927,7 +3968,7 @@ function getDimension(container) {
     };
 }
 
-},{}],45:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 var intersect = require('gintersect');
 
 module.exports = intersectRect;
@@ -3939,7 +3980,7 @@ function intersectRect(left, top, right, bottom, x1, y1, x2, y2) {
     intersect(right, top, left, top, x1, y1, x2, y2);
 }
 
-},{"gintersect":2}],46:[function(require,module,exports){
+},{"gintersect":2}],45:[function(require,module,exports){
 module.exports = createNullEvents();
 
 function createNullEvents() {
@@ -3952,7 +3993,7 @@ function createNullEvents() {
 
 function noop() { }
 
-},{}],47:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = Rect;
 
 /**
@@ -3965,7 +4006,7 @@ function Rect (x1, y1, x2, y2) {
     this.y2 = y2 || 0;
 }
 
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 (function (global){
 /**
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
@@ -4050,7 +4091,7 @@ function createTimer() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],49:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 var nullEvents = require('./nullEvents.js');
 
 module.exports = createDocumentEvents();
@@ -4075,7 +4116,7 @@ function off(eventName, handler) {
 }
 
 
-},{"./nullEvents.js":46}],50:[function(require,module,exports){
+},{"./nullEvents.js":45}],49:[function(require,module,exports){
 /**
  * @fileOverview Defines a graph renderer that uses CSS based drawings.
  *
@@ -4540,7 +4581,7 @@ function renderer(graph, settings) {
     };
 }
 
-},{"../Input/domInputManager.js":37,"../Input/dragndrop.js":38,"../Utils/getDimensions.js":44,"../Utils/timer.js":48,"../Utils/windowEvents.js":49,"./svgGraphics.js":51,"ngraph.forcelayout":7,"ngraph.graph":26}],51:[function(require,module,exports){
+},{"../Input/domInputManager.js":35,"../Input/dragndrop.js":36,"../Utils/getDimensions.js":43,"../Utils/timer.js":47,"../Utils/windowEvents.js":48,"./svgGraphics.js":50,"ngraph.forcelayout":7,"ngraph.graph":24}],50:[function(require,module,exports){
 /**
  * @fileOverview Defines a graph renderer that uses SVG based drawings.
  *
@@ -4898,7 +4939,7 @@ function svgGraphics() {
     }
 }
 
-},{"../Input/domInputManager.js":37,"ngraph.events":6,"simplesvg":30}],52:[function(require,module,exports){
+},{"../Input/domInputManager.js":35,"ngraph.events":6,"simplesvg":28}],51:[function(require,module,exports){
 /**
  * @fileOverview Defines a graph renderer that uses WebGL based drawings.
  *
@@ -5446,7 +5487,7 @@ function webglGraphics(options) {
     return graphics;
 }
 
-},{"../Input/webglInputManager.js":39,"../WebGL/webglLine.js":60,"../WebGL/webglLinkProgram.js":61,"../WebGL/webglNodeProgram.js":62,"../WebGL/webglSquare.js":63,"ngraph.events":6,"ngraph.merge":27}],53:[function(require,module,exports){
+},{"../Input/webglInputManager.js":37,"../WebGL/webglLine.js":59,"../WebGL/webglLinkProgram.js":60,"../WebGL/webglNodeProgram.js":61,"../WebGL/webglSquare.js":62,"ngraph.events":6,"ngraph.merge":25}],52:[function(require,module,exports){
 module.exports = parseColor;
 
 function parseColor(color) {
@@ -5470,7 +5511,7 @@ function parseColor(color) {
   return parsedColor;
 }
 
-},{}],54:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 module.exports = Texture;
 
 /**
@@ -5483,7 +5524,7 @@ function Texture(size) {
   this.canvas.width = this.canvas.height = size;
 }
 
-},{}],55:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /**
  * @fileOverview Utility functions for webgl rendering.
  *
@@ -5587,7 +5628,7 @@ function webgl(gl) {
     };
 }
 
-},{}],56:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 var Texture = require('./texture.js');
 
 module.exports = webglAtlas;
@@ -5770,7 +5811,7 @@ function webglAtlas(tilesPerTexture) {
     return that;
 }
 
-},{"./texture.js":54}],57:[function(require,module,exports){
+},{"./texture.js":53}],56:[function(require,module,exports){
 module.exports = webglImage;
 
 /**
@@ -5802,7 +5843,7 @@ function webglImage(size, src) {
     };
 }
 
-},{}],58:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /**
  * @fileOverview Defines an image nodes for webglGraphics class.
  * Shape of nodes is square.
@@ -6041,7 +6082,7 @@ function webglImageNodeProgram() {
     };
 }
 
-},{"./webgl.js":55,"./webglAtlas.js":56}],59:[function(require,module,exports){
+},{"./webgl.js":54,"./webglAtlas.js":55}],58:[function(require,module,exports){
 var documentEvents = require('../Utils/documentEvents.js');
 
 module.exports = webglInputEvents;
@@ -6107,6 +6148,7 @@ function webglInputEvents(webglGraphics) {
         startListen = function (root) {
             var pos = {x : 0, y : 0},
                 lastFound = null,
+                lastUpdate = 1,
                 lastClickTime = +new Date(),
 
                 handleMouseMove = function (e) {
@@ -6125,7 +6167,7 @@ function webglInputEvents(webglGraphics) {
                 };
 
             window.addEventListener('resize', updateBoundRect);
-            setTimeout(updateBoundRect, 0);
+            updateBoundRect();
 
             // mouse move inside container serves only to track mouse enter/leave events.
             root.addEventListener('mousemove',
@@ -6133,7 +6175,12 @@ function webglInputEvents(webglGraphics) {
                     if (mouseCapturedNode) {
                         return;
                     }
-
+                    if (lastUpdate++ % 7 === 0) {
+                        // since there is no bullet proof method to detect resize
+                        // event, we preemptively update the bounding rectangle
+                        updateBoundRect();
+                        lastUpdate = 1;
+                    }
                     var cancelBubble = false,
                         node;
 
@@ -6157,7 +6204,7 @@ function webglInputEvents(webglGraphics) {
                 function (e) {
                     var cancelBubble = false,
                         args;
-
+                    updateBoundRect();
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
 
@@ -6263,7 +6310,7 @@ function webglInputEvents(webglGraphics) {
     return webglGraphics.webglInputEvents;
 }
 
-},{"../Utils/documentEvents.js":42}],60:[function(require,module,exports){
+},{"../Utils/documentEvents.js":41}],59:[function(require,module,exports){
 var parseColor = require('./parseColor.js');
 
 module.exports = webglLine;
@@ -6284,7 +6331,7 @@ function webglLine(color) {
   };
 }
 
-},{"./parseColor.js":53}],61:[function(require,module,exports){
+},{"./parseColor.js":52}],60:[function(require,module,exports){
 /**
  * @fileOverview Defines a naive form of links for webglGraphics class.
  * This form allows to change color of links.
@@ -6442,7 +6489,7 @@ function webglLinkProgram() {
     };
 }
 
-},{"./webgl.js":55}],62:[function(require,module,exports){
+},{"./webgl.js":54}],61:[function(require,module,exports){
 /**
  * @fileOverview Defines a naive form of nodes for webglGraphics class.
  * This form allows to change color of node. Shape of nodes is rectangular.
@@ -6590,7 +6637,7 @@ function webglNodeProgram() {
     };
 }
 
-},{"./webgl.js":55}],63:[function(require,module,exports){
+},{"./webgl.js":54}],62:[function(require,module,exports){
 var parseColor = require('./parseColor.js');
 
 module.exports = webglSquare;
@@ -6616,9 +6663,8 @@ function webglSquare(size, color) {
   };
 }
 
-},{"./parseColor.js":53}],64:[function(require,module,exports){
-
-module.exports = '0.7.0.alpha';
+},{"./parseColor.js":52}],63:[function(require,module,exports){
+module.exports = '0.7.0';
 
 },{}]},{},[1])(1)
 });
