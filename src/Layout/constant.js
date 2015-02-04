@@ -154,8 +154,8 @@ function constant(graph, userSettings) {
         /**
          * Sets position of a node to a given coordinates
          */
-        setNodePosition: function (node, x, y) {
-            var pos = layoutNodes[node.id];
+        setNodePosition: function (nodeId, x, y) {
+            var pos = layoutNodes[nodeId];
             if (pos) {
                 pos.x = x;
                 pos.y = y;
