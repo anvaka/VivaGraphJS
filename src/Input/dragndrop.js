@@ -2,21 +2,22 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-Viva.Graph.Utils = Viva.Graph.Utils || {};
+module.exports = dragndrop;
+
+var documentEvents = require('../Utils/documentEvents.js');
+var browserInfo = require('../Utils/browserInfo.js');
+var findElementPosition = require('../Utils/findElementPosition.js');
 
 // TODO: Move to input namespace
 // TODO: Methods should be extracted into the prototype. This class
 // does not need to consume so much memory for every tracked element
-Viva.Graph.Utils.dragndrop = function (element) {
+function dragndrop(element) {
     var start,
         drag,
         end,
         scroll,
         prevSelectStart,
         prevDragStart,
-        documentEvents = Viva.Graph.Utils.events(window.document),
-        elementEvents = Viva.Graph.Utils.events(element),
-        findElementPosition = Viva.Graph.Utils.findElementPosition,
 
         startX = 0,
         startY = 0,
@@ -109,8 +110,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
         handleMouseUp = function (e) {
             e = e || window.event;
 
-            documentEvents.stop('mousemove', handleMouseMove);
-            documentEvents.stop('mouseup', handleMouseUp);
+            documentEvents.off('mousemove', handleMouseMove);
+            documentEvents.off('mouseup', handleMouseUp);
 
             window.document.onselectstart = prevSelectStart;
             dragObject.ondragstart = prevDragStart;
@@ -149,13 +150,13 @@ Viva.Graph.Utils.dragndrop = function (element) {
         updateScrollEvents = function (scrollCallback) {
             if (!scroll && scrollCallback) {
                 // client is interested in scrolling. Start listening to events:
-                if (Viva.BrowserInfo.browser === 'webkit') {
+                if (browserInfo.browser === 'webkit') {
                     element.addEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
                 } else {
                     element.addEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
                 }
             } else if (scroll && !scrollCallback) {
-                if (Viva.BrowserInfo.browser === 'webkit') {
+                if (browserInfo.browser === 'webkit') {
                     element.removeEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
                 } else {
                     element.removeEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
@@ -194,9 +195,9 @@ Viva.Graph.Utils.dragndrop = function (element) {
 
         handleTouchEnd = function (e) {
             touchInProgress = false;
-            documentEvents.stop('touchmove', handleTouchMove);
-            documentEvents.stop('touchend', handleTouchEnd);
-            documentEvents.stop('touchcancel', handleTouchEnd);
+            documentEvents.off('touchmove', handleTouchMove);
+            documentEvents.off('touchend', handleTouchEnd);
+            documentEvents.off('touchcancel', handleTouchEnd);
             dragObject = null;
             if (end) { end(e); }
         },
@@ -222,7 +223,6 @@ Viva.Graph.Utils.dragndrop = function (element) {
         },
 
         handleTouchStart = function (e) {
-            console.log('Touch start for ', element);
             if (e.touches.length === 1) {
                 return handleSignleFingerTouch(e, e.touches[0]);
             } else if (e.touches.length === 2) {
@@ -237,8 +237,8 @@ Viva.Graph.Utils.dragndrop = function (element) {
         };
 
 
-    elementEvents.on('mousedown', handleMouseDown);
-    elementEvents.on('touchstart', handleTouchStart);
+    element.addEventListener('mousedown', handleMouseDown);
+    element.addEventListener('touchstart', handleTouchStart);
 
     return {
         onStart : function (callback) {
@@ -266,14 +266,16 @@ Viva.Graph.Utils.dragndrop = function (element) {
 
         release : function () {
             // TODO: could be unsafe. We might wanna release dragObject, etc.
-            documentEvents.stop('mousemove', handleMouseMove);
-            documentEvents.stop('mousedown', handleMouseDown);
-            documentEvents.stop('mouseup', handleMouseUp);
-            documentEvents.stop('touchmove', handleTouchMove);
-            documentEvents.stop('touchend', handleTouchEnd);
-            documentEvents.stop('touchcancel', handleTouchEnd);
+            element.removeEventListener('mousedown', handleMouseDown);
+            element.removeEventListener('touchstart', handleTouchStart);
+
+            documentEvents.off('mousemove', handleMouseMove);
+            documentEvents.off('mouseup', handleMouseUp);
+            documentEvents.off('touchmove', handleTouchMove);
+            documentEvents.off('touchend', handleTouchEnd);
+            documentEvents.off('touchcancel', handleTouchEnd);
 
             updateScrollEvents(null);
         }
     };
-};
+}

@@ -1,9 +1,13 @@
+var documentEvents = require('../Utils/documentEvents.js');
+
+module.exports = webglInputEvents;
+
 /**
  * Monitors graph-related mouse input in webgl graphics and notifies subscribers.
  *
  * @param {Viva.Graph.View.webglGraphics} webglGraphics
  */
-Viva.Graph.webglInputEvents = function (webglGraphics) {
+function webglInputEvents(webglGraphics) {
     if (webglGraphics.webglInputEvents) {
         // Don't listen twice, if we are already attached to this graphics:
         return webglGraphics.webglInputEvents;
@@ -32,7 +36,6 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
         mouseMoveCallback = [],
         clickCallback = [],
         dblClickCallback = [],
-        documentEvents = Viva.Graph.Utils.events(window.document),
         prevSelectStart,
         boundRect,
 
@@ -70,8 +73,8 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                 },
 
                 handleMouseUp = function () {
-                    documentEvents.stop('mousemove', handleMouseMove);
-                    documentEvents.stop('mouseup', handleMouseUp);
+                    documentEvents.off('mousemove', handleMouseMove);
+                    documentEvents.off('mouseup', handleMouseUp);
                 },
 
                 updateBoundRect = function () {
@@ -93,7 +96,6 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                         updateBoundRect();
                         lastUpdate = 1;
                     }
-
                     var cancelBubble = false,
                         node;
 
@@ -118,7 +120,6 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
                     var cancelBubble = false,
                         args;
                     updateBoundRect();
-
                     pos.x = e.clientX - boundRect.left;
                     pos.y = e.clientY - boundRect.top;
 
@@ -222,4 +223,4 @@ Viva.Graph.webglInputEvents = function (webglGraphics) {
     };
 
     return webglGraphics.webglInputEvents;
-};
+}

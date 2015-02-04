@@ -1,1 +1,1 @@
-Viva.Graph.version = '0.6.3';
+module.exports = '0.7.0';

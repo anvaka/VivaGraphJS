@@ -4,7 +4,9 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-Viva.Graph.webgl = function (gl) {
+module.exports = webgl;
+
+function webgl(gl) {
     var createShader = function (shaderText, type) {
             var shader = gl.createShader(type);
             gl.shaderSource(shader, shaderText);
@@ -97,4 +99,4 @@ Viva.Graph.webgl = function (gl) {
 
         context : gl
     };
-};
+}

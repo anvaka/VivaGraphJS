@@ -10,7 +10,7 @@ test('jsonStoreLoadProduceSameResult', function(t) {
       generator.grid(10, 10),
       generator.completeBipartite(10, 10),
       generator.circularLadder(10),
-      generator.randomNoLinks(10)
+      generator.noLinks(10)
     ];
 
 

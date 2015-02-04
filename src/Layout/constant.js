@@ -1,4 +1,8 @@
-Viva.Graph.Layout = Viva.Graph.Layout || {};
+module.exports = constant;
+
+var merge = require('ngraph.merge');
+var random = require('ngraph.random').random;
+var Rect = require('../Utils/rect.js');
 
 /**
  * Does not really perform any layouting algorithm but is compliant
@@ -8,19 +12,23 @@ Viva.Graph.Layout = Viva.Graph.Layout || {};
  * @param {Viva.Graph.graph} graph to layout
  * @param {Object} userSettings
  */
-Viva.Graph.Layout.constant = function (graph, userSettings) {
-    userSettings = Viva.lazyExtend(userSettings, {
+function constant(graph, userSettings) {
+    userSettings = merge(userSettings, {
         maxX : 1024,
         maxY : 1024,
         seed : 'Deterministic randomness made me do this'
     });
     // This class simply follows API, it does not use some of the arguments:
     /*jshint unused: false */
-    var rand = Viva.random(userSettings.seed),
-        graphRect = new Viva.Graph.Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
+    var rand = random(userSettings.seed),
+        graphRect = new Rect(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE),
+        layoutLinks = {},
 
         placeNodeCallback = function (node) {
-            return new Viva.Graph.Point2d(rand.next(userSettings.maxX), rand.next(userSettings.maxY));
+            return {
+              x: rand.next(userSettings.maxX),
+              y: rand.next(userSettings.maxY)
+            };
         },
 
         updateGraphRect = function (position, graphRect) {
@@ -33,7 +41,6 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         layoutNodes = typeof Object.create === 'function' ? Object.create(null) : {},
 
         ensureNodeInitialized = function (node) {
-            if (!node) { return; }
             layoutNodes[node.id] = placeNodeCallback(node);
             updateGraphRect(layoutNodes[node.id], graphRect);
         },
@@ -49,6 +56,10 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
             graph.forEachNode(ensureNodeInitialized);
         },
 
+        ensureLinkInitialized = function (link) {
+          layoutLinks[link.id] = link;
+        },
+
         onGraphChanged = function(changes) {
             for (var i = 0; i < changes.length; ++i) {
                 var change = changes[i];
@@ -58,11 +69,19 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
                     } else {
                         delete layoutNodes[change.node.id];
                     }
+                } if (change.link) {
+                    if (change.changeType === 'add') {
+                        ensureLinkInitialized(change.link);
+                    } else {
+                        delete layoutLinks[change.link.id];
+                    }
                 }
             }
         };
 
-    graph.addEventListener('changed', onGraphChanged);
+    graph.forEachNode(ensureNodeInitialized);
+    graph.forEachLink(ensureLinkInitialized);
+    graph.on('changed', onGraphChanged);
 
     return {
         /**
@@ -96,7 +115,7 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
          * Request to release all resources
          */
         dispose : function () {
-            graph.removeEventListener('change', onGraphChanged);
+            graph.off('change', onGraphChanged);
         },
 
         /*
@@ -119,32 +138,24 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
          * Gets position of a node by its id. If node was not seen by this
          * layout algorithm undefined value is returned;
          */
-        getNodePosition: function (nodeId) {
-            var pos = layoutNodes[nodeId];
-            if (!pos) {
-                ensureNodeInitialized(graph.getNode(nodeId));
-            }
-            return pos;
-        },
+        getNodePosition: getNodePosition,
 
         /**
          * Returns {from, to} position of a link.
          */
-        getLinkPosition: function (link) {
-            var from = this.getNodePosition(link.fromId),
-                to = this.getNodePosition(link.toId);
-
-            return {
-                from : from,
-                to : to
-            };
+        getLinkPosition: function (linkId) {
+          var link = layoutLinks[linkId];
+          return {
+              from : getNodePosition(link.fromId),
+              to : getNodePosition(link.toId)
+          };
         },
 
         /**
          * Sets position of a node to a given coordinates
          */
-        setNodePosition: function (node, x, y) {
-            var pos = layoutNodes[node.id];
+        setNodePosition: function (nodeId, x, y) {
+            var pos = layoutNodes[nodeId];
             if (pos) {
                 pos.x = x;
                 pos.y = y;
@@ -179,4 +190,8 @@ Viva.Graph.Layout.constant = function (graph, userSettings) {
         }
 
     };
-};
+
+    function getNodePosition(nodeId) {
+        return layoutNodes[nodeId];
+    }
+}

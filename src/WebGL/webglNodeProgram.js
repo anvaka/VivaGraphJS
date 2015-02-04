@@ -5,10 +5,14 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
+var glUtils = require('./webgl.js');
+
+module.exports = webglNodeProgram;
+
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
-Viva.Graph.View.webglNodeProgram = function () {
+function webglNodeProgram() {
     var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y, size, color
         // x, y, z - floats, color = uint.
         BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
@@ -66,7 +70,7 @@ Viva.Graph.View.webglNodeProgram = function () {
     return {
         load : function (glContext) {
             gl = glContext;
-            utils = Viva.Graph.webgl(glContext);
+            utils = glUtils(glContext);
 
             program = utils.createProgram(nodesVS, nodesFS);
             gl.useProgram(program);
@@ -139,4 +143,4 @@ Viva.Graph.View.webglNodeProgram = function () {
             gl.drawArrays(gl.POINTS, 0, nodesCount);
         }
     };
-};
+}

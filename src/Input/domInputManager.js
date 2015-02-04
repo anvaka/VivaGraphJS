@@ -2,12 +2,15 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-Viva.Input = Viva.Input || {};
-Viva.Input.domInputManager = function (graph, graphics) {
+module.exports = domInputManager;
+
+var dragndrop = require('./dragndrop.js');
+
+function domInputManager(graph, graphics) {
     var nodeEvents = {};
     return {
         /**
-         * Called by renderer to listen to drag-n-drop events from node. E.g. for CSS/SVG
+         * Called by renderer to listen to drag-n-drop events from node. E.g. for SVG
          * graphics we may listen to DOM events, whereas for WebGL the graphics
          * should provide custom eventing mechanism.
          *
@@ -21,7 +24,7 @@ Viva.Input.domInputManager = function (graph, graphics) {
             var events;
             if (handlers) {
                 var nodeUI = graphics.getNodeUI(node.id);
-                events = Viva.Graph.Utils.dragndrop(nodeUI);
+                events = dragndrop(nodeUI);
                 if (typeof handlers.onStart === 'function') {
                     events.onStart(handlers.onStart);
                 }
@@ -39,4 +42,4 @@ Viva.Input.domInputManager = function (graph, graphics) {
             }
         }
     };
-};
+}

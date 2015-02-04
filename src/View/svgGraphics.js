@@ -4,13 +4,17 @@
  * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
  */
 
-Viva.Graph.View = Viva.Graph.View || {};
+module.exports = svgGraphics;
+
+var svg = require('simplesvg');
+var eventify = require('ngraph.events');
+var domInputManager = require('../Input/domInputManager.js');
 
 /**
  * Performs svg-based graph rendering. This module does not perform
  * layout, but only visualizes nodes and edges of the graph.
  */
-Viva.Graph.View.svgGraphics = function () {
+function svgGraphics() {
     var svgContainer,
         svgRoot,
         offsetX,
@@ -21,7 +25,7 @@ Viva.Graph.View.svgGraphics = function () {
         allLinks = {},
 /*jshint unused: false */
         nodeBuilder = function (node) {
-            return Viva.Graph.svg("rect")
+            return svg("rect")
                      .attr("width", 10)
                      .attr("height", 10)
                      .attr("fill", "#00a2e8");
@@ -34,8 +38,7 @@ Viva.Graph.View.svgGraphics = function () {
         },
 
         linkBuilder = function (link) {
-            return Viva.Graph.svg("line")
-                              .attr("stroke", "#999");
+            return svg("line").attr("stroke", "#999");
         },
 
         linkPositionCallback = function (linkUI, fromPos, toPos) {
@@ -146,7 +149,7 @@ Viva.Graph.View.svgGraphics = function () {
         /**
          * Default input manager listens to DOM events to process nodes drag-n-drop
          */
-        inputManager : Viva.Input.domInputManager,
+        inputManager : domInputManager,
 
         translateRel : function (dx, dy) {
             var p = svgRoot.createSVGPoint(),
@@ -337,17 +340,17 @@ Viva.Graph.View.svgGraphics = function () {
 
 
     // Let graphics fire events before we return it to the caller.
-    Viva.Graph.Utils.events(graphics).extend();
+    eventify(graphics);
 
     return graphics;
 
     function createSvgRoot() {
-        var svgRoot = Viva.Graph.svg("svg");
+        var svgRoot = svg("svg");
 
-        svgContainer = Viva.Graph.svg("g")
+        svgContainer = svg("g")
               .attr("buffered-rendering", "dynamic");
 
         svgRoot.appendChild(svgContainer);
         return svgRoot;
     }
-};
+}

@@ -39,21 +39,18 @@ test('noEdgesGraphDensity', function(t) {
 });
 
 test('degreeCentralityOneEdge', function(t) {
-  var graph = Viva.Graph.graph(),
-    cd;
+  var graph = Viva.Graph.graph();
   graph.addLink(0, 1);
-  cd = Viva.Graph.centrality().degreeCentrality(graph);
+  var cd = Viva.Graph.centrality().degreeCentrality(graph);
 
-  t.equals(cd[0].value, 1, 'Unexpected node degree centrality');
+  t.equals(cd[0].value, 1, 'First node has 1 degree');
   t.end();
 });
 
 test('degreeCentralityCompleteGraph', function(t) {
-  var graph = Viva.Graph.generator().complete(6),
-    cd;
+  var graph = Viva.Graph.generator().complete(6);
+  var cd = Viva.Graph.centrality().degreeCentrality(graph);
 
-  cd = Viva.Graph.centrality().degreeCentrality(graph);
-
-  t.equals(cd[0].value, 5, 'Unexpected complete graph node centrality');
+  t.equals(cd[0].value, 5, 'Node has 5 degree');
   t.end();
 });

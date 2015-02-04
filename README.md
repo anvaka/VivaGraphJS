@@ -1,14 +1,9 @@
-Graph Drawing Library
+VivaGraph [![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
 ==================================================
-**VivaGraphJS** is a free [graph drawing](http://en.wikipedia.org/wiki/Graph_drawing) library for JavaScript.
-It is designed to be extensible and to support different rendering engines and layout algorithms. At the moment
-it supports rendering graphs using WebGL, SVG formats.
-
-**Note:** Please visit [anvaka/ngraph](https://github.com/anvaka/ngraph) to check
-next evolution step of this library. `ngraph` supports rendering graphs to images,
-3D graphs rendering, integration with [gephi](https://gephi.org/) and more.
-
-[![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
+**VivaGraphJS** is a free [graph drawing](http://en.wikipedia.org/wiki/Graph_drawing)
+library for JavaScript. It is designed to be extensible and to support different
+rendering engines and layout algorithms. At the moment it supports rendering
+graphs using WebGL and SVG.
 
 Enough talking. Show me the demo!
 ----------------------------------------------------
@@ -20,7 +15,8 @@ Some examples of library usage in the real projects:
 * [Graph Viewer](http://www.yasiv.com/graphs#Bai/rw496) visualization of sparse matrices collection of the University of Florida. WebGL based.
 * [Vkontakte Visualization](http://www.yasiv.com/vk) friendship visualization of the largest social network in Russia [vk.com](vk.com). WebGL based.
 
-To start using the library include `vivagraph.js` script from the [dist](https://github.com/anvaka/VivaGraphJS/tree/master/dist) folder. The following code is the minimum required to render a graph with two nodes and one edge:
+To start using the library include `vivagraph.js` script from the [dist](https://github.com/anvaka/VivaGraphJS/tree/master/dist)
+folder. The following code is the minimum required to render a graph with two nodes and one edge:
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -34,8 +30,8 @@ This will produce the following layout:
 
 ![Simple graph](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/mingraph.png)
 
-The code above adds a link to the graph between nodes `1` and `2`. Since nodes are not yet in the graph
-they will be created. It's equivalent to 
+The code above adds a link to the graph between nodes `1` and `2`. Since nodes
+are not yet in the graph they will be created. It's equivalent to
 
 ```javascript
 var graph = Viva.Graph.graph();
@@ -47,18 +43,20 @@ var renderer = Viva.Graph.View.renderer(graph);
 renderer.run();
 ```
 
-
 Customization
 ----------------------------------------------------
-VivaGraphJS is all about customization. You can easily change the appearance of nodes and links. You can also change the layouting algorithm and medium that displays elements of the graph. For example: The following code allows you to use CSS-based rendering, instead of the default SVG.
+VivaGraphJS is all about customization. You can easily change the appearance of
+nodes and links. You can also change the layouting algorithm and medium that
+displays elements of the graph. For example: The following code allows you to
+use WebGL-based rendering, instead of the default SVG.
 
 ```javascript
 var graph = Viva.Graph.graph();
 graph.addLink(1, 2);
 
-var graphics = Viva.Graph.View.cssGraphics();
+var graphics = Viva.Graph.View.webglGraphics();
 
-var renderer = Viva.Graph.View.renderer(graph, 
+var renderer = Viva.Graph.View.renderer(graph,
     {
         graphics : graphics
     });
@@ -100,7 +98,7 @@ graphics.node(function(node) {
         nodeUI.attr('x', pos.x - 12).attr('y', pos.y - 12);
     });
 
-var renderer = Viva.Graph.View.renderer(graph, 
+var renderer = Viva.Graph.View.renderer(graph,
     {
         graphics : graphics
     });
@@ -124,7 +122,9 @@ var renderer = Viva.Graph.View.renderer(graph);
 renderer.run();
 ```
 
-Graph generators are part of the library, which can produce classic graphs. `grid` generator creates a grid with given number of columns and rows. But with default parameters the rendering is pretty ugly:
+Graph generators are part of the library, which can produce classic graphs.
+`grid` generator creates a grid with given number of columns and rows. But with
+default parameters the rendering is pretty ugly:
 
 ![Grid 3x3 bad](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridBad.png)
 
@@ -151,8 +151,27 @@ Now the result is much better:
 
 ![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
 
-Tuning layout algorithm is definitely one of the hardest part of using this library. It has to be improved in future to simplify usage. Each of the force directed algorithm parameters are described in the source code.
+Tuning layout algorithm is definitely one of the hardest part of using this library.
+It has to be improved in future to simplify usage. Each of the force directed
+algorithm parameters are described in the source code.
 
+Design philosophy/roadmap
+-------------------------
+
+Until version 0.7.x VivaGraph was a single monolithic code base. Starting from
+0.7.x the library is bundled from small npm modules into `Viva` namespace.
+All these modules are part of a larger [ngraph](https://github.com/anvaka/ngraph)
+family. `ngraph` modules support rendering graphs into images, 3D rendering,
+integration with [gephi](https://gephi.org/), pagerank calculation and many more.
+
+Version 0.7 is a compromise between maximum backward compatibility and ngraph
+flexibility. Eventually I hope to further simplify API and provide interface
+for custom builds.
+
+Upgrade guide
+-------------
+
+Please refer the [upgrade guide](https://github.com/anvaka/VivaGraphJS/blob/master/docs/upgrade_guide.md) to see how to update older versions of the library to the latest one.
 
 Local Build
 -----------
@@ -161,14 +180,9 @@ Run the following script:
 git clone git://github.com/anvaka/VivaGraphJS.git
 cd ./VivaGraphJS
 npm install
-grunt
+gulp release
 ```
 The combined/minified code should be stored in ```dist``` folder.
-
-Upgrade guide
--------------
-
-Please refer the [upgrade guide](https://github.com/anvaka/VivaGraphJS/blob/master/docs/upgrade_guide.md) to see how to update older versions of the library to the latest one.
 
 Looking for alternatives?
 -------------------------
@@ -178,6 +192,15 @@ Please [find it here](http://anvaka.github.io/graph-drawing-libraries/#/all)
 
 I need your feedback
 ----------------------------------------------------
-Disclaimer: I wrote this library to learn JavaScript. By no means I pretend to be an expert in the language and chosen approach to design may not be the optimal. I would love to hear your feedback and suggestions. 
+Disclaimer: I wrote this library to learn JavaScript. By no means I pretend to
+be an expert in the language and chosen approach to design may not be the optimal.
+I would love to hear your feedback and suggestions.
 
-My goal is to create highly performant javascript library, which serves in the field of graph drawing. To certain extent I achieved it. But I have no doubt there is much more to improve here.
+Though I implemented this library from scratch, I went through many existing
+libraries to pick the best (at my view) out of them. If you are evaluating libraries
+for your project make sure to [check them out](http://anvaka.github.io/graph-drawing-libraries/#/all)
+as well.
+
+My goal is to create highly performant javascript library, which serves in the
+field of graph drawing. To certain extent I achieved it. But I have no doubt
+there is much more to improve here.

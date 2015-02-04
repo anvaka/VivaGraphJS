@@ -3,8 +3,9 @@
  *
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
+module.exports = operations;
 
-Viva.Graph.operations = function () {
+function operations() {
 
     return {
         /**

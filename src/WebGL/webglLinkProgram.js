@@ -1,14 +1,16 @@
 /**
  * @fileOverview Defines a naive form of links for webglGraphics class.
  * This form allows to change color of links.
- *
- * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  **/
+
+var glUtils = require('./webgl.js');
+
+module.exports = webglLinkProgram;
 
 /**
  * Defines UI for links in webgl renderer.
  */
-Viva.Graph.View.webglLinkProgram = function () {
+function webglLinkProgram() {
     var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
         BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
         linksFS = [
@@ -68,7 +70,7 @@ Viva.Graph.View.webglLinkProgram = function () {
     return {
         load : function (glContext) {
             gl = glContext;
-            utils = Viva.Graph.webgl(glContext);
+            utils = glUtils(glContext);
 
             program = utils.createProgram(linksVS, linksFS);
             gl.useProgram(program);
@@ -151,4 +153,4 @@ Viva.Graph.View.webglLinkProgram = function () {
             return frontLinkId;
         }
     };
-};
+}

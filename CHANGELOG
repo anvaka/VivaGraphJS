@@ -1,3 +1,33 @@
+v0.7.0
+  date Feb 4, 2014
+	  - All files are now CommonJS Modules
+		- `Viva.Graph.svg` is replaced with npm module `simplesvg`
+		- `Viva.Graph.graph` is replaced with `ngraph.graph`
+		- `Viva.Graph.generator` is replaced with `ngraph.generators`. This module
+		contains all original graph + new graphs.
+		Note: `randomNoLinks` is called `noLinks`.
+    - `Viva.graph.Layout.forceDirected` is replaced with npm module
+		'ngraph.forcelayout'. This module is faster than older one, and has better
+		test coverage. Unfortunately this also means breaking changes:
+		1. Instead of passing `link` object to `layout.getLinkPosition(link)`, you
+		need to pas linkId: `layout.getLinkPosition(link.id)`.
+		2. Instead of passing `node` object to `layout.setNodePosition(node, x, y)`
+		use `layout.setNodePosition(node.id, x, y)`.
+		3. Force based layout settings can be now accessed from `layout.simulator`:
+			`layout.drag()` is now known as `simulator.dragCoeff()`
+			`layout.springCoeff()` -> `simulator.springCoeff()`
+			`layout.springLength()` -> `simulator.springLength()`
+			`layout.gravity()` -> `simulator.gravity()`
+			`layout.theta()` -> `simulator.theta()`
+		- `Viva.Graph.Point2d` is removed. Use plain {x: 42, y: 42} object
+		- `Viva.Graph.graph.addEventListener` is replaced with `on` method
+		- `Viva.Graph.View.cssGraphcis` is deprecated
+		- `Viva.Graph.View.svgNodeFactory` is deprecated
+		- `geom.convexHull` is deprecated. Use https://github.com/anvaka/cnvx
+		instead.
+		- `Viva.Graph.community` is deprecated. Use https://github.com/anvaka/ngraph.slpa
+		instead.
+
 v0.6.0
   date Dec 27, 2014
 	 - Migrated to gulp. First step towards commonjs.

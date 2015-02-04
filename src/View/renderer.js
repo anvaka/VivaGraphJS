@@ -4,7 +4,16 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-Viva.Graph.View = Viva.Graph.View || {};
+module.exports = renderer;
+
+var eventify = require('ngraph.graph');
+var forceDirected = require('ngraph.forcelayout');
+var svgGraphics = require('./svgGraphics.js');
+var windowEvents = require('../Utils/windowEvents.js');
+var domInputManager = require('../Input/domInputManager.js');
+var timer = require('../Utils/timer.js');
+var getDimension = require('../Utils/getDimensions.js');
+var dragndrop = require('../Input/dragndrop.js');
 
 /**
  * This is heart of the rendering. Class accepts graph to be rendered and rendering settings.
@@ -17,7 +26,6 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     // all graphics has to correspond to defined interface and can be later easily
  *     // replaced for specific needs (e.g. adding WebGL should be piece of cake as long
  *     // as WebGL has implemented required interface). See svgGraphics for example.
- *     // NOTE: current version supports Viva.Graph.View.cssGraphics() as well.
  *     graphics : Viva.Graph.View.svgGraphics(),
  *
  *     // Where the renderer should draw graph. Container size matters, because
@@ -43,7 +51,7 @@ Viva.Graph.View = Viva.Graph.View || {};
  *     prerender : 0
  *   }
  */
-Viva.Graph.View.renderer = function (graph, settings) {
+function renderer(graph, settings) {
     // TODO: This class is getting hard to understand. Consider refactoring.
     // TODO: I have a technical debt here: fix scaling/recentering! Currently it's a total mess.
     var FRAME_INTERVAL = 30;
@@ -78,19 +86,20 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
     var prepareSettings = function () {
             container = container || window.document.body;
-            layout = layout || Viva.Graph.Layout.forceDirected(graph);
-            graphics = graphics || Viva.Graph.View.svgGraphics(graph, {container : container});
+            layout = layout || forceDirected(graph, forceDirected.simulator({
+                springLength: 80,
+                springCoeff: 0.0002,
+            }));
+            graphics = graphics || svgGraphics(graph, {container : container});
 
             if (!settings.hasOwnProperty('renderLinks')) {
                 settings.renderLinks = true;
             }
 
             settings.prerender = settings.prerender || 0;
-            inputManager = (graphics.inputManager || Viva.Input.domInputManager)(graph, graphics);
+            inputManager = (graphics.inputManager || domInputManager)(graph, graphics);
         },
-        windowEvents = Viva.Graph.Utils.events(window),
-        publicEvents = Viva.Graph.Utils.events({}).extend(),
-        graphEvents,
+        publicEvents = eventify({}),
         containerDrag,
 
         renderGraph = function () {
@@ -120,13 +129,13 @@ Viva.Graph.View.renderer = function (graph, settings) {
             if (iterationsCount) {
                 totalIterationsCount += iterationsCount;
 
-                animationTimer = Viva.Graph.Utils.timer(function () {
+                animationTimer = timer(function () {
                     return onRenderFrame();
                 }, FRAME_INTERVAL);
             } else {
                 currentStep = 0;
                 totalIterationsCount = 0;
-                animationTimer = Viva.Graph.Utils.timer(onRenderFrame, FRAME_INTERVAL);
+                animationTimer = timer(onRenderFrame, FRAME_INTERVAL);
             }
         },
 
@@ -152,7 +161,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
 
         updateCenter = function () {
             var graphRect = layout.getGraphRect(),
-                containerSize = Viva.Graph.Utils.getDimension(container);
+                containerSize = getDimension(container);
 
             viewPortOffset.x = viewPortOffset.y = 0;
             transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
@@ -172,7 +181,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         createLinkUi = function (link) {
-            var linkPosition = layout.getLinkPosition(link);
+            var linkPosition = layout.getLinkPosition(link.id);
             graphics.addLink(link, linkPosition);
         },
 
@@ -197,7 +206,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
                 },
                 onDrag : function (e, offset) {
                     var oldPos = layout.getNodePosition(node.id);
-                    layout.setNodePosition(node,
+                    layout.setNodePosition(node.id,
                                            oldPos.x + offset.x / transform.scale,
                                            oldPos.y + offset.y / transform.scale);
 
@@ -292,16 +301,12 @@ Viva.Graph.View.renderer = function (graph, settings) {
         },
 
         releaseGraphEvents = function () {
-            if (graphEvents) {
-                // Interesting.. Why is it not null? Anyway:
-                graphEvents.stop('changed', onGraphChanged);
-                graphEvents = null;
-            }
+            graph.off('changed', onGraphChanged);
         },
 
         scale = function (out, scrollPoint) {
             if (!scrollPoint) {
-                var containerSize = Viva.Graph.Utils.getDimension(container);
+                var containerSize = getDimension(container);
                 scrollPoint = {
                     x: containerSize.width/2,
                     y: containerSize.height/2
@@ -322,7 +327,7 @@ Viva.Graph.View.renderer = function (graph, settings) {
             releaseContainerDragManager();
             var canDrag = (typeof interactive === 'string' && interactive.indexOf('drag') !== -1) || interactive;
             if (canDrag) {
-                containerDrag = Viva.Graph.Utils.dragndrop(container);
+                containerDrag = dragndrop(container);
                 containerDrag.onDrag(function (e, offset) {
                     viewPortOffset.x += offset.x;
                     viewPortOffset.y += offset.y;
@@ -342,15 +347,14 @@ Viva.Graph.View.renderer = function (graph, settings) {
             graph.forEachNode(listenNodeEvents);
 
             releaseGraphEvents();
-            graphEvents = Viva.Graph.Utils.events(graph);
-            graphEvents.on('changed', onGraphChanged);
+            graph.on('changed', onGraphChanged);
         },
 
         stopListenToEvents = function () {
             rendererInitialized = false;
             releaseGraphEvents();
             releaseContainerDragManager();
-            windowEvents.stop('resize', onWindowResized);
+            windowEvents.off('resize', onWindowResized);
             publicEvents.removeAllListeners();
             animationTimer.stop();
 
@@ -456,4 +460,4 @@ Viva.Graph.View.renderer = function (graph, settings) {
             return this;
         }
     };
-};
+}

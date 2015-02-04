@@ -49,17 +49,6 @@
                         gravity : -1
                     });
 
-                    var cssGraphics = Viva.Graph.View.cssGraphics();
-
-                    cssGraphics.node(function(node){
-                        var nodeUI = document.createElement('div');
-                        nodeUI.setAttribute('class', 'node');
-                        nodeUI.title = node.data.name;
-                        var groupId = node.data.group;
-                        nodeUI.style.background = colors[groupId ? groupId - 1 : 5];
-                        return nodeUI;
-                    });
-
                     var svgGraphics = Viva.Graph.View.svgGraphics();
                     svgGraphics.node(function(node){
                         var groupId = node.data.group;
@@ -96,17 +85,6 @@
             }
         </script>
         <style type='text/css'>
-            .node {
-                background-color: #00a2e8;
-                width: 10px;
-                height: 10px;
-                position: absolute;
-            }
-            .link {
-                background-color: #999;
-                position: absolute;
-            }
-
             #graph1{
                 position: absolute;
                 vertical-align:middle;

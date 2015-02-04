@@ -1,6 +1,6 @@
-Viva.Graph.Utils = Viva.Graph.Utils || {};
+module.exports = getDimension;
 
-Viva.Graph.Utils.getDimension = function (container) {
+function getDimension(container) {
     if (!container) {
         throw {
             message : 'Cannot get dimensions of undefined container'
@@ -17,20 +17,4 @@ Viva.Graph.Utils.getDimension = function (container) {
         width : width,
         height : height
     };
-};
-
-/**
- * Finds the absolute position of an element on a page
- */
-Viva.Graph.Utils.findElementPosition = function (obj) {
-    var curleft = 0,
-        curtop = 0;
-    if (obj.offsetParent) {
-        do {
-            curleft += obj.offsetLeft;
-            curtop += obj.offsetTop;
-        } while ((obj = obj.offsetParent) !== null);
-    }
-
-    return [curleft, curtop];
-};
+}

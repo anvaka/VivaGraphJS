@@ -24,7 +24,7 @@ test('nodePositionUsesCustomCallback', function(t) {
   var graph = Viva.Graph.generator().path(10),
     layout = Viva.Graph.Layout.constant(graph),
     placeNodeCallback = function() {
-      return new Viva.Graph.Point2d(42, 42); // all nodes should be placed at the same position.
+      return { x: 42, y: 42 }; // all nodes should be placed at the same position.
     };
 
   layout.placeNode(placeNodeCallback);
