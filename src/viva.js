@@ -57,21 +57,7 @@ Viva.Graph = {
     findElementPosition: require('./Utils/findElementPosition.js'),
     timer: require('./Utils/timer.js'),
     getDimension: require('./Utils/getDimensions.js'),
-    events: function(g) {
-      console.log("This method is deprecated. Please use Viva.events() instead");
-      if (!g) {
-        return g;
-      }
-      var eventsDefined = (g.on !== undefined) ||
-        (g.off !== undefined) ||
-        (g.fire !== undefined);
-      if (eventsDefined) {
-        // events already defined, ignore
-        return g;
-      }
-
-      return Viva.events(g);
-    }
+    events: require('./Utils/backwardCompatibleEvents.js')
   },
 
   Layout: {
