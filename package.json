@@ -1,6 +1,6 @@
 {
   "name": "vivagraphjs",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Graph Drawing Library",
   "main": "dist/vivagraph",
   "directories": {
@@ -36,9 +36,9 @@
     "ngraph.centrality": "0.1.1",
     "ngraph.events": "0.0.3",
     "ngraph.forcelayout": "0.0.15",
-    "ngraph.fromjson": "0.1.3",
-    "ngraph.generators": "0.0.12",
-    "ngraph.graph": "0.0.7",
+    "ngraph.fromjson": "0.1.4",
+    "ngraph.generators": "0.0.13",
+    "ngraph.graph": "0.0.8",
     "ngraph.merge": "0.0.1",
     "ngraph.random": "0.0.1",
     "ngraph.tojson": "0.1.1",
