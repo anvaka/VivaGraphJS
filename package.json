@@ -42,6 +42,6 @@
     "ngraph.merge": "0.0.1",
     "ngraph.random": "0.0.1",
     "ngraph.tojson": "0.1.1",
-    "simplesvg": "0.0.9"
+    "simplesvg": "0.0.10"
   }
 }

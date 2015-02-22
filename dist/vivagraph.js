@@ -2874,7 +2874,7 @@ module.exports = svg;
 
 svg.compile = require('./lib/compile');
 
-var compileTemplate = svg.compileTemplate = require('./lib/compileTemplate');
+var compileTemplate = svg.compileTemplate = require('./lib/compile_template');
 
 var domEvents = require('add-event-listener');
 
@@ -2982,7 +2982,7 @@ function augment(element) {
   }
 }
 
-},{"./lib/compile":29,"./lib/compileTemplate":30,"add-event-listener":32}],29:[function(require,module,exports){
+},{"./lib/compile":29,"./lib/compile_template":30,"add-event-listener":32}],29:[function(require,module,exports){
 var parser = require('./domparser.js');
 var svg = require('../');
 
@@ -4027,80 +4027,91 @@ function Rect (x1, y1, x2, y2) {
 module.exports = createTimer();
 
 function createTimer() {
-    var lastTime = 0,
-        vendors = ['ms', 'moz', 'webkit', 'o'],
-        i,
-        scope;
+  var lastTime = 0,
+    vendors = ['ms', 'moz', 'webkit', 'o'],
+    i,
+    scope;
 
-    if (typeof window !== 'undefined') {
-        scope = window;
-    } else if (typeof global !== 'undefined') {
-        scope = global;
-    } else {
-        scope = {
-            setTimeout: function () {},
-            clearTimeout: function () {}
-        };
+  if (typeof window !== 'undefined') {
+    scope = window;
+  } else if (typeof global !== 'undefined') {
+    scope = global;
+  } else {
+    scope = {
+      setTimeout: noop,
+      clearTimeout: noop
+    };
+  }
+
+  for (i = 0; i < vendors.length && !scope.requestAnimationFrame; ++i) {
+    var vendorPrefix = vendors[i];
+    scope.requestAnimationFrame = scope[vendorPrefix + 'RequestAnimationFrame'];
+    scope.cancelAnimationFrame =
+      scope[vendorPrefix + 'CancelAnimationFrame'] || scope[vendorPrefix + 'CancelRequestAnimationFrame'];
+  }
+
+  if (!scope.requestAnimationFrame) {
+    scope.requestAnimationFrame = rafPolyfill;
+  }
+
+  if (!scope.cancelAnimationFrame) {
+    scope.cancelAnimationFrame = cancelRafPolyfill;
+  }
+
+  return timer;
+
+  /**
+   * Timer that fires callback with given interval (in ms) until
+   * callback returns true;
+   */
+  function timer(callback) {
+    var intervalId;
+    startTimer(); // start it right away.
+
+    return {
+      /**
+       * Stops execution of the callback
+       */
+      stop: stopTimer,
+
+      restart: restart
+    };
+
+    function startTimer() {
+      intervalId = scope.requestAnimationFrame(startTimer);
+      if (!callback()) {
+        stopTimer();
+      }
     }
-    for (i = 0; i < vendors.length && !scope.requestAnimationFrame; ++i) {
-        var vendorPrefix = vendors[i];
-        scope.requestAnimationFrame = scope[vendorPrefix + 'RequestAnimationFrame'];
-        scope.cancelAnimationFrame =
-            scope[vendorPrefix + 'CancelAnimationFrame'] || scope[vendorPrefix + 'CancelRequestAnimationFrame'];
+
+    function stopTimer() {
+      scope.cancelAnimationFrame(intervalId);
+      intervalId = 0;
     }
 
-    if (!scope.requestAnimationFrame) {
-        scope.requestAnimationFrame = function (callback) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = scope.setTimeout(function () { callback(currTime + timeToCall); }, timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-        };
+    function restart() {
+      if (!intervalId) {
+        startTimer();
+      }
     }
+  }
 
-    if (!scope.cancelAnimationFrame) {
-        scope.cancelAnimationFrame = function (id) {
-            scope.clearTimeout(id);
-        };
-    }
+  function rafPolyfill(callback) {
+    var currTime = new Date().getTime();
+    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    var id = scope.setTimeout(function() {
+      callback(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
+    return id;
+  }
 
-    return timer;
-
-    /**
-     * Timer that fires callback with given interval (in ms) until
-     * callback returns true;
-     */
-    function timer(callback) {
-        var intervalId,
-            stopTimer = function () {
-                scope.cancelAnimationFrame(intervalId);
-                intervalId = 0;
-            },
-
-            startTimer = function () {
-                intervalId = scope.requestAnimationFrame(startTimer);
-                if (!callback()) {
-                    stopTimer();
-                }
-            };
-
-        startTimer(); // start it right away.
-
-        return {
-            /**
-             * Stops execution of the callback
-             */
-            stop: stopTimer,
-
-            restart : function () {
-                if (!intervalId) {
-                    startTimer();
-                }
-            }
-        };
-    }
+  function cancelRafPolyfill(id) {
+    scope.clearTimeout(id);
+  }
 }
+
+function noop() {}
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],48:[function(require,module,exports){
@@ -5546,98 +5557,101 @@ function Texture(size) {
 module.exports = webgl;
 
 function webgl(gl) {
-    var createShader = function (shaderText, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, shaderText);
-            gl.compileShader(shader);
 
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                var msg = gl.getShaderInfoLog(shader);
-                window.alert(msg);
-                throw msg;
-            }
+  return {
+    createProgram: createProgram,
+    extendArray: extendArray,
+    copyArrayPart: copyArrayPart,
+    swapArrayPart: swapArrayPart,
+    getLocations: getLocations,
+    context: gl
+  };
 
-            return shader;
-        };
+  function createShader(shaderText, type) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, shaderText);
+    gl.compileShader(shader);
 
-    return {
-        createProgram : function (vertexShaderSrc, fragmentShaderSrc) {
-            var program = gl.createProgram(),
-                vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER),
-                fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      var msg = gl.getShaderInfoLog(shader);
+      window.alert(msg);
+      throw msg;
+    }
 
-            gl.attachShader(program, vs);
-            gl.attachShader(program, fs);
-            gl.linkProgram(program);
+    return shader;
+  }
 
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                var msg = gl.getShaderInfoLog(program);
-                window.alert(msg);
-                throw msg;
-            }
+  function createProgram(vertexShaderSrc, fragmentShaderSrc) {
+    var program = gl.createProgram();
+    var vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER);
+    var fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
 
-            return program;
-        },
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
 
-        extendArray : function (buffer, itemsInBuffer, elementsPerItem) {
-            if ((itemsInBuffer  + 1) * elementsPerItem > buffer.length) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
-                extendedArray.set(buffer);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      var msg = gl.getShaderInfoLog(program);
+      window.alert(msg);
+      throw msg;
+    }
 
-                return extendedArray;
-            }
+    return program;
+  }
 
-            return buffer;
-        },
+  function extendArray(buffer, itemsInBuffer, elementsPerItem) {
+    if ((itemsInBuffer + 1) * elementsPerItem > buffer.length) {
+      // Every time we run out of space create new array twice bigger.
+      // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+      var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
+      extendedArray.set(buffer);
 
-        copyArrayPart : function (array, to, from, elementsCount) {
-            var i;
-            for (i = 0; i < elementsCount; ++i) {
-                array[to + i] = array[from + i];
-            }
-        },
+      return extendedArray;
+    }
 
-        swapArrayPart : function (array, from, to, elementsCount) {
-            var i;
-            for (i = 0; i < elementsCount; ++i) {
-                var tmp = array[from + i];
-                array[from + i] = array[to + i];
-                array[to + i] = tmp;
-            }
-        },
+    return buffer;
+  }
 
-        getLocations : function (program, uniformOrAttributeNames) {
-            var foundLocations = {},
-                i;
-            for (i = 0; i < uniformOrAttributeNames.length; ++i) {
-                var name = uniformOrAttributeNames[i],
-                    location = -1;
-                if (name.indexOf("a_") === 0) {
-                    location = gl.getAttribLocation(program, name);
-                    if (location === -1) {
-                        throw "Program doesn't have required attribute: " + name;
-                    }
+  function getLocations(program, uniformOrAttributeNames) {
+    var foundLocations = {};
+    for (var i = 0; i < uniformOrAttributeNames.length; ++i) {
+      var name = uniformOrAttributeNames[i];
+      var location = -1;
+      if (name[0] === 'a' && name[1] === '_') {
+        location = gl.getAttribLocation(program, name);
+        if (location === -1) {
+          throw new Error("Program doesn't have required attribute: " + name);
+        }
 
-                    foundLocations[name.slice(2)] = location;
-                } else if (name.indexOf("u_") === 0) {
-                    location = gl.getUniformLocation(program, name);
-                    if (location === null) {
-                        throw "Program doesn't have required uniform: " + name;
-                    }
+        foundLocations[name.slice(2)] = location;
+      } else if (name[0] === 'u' && name[1] === '_') {
+        location = gl.getUniformLocation(program, name);
+        if (location === null) {
+          throw new Error("Program doesn't have required uniform: " + name);
+        }
 
-                    foundLocations[name.slice(2)] = location;
-                } else {
-                    throw "Couldn't figure out your intent. All uniforms should start with 'u_' prefix, and attributes with 'a_'";
-                }
-            }
+        foundLocations[name.slice(2)] = location;
+      } else {
+        throw new Error("Couldn't figure out your intent. All uniforms should start with 'u_' prefix, and attributes with 'a_'");
+      }
+    }
 
-            return foundLocations;
-        },
+    return foundLocations;
+  }
+}
 
-        context : gl
-    };
+function copyArrayPart(array, to, from, elementsCount) {
+  for (var i = 0; i < elementsCount; ++i) {
+    array[to + i] = array[from + i];
+  }
+}
+
+function swapArrayPart(array, from, to, elementsCount) {
+  for (var i = 0; i < elementsCount; ++i) {
+    var tmp = array[from + i];
+    array[from + i] = array[to + i];
+    array[to + i] = tmp;
+  }
 }
 
 },{}],55:[function(require,module,exports){
@@ -5654,173 +5668,194 @@ module.exports = webglAtlas;
  *          parameter a new canvas will be created.
  */
 function webglAtlas(tilesPerTexture) {
-    var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
-        tileSize = tilesPerRow,
-        lastLoadedIdx = 1,
-        loadedImages = {},
-        dirtyTimeoutId,
-        skipedDirty = 0,
-        textures = [],
-        trackedUrls = [],
-        that,
+  var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
+    tileSize = tilesPerRow,
+    lastLoadedIdx = 1,
+    loadedImages = {},
+    dirtyTimeoutId,
+    skipedDirty = 0,
+    textures = [],
+    trackedUrls = [];
 
-        isPowerOf2 = function (n) {
-            return (n & (n - 1)) === 0;
-        },
-        createTexture = function () {
-            var texture = new Texture(tilesPerRow * tileSize);
-            textures.push(texture);
-        },
-        getTileCoordinates = function (absolutePosition) {
-            var textureNumber = (absolutePosition / tilesPerTexture) << 0,
-                localTileNumber =  (absolutePosition % tilesPerTexture),
-                row = (localTileNumber / tilesPerRow) << 0,
-                col = (localTileNumber % tilesPerRow);
+  if (!isPowerOf2(tilesPerTexture)) {
+    throw "Tiles per texture should be power of two.";
+  }
 
-            return {textureNumber : textureNumber, row : row, col: col};
-        },
-        markDirtyNow = function () {
-            that.isDirty = true;
-            skipedDirty = 0;
-            dirtyTimeoutId = null;
-        },
-        markDirty = function () {
-            // delay this call, since it results in texture reload
-            if (dirtyTimeoutId) {
-                window.clearTimeout(dirtyTimeoutId);
-                skipedDirty += 1;
-                dirtyTimeoutId = null;
-            }
+  // this is the return object
+  var api = {
+    /**
+     * indicates whether atlas has changed texture in it. If true then
+     * some of the textures has isDirty flag set as well.
+     */
+    isDirty: false,
 
-            if (skipedDirty > 10) {
-                markDirtyNow();
-            } else {
-                dirtyTimeoutId = window.setTimeout(markDirtyNow, 400);
-            }
-        },
+    /**
+     * Clears any signs of atlas changes.
+     */
+    clearDirty: clearDirty,
 
-        copy = function (from, to) {
-            var fromCanvas = textures[from.textureNumber].canvas,
-                toCtx = textures[to.textureNumber].ctx,
-                x = to.col * tileSize,
-                y = to.row * tileSize;
+    /**
+     * Removes given url from collection of tiles in the atlas.
+     */
+    remove: remove,
 
-            toCtx.drawImage(fromCanvas, from.col * tileSize, from.row * tileSize, tileSize, tileSize, x, y, tileSize, tileSize);
-            textures[from.textureNumber].isDirty = true;
-            textures[to.textureNumber].isDirty = true;
-        },
+    /**
+     * Gets all textures in the atlas.
+     */
+    getTextures: getTextures,
 
-        drawAt = function (tileNumber, img, callback) {
-            var tilePosition = getTileCoordinates(tileNumber),
-                coordinates = { offset : tileNumber };
+    /**
+     * Gets coordinates of the given image in the atlas. Coordinates is an object:
+     * {offset : int } - where offset is an absolute position of the image in the
+     * atlas.
+     *
+     * Absolute means it can be larger than tilesPerTexture parameter, and in that
+     * case clients should get next texture in getTextures() collection.
+     */
+    getCoordinates: getCoordinates,
 
-            if (tilePosition.textureNumber >= textures.length) {
-                createTexture();
-            }
-            var currentTexture = textures[tilePosition.textureNumber];
+    /**
+     * Asynchronously Loads the image to the atlas. Cross-domain security
+     * limitation applies.
+     */
+    load: load
+  };
 
-            currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
-            trackedUrls[tileNumber] = img.src;
+  return api;
 
-            loadedImages[img.src] = coordinates;
-            currentTexture.isDirty = true;
+  function clearDirty() {
+    var i;
+    api.isDirty = false;
+    for (i = 0; i < textures.length; ++i) {
+      textures[i].isDirty = false;
+    }
+  }
 
-            callback(coordinates);
-        };
+  function remove(imgUrl) {
+    var coordinates = loadedImages[imgUrl];
+    if (!coordinates) {
+      return false;
+    }
+    delete loadedImages[imgUrl];
+    lastLoadedIdx -= 1;
 
-    if (!isPowerOf2(tilesPerTexture)) {
-        throw "Tiles per texture should be power of two.";
+
+    if (lastLoadedIdx === coordinates.offset) {
+      return true; // Ignore if it's last image in the whole set.
     }
 
-    // this is the return object
-    that = {
-        /**
-         * indicates whether atlas has changed texture in it. If true then
-         * some of the textures has isDirty flag set as well.
-         */
-        isDirty : false,
+    var tileToRemove = getTileCoordinates(coordinates.offset),
+      lastTileInSet = getTileCoordinates(lastLoadedIdx);
 
-        /**
-         * Clears any signs of atlas changes.
-         */
-        clearDirty : function () {
-            var i;
-            this.isDirty = false;
-            for (i = 0; i < textures.length; ++i) {
-                textures[i].isDirty = false;
-            }
-        },
+    copy(lastTileInSet, tileToRemove);
 
-        /**
-         * Removes given url from collection of tiles in the atlas.
-         */
-        remove : function (imgUrl) {
-            var coordinates = loadedImages[imgUrl];
-            if (!coordinates) { return false; }
-            delete loadedImages[imgUrl];
-            lastLoadedIdx -= 1;
+    var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
+    replacedOffset.offset = coordinates.offset;
+    trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
 
+    markDirty();
+    return true;
+  }
 
-            if (lastLoadedIdx === coordinates.offset) {
-                return true; // Ignore if it's last image in the whole set.
-            }
+  function getTextures() {
+    return textures; // I trust you...
+  }
 
-            var tileToRemove = getTileCoordinates(coordinates.offset),
-                lastTileInSet = getTileCoordinates(lastLoadedIdx);
+  function getCoordinates(imgUrl) {
+    return loadedImages[imgUrl];
+  }
 
-            copy(lastTileInSet, tileToRemove);
+  function load(imgUrl, callback) {
+    if (loadedImages.hasOwnProperty(imgUrl)) {
+      callback(loadedImages[imgUrl]);
+    } else {
+      var img = new window.Image(),
+        imgId = lastLoadedIdx;
 
-            var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
-            replacedOffset.offset = coordinates.offset;
-            trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
+      lastLoadedIdx += 1;
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        markDirty();
+        drawAt(imgId, img, callback);
+      };
 
-            markDirty();
-            return true;
-        },
+      img.src = imgUrl;
+    }
+  }
 
-        /**
-         * Gets all textures in the atlas.
-         */
-        getTextures : function () {
-            return textures; // I trust you...
-        },
+  function createTexture() {
+    var texture = new Texture(tilesPerRow * tileSize);
+    textures.push(texture);
+  }
 
-        /**
-         * Gets coordinates of the given image in the atlas. Coordinates is an object:
-         * {offset : int } - where offset is an absolute position of the image in the
-         * atlas.
-         *
-         * Absolute means it can be larger than tilesPerTexture parameter, and in that
-         * case clients should get next texture in getTextures() collection.
-         */
-        getCoordinates : function (imgUrl) {
-            return loadedImages[imgUrl];
-        },
+  function drawAt(tileNumber, img, callback) {
+    var tilePosition = getTileCoordinates(tileNumber),
+      coordinates = {
+        offset: tileNumber
+      };
 
-        /**
-         * Asynchronously Loads the image to the atlas. Cross-domain security
-         * limitation applies.
-         */
-        load : function (imgUrl, callback) {
-            if (loadedImages.hasOwnProperty(imgUrl)) {
-                callback(loadedImages[imgUrl]);
-            } else {
-                var img = new window.Image(),
-                    imgId = lastLoadedIdx;
+    if (tilePosition.textureNumber >= textures.length) {
+      createTexture();
+    }
+    var currentTexture = textures[tilePosition.textureNumber];
 
-                lastLoadedIdx += 1;
-                img.crossOrigin = "anonymous";
-                img.onload = function () {
-                    markDirty();
-                    drawAt(imgId, img, callback);
-                };
+    currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
+    trackedUrls[tileNumber] = img.src;
 
-                img.src = imgUrl;
-            }
-        }
+    loadedImages[img.src] = coordinates;
+    currentTexture.isDirty = true;
+
+    callback(coordinates);
+  }
+
+  function getTileCoordinates(absolutePosition) {
+    var textureNumber = (absolutePosition / tilesPerTexture) << 0,
+      localTileNumber = (absolutePosition % tilesPerTexture),
+      row = (localTileNumber / tilesPerRow) << 0,
+      col = (localTileNumber % tilesPerRow);
+
+    return {
+      textureNumber: textureNumber,
+      row: row,
+      col: col
     };
+  }
 
-    return that;
+  function markDirtyNow() {
+    api.isDirty = true;
+    skipedDirty = 0;
+    dirtyTimeoutId = null;
+  }
+
+  function markDirty() {
+    // delay this call, since it results in texture reload
+    if (dirtyTimeoutId) {
+      window.clearTimeout(dirtyTimeoutId);
+      skipedDirty += 1;
+      dirtyTimeoutId = null;
+    }
+
+    if (skipedDirty > 10) {
+      markDirtyNow();
+    } else {
+      dirtyTimeoutId = window.setTimeout(markDirtyNow, 400);
+    }
+  }
+
+  function copy(from, to) {
+    var fromCanvas = textures[from.textureNumber].canvas,
+      toCtx = textures[to.textureNumber].ctx,
+      x = to.col * tileSize,
+      y = to.row * tileSize;
+
+    toCtx.drawImage(fromCanvas, from.col * tileSize, from.row * tileSize, tileSize, tileSize, x, y, tileSize, tileSize);
+    textures[from.textureNumber].isDirty = true;
+    textures[to.textureNumber].isDirty = true;
+  }
+}
+
+function isPowerOf2(n) {
+  return (n & (n - 1)) === 0;
 }
 
 },{"./texture.js":53}],56:[function(require,module,exports){
@@ -5872,226 +5907,251 @@ module.exports = webglImageNodeProgram;
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
  */
 function webglImageNodeProgram() {
-    var ATTRIBUTES_PER_PRIMITIVE = 18,
-    // TODO: Use glslify for shaders
-        nodesFS = [
-            "precision mediump float;",
-            "varying vec4 color;",
-            "varying vec3 vTextureCoord;",
-            "uniform sampler2D u_sampler0;",
-            "uniform sampler2D u_sampler1;",
-            "uniform sampler2D u_sampler2;",
-            "uniform sampler2D u_sampler3;",
+  // WebGL is gian state machine, we store some properties of the state here:
+  var ATTRIBUTES_PER_PRIMITIVE = 18;
+  var nodesFS = createNodeFragmentShader();
+  var nodesVS = createNodeVertexShader();
+  var tilesPerTexture = 1024; // TODO: Get based on max texture size
+  var atlas;
+  var program;
+  var gl;
+  var buffer;
+  var utils;
+  var locations;
+  var nodesCount = 0;
+  var nodes = new Float32Array(64);
+  var width;
+  var height;
+  var transform;
+  var sizeDirty;
 
-            "void main(void) {",
-            "   if (vTextureCoord.z == 0.) {",
-            "     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);",
-            "   } else if (vTextureCoord.z == 1.) {",
-            "     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);",
-            "   } else if (vTextureCoord.z == 2.) {",
-            "     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);",
-            "   } else if (vTextureCoord.z == 3.) {",
-            "     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);",
-            "   } else { gl_FragColor = vec4(0, 1, 0, 1); }",
-            "}"
-        ].join("\n"),
 
-        nodesVS = [
-            "attribute vec2 a_vertexPos;",
+  return {
+    load: load,
 
-            "attribute float a_customAttributes;",
-            "uniform vec2 u_screenSize;",
-            "uniform mat4 u_transform;",
-            "uniform float u_tilesPerTexture;",
-            "varying vec3 vTextureCoord;",
+    /**
+     * Updates position of current node in the buffer of nodes.
+     *
+     * @param idx - index of current node.
+     * @param pos - new position of the node.
+     */
+    position: position,
 
-            "void main(void) {",
-            "   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);",
-            "float corner = mod(a_customAttributes, 4.);",
-            "float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);",
-            "float tilesPerRow = sqrt(u_tilesPerTexture);",
-            "float tileSize = 1./tilesPerRow;",
-            "float tileColumn = mod(tileIndex, tilesPerRow);",
-            "float tileRow = floor(tileIndex/tilesPerRow);",
+    createNode: createNode,
 
-            "if(corner == 0.0) {",
-            "  vTextureCoord.xy = vec2(0, 1);",
-            "} else if(corner == 1.0) {",
-            "  vTextureCoord.xy = vec2(1, 1);",
-            "} else if(corner == 2.0) {",
-            "  vTextureCoord.xy = vec2(0, 0);",
-            "} else {",
-            "  vTextureCoord.xy = vec2(1, 0);",
-            "}",
+    removeNode: removeNode,
 
-            "vTextureCoord *= tileSize;",
-            "vTextureCoord.x += tileColumn * tileSize;",
-            "vTextureCoord.y += tileRow * tileSize;",
-            "vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);",
-            "}"
-        ].join("\n"),
+    replaceProperties: replaceProperties,
 
-        tilesPerTexture = 1024, // TODO: Get based on max texture size
-        atlas;
+    updateTransform: updateTransform,
 
-    var program,
-        gl,
-        buffer,
-        utils,
-        locations,
-        nodesCount = 0,
-        nodes = new Float32Array(64),
-        width,
-        height,
-        transform,
-        sizeDirty,
+    updateSize: updateSize,
 
-        refreshTexture = function (texture, idx) {
-            if (texture.nativeObject) {
-                gl.deleteTexture(texture.nativeObject);
-            }
+    render: render
+  };
 
-            var nativeObject = gl.createTexture();
-            gl.activeTexture(gl["TEXTURE" + idx]);
-            gl.bindTexture(gl.TEXTURE_2D, nativeObject);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  function refreshTexture(texture, idx) {
+    if (texture.nativeObject) {
+      gl.deleteTexture(texture.nativeObject);
+    }
 
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.uniform1i(locations["sampler" + idx], idx);
+    var nativeObject = gl.createTexture();
+    gl.activeTexture(gl["TEXTURE" + idx]);
+    gl.bindTexture(gl.TEXTURE_2D, nativeObject);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
-            texture.nativeObject = nativeObject;
-        },
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.uniform1i(locations["sampler" + idx], idx);
 
-        ensureAtlasTextureUpdated = function () {
-            if (atlas.isDirty) {
-                var textures = atlas.getTextures(),
-                    i;
-                for (i = 0; i < textures.length; ++i) {
-                    if (textures[i].isDirty || !textures[i].nativeObject) {
-                        refreshTexture(textures[i], i);
-                    }
-                }
+    texture.nativeObject = nativeObject;
+  }
 
-                atlas.clearDirty();
-            }
-        };
-
-    return {
-        load : function (glContext) {
-            gl = glContext;
-            utils = glUtils(glContext);
-
-            atlas = new WebglAtlas(tilesPerTexture);
-
-            program = utils.createProgram(nodesVS, nodesFS);
-            gl.useProgram(program);
-            locations = utils.getLocations(program, ["a_vertexPos", "a_customAttributes", "u_screenSize", "u_transform", "u_sampler0", "u_sampler1", "u_sampler2", "u_sampler3", "u_tilesPerTexture"]);
-
-            gl.uniform1f(locations.tilesPerTexture, tilesPerTexture);
-
-            gl.enableVertexAttribArray(locations.vertexPos);
-            gl.enableVertexAttribArray(locations.customAttributes);
-
-            buffer = gl.createBuffer();
-        },
-
-        /**
-         * Updates position of current node in the buffer of nodes.
-         *
-         * @param idx - index of current node.
-         * @param pos - new position of the node.
-         */
-        position : function (nodeUI, pos) {
-            var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
-            nodes[idx] = pos.x - nodeUI.size;
-            nodes[idx + 1] = pos.y - nodeUI.size;
-            nodes[idx + 2] = nodeUI._offset * 4;
-
-            nodes[idx + 3] = pos.x + nodeUI.size;
-            nodes[idx + 4] = pos.y - nodeUI.size;
-            nodes[idx + 5] = nodeUI._offset * 4 + 1;
-
-            nodes[idx + 6] = pos.x - nodeUI.size;
-            nodes[idx + 7] = pos.y + nodeUI.size;
-            nodes[idx + 8] = nodeUI._offset * 4 + 2;
-
-            nodes[idx + 9] = pos.x - nodeUI.size;
-            nodes[idx + 10] = pos.y + nodeUI.size;
-            nodes[idx + 11] = nodeUI._offset * 4 + 2;
-
-            nodes[idx + 12] = pos.x + nodeUI.size;
-            nodes[idx + 13] = pos.y - nodeUI.size;
-            nodes[idx + 14] = nodeUI._offset * 4 + 1;
-
-            nodes[idx + 15] = pos.x + nodeUI.size;
-            nodes[idx + 16] = pos.y + nodeUI.size;
-            nodes[idx + 17] = nodeUI._offset * 4 + 3;
-        },
-
-        createNode : function (ui) {
-            nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
-            nodesCount += 1;
-
-            var coordinates = atlas.getCoordinates(ui.src);
-            if (coordinates) {
-                ui._offset = coordinates.offset;
-            } else {
-                ui._offset = 0;
-                // Image is not yet loaded into the atlas. Reload it:
-                atlas.load(ui.src, function (coordinates) {
-                    ui._offset = coordinates.offset;
-                });
-            }
-        },
-
-        removeNode : function (nodeUI) {
-            if (nodesCount > 0) { nodesCount -= 1; }
-
-            if (nodeUI.id < nodesCount && nodesCount > 0) {
-                if (nodeUI.src) {
-                    atlas.remove(nodeUI.src);
-                }
-
-                utils.copyArrayPart(nodes, nodeUI.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-        },
-
-        replaceProperties : function (replacedNode, newNode) {
-            newNode._offset = replacedNode._offset;
-        },
-
-        updateTransform : function (newTransform) {
-            sizeDirty = true;
-            transform = newTransform;
-        },
-
-        updateSize : function (w, h) {
-            width = w;
-            height = h;
-            sizeDirty = true;
-        },
-
-        render : function () {
-            gl.useProgram(program);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
-
-            if (sizeDirty) {
-                sizeDirty = false;
-                gl.uniformMatrix4fv(locations.transform, false, transform);
-                gl.uniform2f(locations.screenSize, width, height);
-            }
-
-            gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-            gl.vertexAttribPointer(locations.customAttributes, 1, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
-
-            ensureAtlasTextureUpdated();
-
-            gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
+  function ensureAtlasTextureUpdated() {
+    if (atlas.isDirty) {
+      var textures = atlas.getTextures(),
+        i;
+      for (i = 0; i < textures.length; ++i) {
+        if (textures[i].isDirty || !textures[i].nativeObject) {
+          refreshTexture(textures[i], i);
         }
-    };
+      }
+
+      atlas.clearDirty();
+    }
+  }
+
+  function load(glContext) {
+    gl = glContext;
+    utils = glUtils(glContext);
+
+    atlas = new WebglAtlas(tilesPerTexture);
+
+    program = utils.createProgram(nodesVS, nodesFS);
+    gl.useProgram(program);
+    locations = utils.getLocations(program, ["a_vertexPos", "a_customAttributes", "u_screenSize", "u_transform", "u_sampler0", "u_sampler1", "u_sampler2", "u_sampler3", "u_tilesPerTexture"]);
+
+    gl.uniform1f(locations.tilesPerTexture, tilesPerTexture);
+
+    gl.enableVertexAttribArray(locations.vertexPos);
+    gl.enableVertexAttribArray(locations.customAttributes);
+
+    buffer = gl.createBuffer();
+  }
+
+  function position(nodeUI, pos) {
+    var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
+    nodes[idx] = pos.x - nodeUI.size;
+    nodes[idx + 1] = pos.y - nodeUI.size;
+    nodes[idx + 2] = nodeUI._offset * 4;
+
+    nodes[idx + 3] = pos.x + nodeUI.size;
+    nodes[idx + 4] = pos.y - nodeUI.size;
+    nodes[idx + 5] = nodeUI._offset * 4 + 1;
+
+    nodes[idx + 6] = pos.x - nodeUI.size;
+    nodes[idx + 7] = pos.y + nodeUI.size;
+    nodes[idx + 8] = nodeUI._offset * 4 + 2;
+
+    nodes[idx + 9] = pos.x - nodeUI.size;
+    nodes[idx + 10] = pos.y + nodeUI.size;
+    nodes[idx + 11] = nodeUI._offset * 4 + 2;
+
+    nodes[idx + 12] = pos.x + nodeUI.size;
+    nodes[idx + 13] = pos.y - nodeUI.size;
+    nodes[idx + 14] = nodeUI._offset * 4 + 1;
+
+    nodes[idx + 15] = pos.x + nodeUI.size;
+    nodes[idx + 16] = pos.y + nodeUI.size;
+    nodes[idx + 17] = nodeUI._offset * 4 + 3;
+  }
+
+  function createNode(ui) {
+    nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
+    nodesCount += 1;
+
+    var coordinates = atlas.getCoordinates(ui.src);
+    if (coordinates) {
+      ui._offset = coordinates.offset;
+    } else {
+      ui._offset = 0;
+      // Image is not yet loaded into the atlas. Reload it:
+      atlas.load(ui.src, function(coordinates) {
+        ui._offset = coordinates.offset;
+      });
+    }
+  }
+
+  function removeNode(nodeUI) {
+    if (nodesCount > 0) {
+      nodesCount -= 1;
+    }
+
+    if (nodeUI.id < nodesCount && nodesCount > 0) {
+      if (nodeUI.src) {
+        atlas.remove(nodeUI.src);
+      }
+
+      utils.copyArrayPart(nodes, nodeUI.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+    }
+  }
+
+  function replaceProperties(replacedNode, newNode) {
+    newNode._offset = replacedNode._offset;
+  }
+
+  function updateTransform(newTransform) {
+    sizeDirty = true;
+    transform = newTransform;
+  }
+
+  function updateSize(w, h) {
+    width = w;
+    height = h;
+    sizeDirty = true;
+  }
+
+  function render() {
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, nodes, gl.DYNAMIC_DRAW);
+
+    if (sizeDirty) {
+      sizeDirty = false;
+      gl.uniformMatrix4fv(locations.transform, false, transform);
+      gl.uniform2f(locations.screenSize, width, height);
+    }
+
+    gl.vertexAttribPointer(locations.vertexPos, 2, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+    gl.vertexAttribPointer(locations.customAttributes, 1, gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 2 * 4);
+
+    ensureAtlasTextureUpdated();
+
+    gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
+  }
+}
+
+// TODO: Use glslify for shaders
+function createNodeFragmentShader() {
+  return [
+    "precision mediump float;",
+    "varying vec4 color;",
+    "varying vec3 vTextureCoord;",
+    "uniform sampler2D u_sampler0;",
+    "uniform sampler2D u_sampler1;",
+    "uniform sampler2D u_sampler2;",
+    "uniform sampler2D u_sampler3;",
+
+    "void main(void) {",
+    "   if (vTextureCoord.z == 0.) {",
+    "     gl_FragColor = texture2D(u_sampler0, vTextureCoord.xy);",
+    "   } else if (vTextureCoord.z == 1.) {",
+    "     gl_FragColor = texture2D(u_sampler1, vTextureCoord.xy);",
+    "   } else if (vTextureCoord.z == 2.) {",
+    "     gl_FragColor = texture2D(u_sampler2, vTextureCoord.xy);",
+    "   } else if (vTextureCoord.z == 3.) {",
+    "     gl_FragColor = texture2D(u_sampler3, vTextureCoord.xy);",
+    "   } else { gl_FragColor = vec4(0, 1, 0, 1); }",
+    "}"
+  ].join("\n");
+}
+
+function createNodeVertexShader() {
+  return [
+    "attribute vec2 a_vertexPos;",
+
+    "attribute float a_customAttributes;",
+    "uniform vec2 u_screenSize;",
+    "uniform mat4 u_transform;",
+    "uniform float u_tilesPerTexture;",
+    "varying vec3 vTextureCoord;",
+
+    "void main(void) {",
+    "   gl_Position = u_transform * vec4(a_vertexPos/u_screenSize, 0, 1);",
+    "float corner = mod(a_customAttributes, 4.);",
+    "float tileIndex = mod(floor(a_customAttributes / 4.), u_tilesPerTexture);",
+    "float tilesPerRow = sqrt(u_tilesPerTexture);",
+    "float tileSize = 1./tilesPerRow;",
+    "float tileColumn = mod(tileIndex, tilesPerRow);",
+    "float tileRow = floor(tileIndex/tilesPerRow);",
+
+    "if(corner == 0.0) {",
+    "  vTextureCoord.xy = vec2(0, 1);",
+    "} else if(corner == 1.0) {",
+    "  vTextureCoord.xy = vec2(1, 1);",
+    "} else if(corner == 2.0) {",
+    "  vTextureCoord.xy = vec2(0, 0);",
+    "} else {",
+    "  vTextureCoord.xy = vec2(1, 0);",
+    "}",
+
+    "vTextureCoord *= tileSize;",
+    "vTextureCoord.x += tileColumn * tileSize;",
+    "vTextureCoord.y += tileRow * tileSize;",
+    "vTextureCoord.z = floor(floor(a_customAttributes / 4.)/u_tilesPerTexture);",
+    "}"
+  ].join("\n");
 }
 
 },{"./webgl.js":54,"./webglAtlas.js":55}],58:[function(require,module,exports){
@@ -6105,221 +6165,251 @@ module.exports = webglInputEvents;
  * @param {Viva.Graph.View.webglGraphics} webglGraphics
  */
 function webglInputEvents(webglGraphics) {
-    if (webglGraphics.webglInputEvents) {
-        // Don't listen twice, if we are already attached to this graphics:
-        return webglGraphics.webglInputEvents;
+  if (webglGraphics.webglInputEvents) {
+    // Don't listen twice, if we are already attached to this graphics:
+    return webglGraphics.webglInputEvents;
+  }
+
+  var mouseCapturedNode = null,
+    mouseEnterCallback = [],
+    mouseLeaveCallback = [],
+    mouseDownCallback = [],
+    mouseUpCallback = [],
+    mouseMoveCallback = [],
+    clickCallback = [],
+    dblClickCallback = [],
+    prevSelectStart,
+    boundRect;
+
+  var root = webglGraphics.getGraphicsRoot();
+  startListen(root);
+
+  var api = {
+    mouseEnter: mouseEnter,
+    mouseLeave: mouseLeave,
+    mouseDown: mouseDown,
+    mouseUp: mouseUp,
+    mouseMove: mouseMove,
+    click: click,
+    dblClick: dblClick,
+    mouseCapture: mouseCapture,
+    releaseMouseCapture: releaseMouseCapture
+  };
+
+  // TODO I don't remember why this is needed:
+  webglGraphics.webglInputEvents = api;
+
+  return api;
+
+  function releaseMouseCapture() {
+    mouseCapturedNode = null;
+  }
+
+  function mouseCapture(node) {
+    mouseCapturedNode = node;
+  }
+
+  function dblClick(callback) {
+    if (typeof callback === 'function') {
+      dblClickCallback.push(callback);
+    }
+    return api;
+  }
+
+  function click(callback) {
+    if (typeof callback === 'function') {
+      clickCallback.push(callback);
+    }
+    return api;
+  }
+
+  function mouseMove(callback) {
+    if (typeof callback === 'function') {
+      mouseMoveCallback.push(callback);
+    }
+    return api;
+  }
+
+  function mouseUp(callback) {
+    if (typeof callback === 'function') {
+      mouseUpCallback.push(callback);
+    }
+    return api;
+  }
+
+  function mouseDown(callback) {
+    if (typeof callback === 'function') {
+      mouseDownCallback.push(callback);
+    }
+    return api;
+  }
+
+  function mouseLeave(callback) {
+    if (typeof callback === 'function') {
+      mouseLeaveCallback.push(callback);
+    }
+    return api;
+  }
+
+  function mouseEnter(callback) {
+    if (typeof callback === 'function') {
+      mouseEnterCallback.push(callback);
+    }
+    return api;
+  }
+
+  function preciseCheck(nodeUI, x, y) {
+    if (nodeUI && nodeUI.size) {
+      var pos = nodeUI.position,
+        half = nodeUI.size;
+
+      return pos.x - half < x && x < pos.x + half &&
+        pos.y - half < y && y < pos.y + half;
     }
 
-    var preciseCheck = function (nodeUI, x, y) {
-            if (nodeUI && nodeUI.size) {
-                var pos = nodeUI.position,
-                    half = nodeUI.size;
+    return true;
+  }
 
-                return pos.x - half < x && x < pos.x + half &&
-                       pos.y - half < y && y < pos.y + half;
-            }
+  function getNodeAtClientPos(pos) {
+    return webglGraphics.getNodeAtClientPos(pos, preciseCheck);
+  }
 
-            return true;
-        },
-        getNodeAtClientPos = function (pos) {
-            return webglGraphics.getNodeAtClientPos(pos, preciseCheck);
-        },
-        mouseCapturedNode = null,
+  function stopPropagation(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    } else {
+      e.cancelBubble = true;
+    }
+  }
 
-        mouseEnterCallback = [],
-        mouseLeaveCallback = [],
-        mouseDownCallback = [],
-        mouseUpCallback = [],
-        mouseMoveCallback = [],
-        clickCallback = [],
-        dblClickCallback = [],
-        prevSelectStart,
-        boundRect,
+  function handleDisabledEvent(e) {
+    stopPropagation(e);
+    return false;
+  }
 
-        stopPropagation = function (e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            } else {
-                e.cancelBubble = true;
-            }
-        },
+  function invoke(callbacksChain, args) {
+    var i, stopPropagation;
+    for (i = 0; i < callbacksChain.length; i += 1) {
+      stopPropagation = callbacksChain[i].apply(undefined, args);
+      if (stopPropagation) {
+        return true;
+      }
+    }
+  }
 
-        handleDisabledEvent = function (e) {
-            stopPropagation(e);
-            return false;
-        },
+  function startListen(root) {
+    var pos = {
+        x: 0,
+        y: 0
+      },
+      lastFound = null,
+      lastUpdate = 1,
+      lastClickTime = +new Date(),
 
-        invoke = function (callbacksChain, args) {
-            var i, stopPropagation;
-            for (i = 0; i < callbacksChain.length; i += 1) {
-                stopPropagation = callbacksChain[i].apply(undefined, args);
-                if (stopPropagation) { return true; }
-            }
-        },
+      handleMouseMove = function(e) {
+        invoke(mouseMoveCallback, [lastFound, e]);
+        pos.x = e.clientX;
+        pos.y = e.clientY;
+      },
 
-        startListen = function (root) {
-            var pos = {x : 0, y : 0},
-                lastFound = null,
-                lastUpdate = 1,
-                lastClickTime = +new Date(),
+      handleMouseUp = function() {
+        documentEvents.off('mousemove', handleMouseMove);
+        documentEvents.off('mouseup', handleMouseUp);
+      },
 
-                handleMouseMove = function (e) {
-                    invoke(mouseMoveCallback, [lastFound, e]);
-                    pos.x = e.clientX;
-                    pos.y = e.clientY;
-                },
+      updateBoundRect = function() {
+        boundRect = root.getBoundingClientRect();
+      };
 
-                handleMouseUp = function () {
-                    documentEvents.off('mousemove', handleMouseMove);
-                    documentEvents.off('mouseup', handleMouseUp);
-                },
+    window.addEventListener('resize', updateBoundRect);
+    updateBoundRect();
 
-                updateBoundRect = function () {
-                    boundRect = root.getBoundingClientRect();
-                };
-
-            window.addEventListener('resize', updateBoundRect);
-            updateBoundRect();
-
-            // mouse move inside container serves only to track mouse enter/leave events.
-            root.addEventListener('mousemove',
-                function (e) {
-                    if (mouseCapturedNode) {
-                        return;
-                    }
-                    if (lastUpdate++ % 7 === 0) {
-                        // since there is no bullet proof method to detect resize
-                        // event, we preemptively update the bounding rectangle
-                        updateBoundRect();
-                        lastUpdate = 1;
-                    }
-                    var cancelBubble = false,
-                        node;
-
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-
-                    node = getNodeAtClientPos(pos);
-
-                    if (node && lastFound !== node) {
-                        lastFound = node;
-                        cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
-                    } else if (node === null && lastFound !== node) {
-                        cancelBubble = cancelBubble || invoke(mouseLeaveCallback, [lastFound]);
-                        lastFound = null;
-                    }
-
-                    if (cancelBubble) { stopPropagation(e); }
-                });
-
-            root.addEventListener('mousedown',
-                function (e) {
-                    var cancelBubble = false,
-                        args;
-                    updateBoundRect();
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-
-                    args = [getNodeAtClientPos(pos), e];
-                    if (args[0]) {
-                        cancelBubble = invoke(mouseDownCallback, args);
-                        // we clicked on a node. Following drag should be handled on document events:
-                        documentEvents.on('mousemove', handleMouseMove);
-                        documentEvents.on('mouseup', handleMouseUp);
-
-                        prevSelectStart = window.document.onselectstart;
-
-                        window.document.onselectstart = handleDisabledEvent;
-
-                        lastFound = args[0];
-                    } else {
-                        lastFound = null;
-                    }
-                    if (cancelBubble) { stopPropagation(e); }
-                });
-
-            root.addEventListener('mouseup',
-                function (e) {
-                    var clickTime = +new Date(),
-                        args;
-
-                    pos.x = e.clientX - boundRect.left;
-                    pos.y = e.clientY - boundRect.top;
-
-                    args = [getNodeAtClientPos(pos), e];
-                    if (args[0]) {
-                        window.document.onselectstart = prevSelectStart;
-
-                        if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
-                            invoke(dblClickCallback, args);
-                        } else {
-                            invoke(clickCallback, args);
-                        }
-                        lastClickTime = clickTime;
-
-                        if (invoke(mouseUpCallback, args)) {
-                            stopPropagation(e);
-                        }
-                    }
-                });
-        };
-
-    // webgl may not be initialized at this point. Pass callback
-    // to start listen after graphics root is ready.
-    webglGraphics.getGraphicsRoot(startListen);
-
-    webglGraphics.webglInputEvents = {
-        mouseEnter : function (callback) {
-            if (typeof callback === 'function') {
-                mouseEnterCallback.push(callback);
-            }
-            return this;
-        },
-        mouseLeave : function (callback) {
-            if (typeof callback === 'function') {
-                mouseLeaveCallback.push(callback);
-            }
-            return this;
-        },
-        mouseDown : function (callback) {
-            if (typeof callback === 'function') {
-                mouseDownCallback.push(callback);
-            }
-            return this;
-        },
-        mouseUp : function (callback) {
-            if (typeof callback === 'function') {
-                mouseUpCallback.push(callback);
-            }
-            return this;
-        },
-        mouseMove : function (callback) {
-            if (typeof callback === 'function') {
-                mouseMoveCallback.push(callback);
-            }
-            return this;
-        },
-        click : function (callback) {
-            if (typeof callback === 'function') {
-                clickCallback.push(callback);
-            }
-            return this;
-        },
-        dblClick : function (callback) {
-            if (typeof callback === 'function') {
-                dblClickCallback.push(callback);
-            }
-            return this;
-        },
-        mouseCapture : function (node) {
-            mouseCapturedNode = node;
-        },
-        releaseMouseCapture : function () {
-            mouseCapturedNode = null;
+    // mouse move inside container serves only to track mouse enter/leave events.
+    root.addEventListener('mousemove',
+      function(e) {
+        if (mouseCapturedNode) {
+          return;
         }
-    };
+        if (lastUpdate++ % 7 === 0) {
+          // since there is no bullet proof method to detect resize
+          // event, we preemptively update the bounding rectangle
+          updateBoundRect();
+          lastUpdate = 1;
+        }
+        var cancelBubble = false,
+          node;
 
-    return webglGraphics.webglInputEvents;
+        pos.x = e.clientX - boundRect.left;
+        pos.y = e.clientY - boundRect.top;
+
+        node = getNodeAtClientPos(pos);
+
+        if (node && lastFound !== node) {
+          lastFound = node;
+          cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
+        } else if (node === null && lastFound !== node) {
+          cancelBubble = cancelBubble || invoke(mouseLeaveCallback, [lastFound]);
+          lastFound = null;
+        }
+
+        if (cancelBubble) {
+          stopPropagation(e);
+        }
+      });
+
+    root.addEventListener('mousedown',
+      function(e) {
+        var cancelBubble = false,
+          args;
+        updateBoundRect();
+        pos.x = e.clientX - boundRect.left;
+        pos.y = e.clientY - boundRect.top;
+
+        args = [getNodeAtClientPos(pos), e];
+        if (args[0]) {
+          cancelBubble = invoke(mouseDownCallback, args);
+          // we clicked on a node. Following drag should be handled on document events:
+          documentEvents.on('mousemove', handleMouseMove);
+          documentEvents.on('mouseup', handleMouseUp);
+
+          prevSelectStart = window.document.onselectstart;
+
+          window.document.onselectstart = handleDisabledEvent;
+
+          lastFound = args[0];
+        } else {
+          lastFound = null;
+        }
+        if (cancelBubble) {
+          stopPropagation(e);
+        }
+      });
+
+    root.addEventListener('mouseup',
+      function(e) {
+        var clickTime = +new Date(),
+          args;
+
+        pos.x = e.clientX - boundRect.left;
+        pos.y = e.clientY - boundRect.top;
+
+        args = [getNodeAtClientPos(pos), e];
+        if (args[0]) {
+          window.document.onselectstart = prevSelectStart;
+
+          if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
+            invoke(dblClickCallback, args);
+          } else {
+            invoke(clickCallback, args);
+          }
+          lastClickTime = clickTime;
+
+          if (invoke(mouseUpCallback, args)) {
+            stopPropagation(e);
+          }
+        }
+      });
+  }
 }
 
 },{"../Utils/documentEvents.js":41}],59:[function(require,module,exports){
@@ -6517,136 +6607,153 @@ module.exports = webglNodeProgram;
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
 function webglNodeProgram() {
-    var ATTRIBUTES_PER_PRIMITIVE = 4, // Primitive is point, x, y, size, color
-        // x, y, z - floats, color = uint.
-        BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
-        nodesFS = [
-            'precision mediump float;',
-            'varying vec4 color;',
+  var ATTRIBUTES_PER_PRIMITIVE = 4; // Primitive is point, x, y, size, color
+  // x, y, z - floats, color = uint.
+  var BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT;
+  var nodesFS = [
+    'precision mediump float;',
+    'varying vec4 color;',
 
-            'void main(void) {',
-            '   gl_FragColor = color;',
-            '}'
-        ].join('\n'),
-        nodesVS = [
-            'attribute vec3 a_vertexPos;',
-            'attribute vec4 a_color;',
-            'uniform vec2 u_screenSize;',
-            'uniform mat4 u_transform;',
-            'varying vec4 color;',
+    'void main(void) {',
+    '   gl_FragColor = color;',
+    '}'
+  ].join('\n');
+  var nodesVS = [
+    'attribute vec3 a_vertexPos;',
+    'attribute vec4 a_color;',
+    'uniform vec2 u_screenSize;',
+    'uniform mat4 u_transform;',
+    'varying vec4 color;',
 
-            'void main(void) {',
-            '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
-            '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
-            '   color = a_color.abgr;',
-            '}'
-        ].join('\n'),
+    'void main(void) {',
+    '   gl_Position = u_transform * vec4(a_vertexPos.xy/u_screenSize, 0, 1);',
+    '   gl_PointSize = a_vertexPos.z * u_transform[0][0];',
+    '   color = a_color.abgr;',
+    '}'
+  ].join('\n');
 
-        program,
-        gl,
-        buffer,
-        locations,
-        utils,
-        storage = new ArrayBuffer(16 * BYTES_PER_NODE),
-        positions = new Float32Array(storage),
-        colors = new Uint32Array(storage),
-        nodesCount = 0,
-        width,
-        height,
-        transform,
-        sizeDirty,
+  var program;
+  var gl;
+  var buffer;
+  var locations;
+  var utils;
+  var storage = new ArrayBuffer(16 * BYTES_PER_NODE);
+  var positions = new Float32Array(storage);
+  var colors = new Uint32Array(storage);
+  var nodesCount = 0;
+  var width;
+  var height;
+  var transform;
+  var sizeDirty;
 
-        ensureEnoughStorage = function () {
-            if ((nodesCount + 1) * BYTES_PER_NODE >= storage.byteLength) {
-                // Every time we run out of space create new array twice bigger.
-                // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
-                    extendedPositions = new Float32Array(extendedStorage),
-                    extendedColors = new Uint32Array(extendedStorage);
+  return {
+    load: load,
 
-                extendedColors.set(colors); // should be enough to copy just one view.
-                positions = extendedPositions;
-                colors = extendedColors;
-                storage = extendedStorage;
-            }
-        };
+    /**
+     * Updates position of node in the buffer of nodes.
+     *
+     * @param idx - index of current node.
+     * @param pos - new position of the node.
+     */
+    position: position,
 
-    return {
-        load : function (glContext) {
-            gl = glContext;
-            utils = glUtils(glContext);
+    updateTransform: updateTransform,
 
-            program = utils.createProgram(nodesVS, nodesFS);
-            gl.useProgram(program);
-            locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
+    updateSize: updateSize,
 
-            gl.enableVertexAttribArray(locations.vertexPos);
-            gl.enableVertexAttribArray(locations.color);
+    removeNode: removeNode,
 
-            buffer = gl.createBuffer();
-        },
+    createNode: createNode,
 
-        /**
-         * Updates position of node in the buffer of nodes.
-         *
-         * @param idx - index of current node.
-         * @param pos - new position of the node.
-         */
-        position : function (nodeUI, pos) {
-            var idx = nodeUI.id;
+    replaceProperties: replaceProperties,
 
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
-            positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
+    render: render
+  };
 
-            colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;
-        },
+  function ensureEnoughStorage() {
+    if ((nodesCount + 1) * BYTES_PER_NODE >= storage.byteLength) {
+      // Every time we run out of space create new array twice bigger.
+      // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
+      var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+        extendedPositions = new Float32Array(extendedStorage),
+        extendedColors = new Uint32Array(extendedStorage);
 
-        updateTransform : function (newTransform) {
-            sizeDirty = true;
-            transform = newTransform;
-        },
+      extendedColors.set(colors); // should be enough to copy just one view.
+      positions = extendedPositions;
+      colors = extendedColors;
+      storage = extendedStorage;
+    }
+  }
 
-        updateSize : function (w, h) {
-            width = w;
-            height = h;
-            sizeDirty = true;
-        },
+  function load(glContext) {
+    gl = glContext;
+    utils = glUtils(glContext);
 
-        removeNode : function (node) {
-            if (nodesCount > 0) { nodesCount -= 1; }
+    program = utils.createProgram(nodesVS, nodesFS);
+    gl.useProgram(program);
+    locations = utils.getLocations(program, ['a_vertexPos', 'a_color', 'u_screenSize', 'u_transform']);
 
-            if (node.id < nodesCount && nodesCount > 0) {
-                // we can use colors as a 'view' into array array buffer.
-                utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
-            }
-        },
-/*jshint unused:false */
-        createNode : function (node) {
-            ensureEnoughStorage();
-            nodesCount += 1;
-        },
+    gl.enableVertexAttribArray(locations.vertexPos);
+    gl.enableVertexAttribArray(locations.color);
 
-        replaceProperties : function (replacedNode, newNode) {},
-/*jshint unused:true */
+    buffer = gl.createBuffer();
+  }
 
-        render : function () {
-            gl.useProgram(program);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
+  function position(nodeUI, pos) {
+    var idx = nodeUI.id;
 
-            if (sizeDirty) {
-                sizeDirty = false;
-                gl.uniformMatrix4fv(locations.transform, false, transform);
-                gl.uniform2f(locations.screenSize, width, height);
-            }
+    positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
+    positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+    positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
 
-            gl.vertexAttribPointer(locations.vertexPos, 3, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
-            gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 3 * 4);
+    colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;
+  }
 
-            gl.drawArrays(gl.POINTS, 0, nodesCount);
-        }
-    };
+  function updateTransform(newTransform) {
+    sizeDirty = true;
+    transform = newTransform;
+  }
+
+  function updateSize(w, h) {
+    width = w;
+    height = h;
+    sizeDirty = true;
+  }
+
+  function removeNode(node) {
+      if (nodesCount > 0) {
+        nodesCount -= 1;
+      }
+
+      if (node.id < nodesCount && nodesCount > 0) {
+        // we can use colors as a 'view' into array array buffer.
+        utils.copyArrayPart(colors, node.id * ATTRIBUTES_PER_PRIMITIVE, nodesCount * ATTRIBUTES_PER_PRIMITIVE, ATTRIBUTES_PER_PRIMITIVE);
+      }
+    }
+
+  function createNode() {
+    ensureEnoughStorage();
+    nodesCount += 1;
+  }
+
+  function replaceProperties(/* replacedNode, newNode */) {}
+
+  function render() {
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, storage, gl.DYNAMIC_DRAW);
+
+    if (sizeDirty) {
+      sizeDirty = false;
+      gl.uniformMatrix4fv(locations.transform, false, transform);
+      gl.uniform2f(locations.screenSize, width, height);
+    }
+
+    gl.vertexAttribPointer(locations.vertexPos, 3, gl.FLOAT, false, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 0);
+    gl.vertexAttribPointer(locations.color, 4, gl.UNSIGNED_BYTE, true, ATTRIBUTES_PER_PRIMITIVE * Float32Array.BYTES_PER_ELEMENT, 3 * 4);
+
+    gl.drawArrays(gl.POINTS, 0, nodesCount);
+  }
 }
 
 },{"./webgl.js":54}],62:[function(require,module,exports){
@@ -6676,7 +6783,7 @@ function webglSquare(size, color) {
 }
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
-module.exports = '0.7.2';
+module.exports = '0.7.3';
 
 },{}]},{},[1])(1)
 });
