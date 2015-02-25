@@ -1421,10 +1421,10 @@ module.exports = function(options) {
       // To avoid pressure on GC we reuse nodes.
       var node = nodesCache[currentInCache];
       if (node) {
-        node.quads[0] = null;
-        node.quads[1] = null;
-        node.quads[2] = null;
-        node.quads[3] = null;
+        node.quad0 = null;
+        node.quad1 = null;
+        node.quad2 = null;
+        node.quad3 = null;
         node.body = null;
         node.mass = node.massX = node.massY = 0;
         node.left = node.right = node.top = node.bottom = 0;
@@ -1478,7 +1478,7 @@ module.exports = function(options) {
             bottom = bottom + (bottom - oldTop);
           }
 
-          var child = node.quads[quadIdx];
+          var child = getChild(node, quadIdx);
           if (!child) {
             // The node is internal but this quadrant is not taken. Add
             // subnode to it.
@@ -1489,7 +1489,7 @@ module.exports = function(options) {
             child.bottom = bottom;
             child.body = body;
 
-            node.quads[quadIdx] = child;
+            setChild(node, quadIdx, child);
           } else {
             // continue searching in this quadrant.
             insertStack.push(child, body);
@@ -1550,10 +1550,8 @@ module.exports = function(options) {
 
         queueLength -= 1;
         shiftIdx += 1;
-        // technically there should be external "if (body !== sourceBody) {"
-        // but in practice it gives slightghly worse performance, and does not
-        // have impact on layout correctness
-        if (body && body !== sourceBody) {
+        var differentBody = (body !== sourceBody);
+        if (body && differentBody) {
           // If the current node is a leaf node (and it is not source body),
           // calculate the force exerted by the current node on body, and add this
           // amount to body's net force.
@@ -1573,7 +1571,7 @@ module.exports = function(options) {
           v = gravity * body.mass * sourceBody.mass / (r * r * r);
           fx += v * dx;
           fy += v * dy;
-        } else {
+        } else if (differentBody) {
           // Otherwise, calculate the ratio s / r,  where s is the width of the region
           // represented by the internal node, and r is the distance between the body
           // and the node's center-of-mass
@@ -1601,23 +1599,23 @@ module.exports = function(options) {
             // Otherwise, run the procedure recursively on each of the current node's children.
 
             // I intentionally unfolded this loop, to save several CPU cycles.
-            if (node.quads[0]) {
-              queue[pushIdx] = node.quads[0];
+            if (node.quad0) {
+              queue[pushIdx] = node.quad0;
               queueLength += 1;
               pushIdx += 1;
             }
-            if (node.quads[1]) {
-              queue[pushIdx] = node.quads[1];
+            if (node.quad1) {
+              queue[pushIdx] = node.quad1;
               queueLength += 1;
               pushIdx += 1;
             }
-            if (node.quads[2]) {
-              queue[pushIdx] = node.quads[2];
+            if (node.quad2) {
+              queue[pushIdx] = node.quad2;
               queueLength += 1;
               pushIdx += 1;
             }
-            if (node.quads[3]) {
-              queue[pushIdx] = node.quads[3];
+            if (node.quad3) {
+              queue[pushIdx] = node.quad3;
               queueLength += 1;
               pushIdx += 1;
             }
@@ -1704,6 +1702,21 @@ module.exports = function(options) {
   };
 };
 
+function getChild(node, idx) {
+  if (idx === 0) return node.quad0;
+  if (idx === 1) return node.quad1;
+  if (idx === 2) return node.quad2;
+  if (idx === 3) return node.quad3;
+  return null;
+}
+
+function setChild(node, idx, child) {
+  if (idx === 0) node.quad0 = child;
+  else if (idx === 1) node.quad1 = child;
+  else if (idx === 2) node.quad2 = child;
+  else if (idx === 3) node.quad3 = child;
+}
+
 },{"./insertStack":18,"./isSamePosition":19,"./node":20,"ngraph.random":26}],18:[function(require,module,exports){
 module.exports = InsertStack;
 
@@ -1769,7 +1782,10 @@ module.exports = function Node() {
   // 0 | 1
   // -----
   // 2 | 3
-  this.quads = [];
+  this.quad0 = null;
+  this.quad1 = null;
+  this.quad2 = null;
+  this.quad3 = null;
 
   // Total mass of current node
   this.mass = 0;
@@ -6783,7 +6799,7 @@ function webglSquare(size, color) {
 }
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
-module.exports = '0.7.3';
+module.exports = '0.7.4';
 
 },{}]},{},[1])(1)
 });

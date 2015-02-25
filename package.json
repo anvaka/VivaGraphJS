@@ -35,7 +35,7 @@
     "gintersect": "0.1.0",
     "ngraph.centrality": "0.1.1",
     "ngraph.events": "0.0.3",
-    "ngraph.forcelayout": "0.0.15",
+    "ngraph.forcelayout": "0.0.16",
     "ngraph.fromjson": "0.1.4",
     "ngraph.generators": "0.0.13",
     "ngraph.graph": "0.0.8",
