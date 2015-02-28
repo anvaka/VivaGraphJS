@@ -6799,7 +6799,8 @@ function webglSquare(size, color) {
 }
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
-module.exports = '0.7.4';
+// todo: this should be generated at build time.
+module.exports = '0.7.5';
 
 },{}]},{},[1])(1)
 });
