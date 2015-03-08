@@ -3267,41 +3267,43 @@ module.exports = domInputManager;
 var dragndrop = require('./dragndrop.js');
 
 function domInputManager(graph, graphics) {
-    var nodeEvents = {};
-    return {
-        /**
-         * Called by renderer to listen to drag-n-drop events from node. E.g. for SVG
-         * graphics we may listen to DOM events, whereas for WebGL the graphics
-         * should provide custom eventing mechanism.
-         *
-         * @param node - to be monitored.
-         * @param handlers - object with set of three callbacks:
-         *   onStart: function(),
-         *   onDrag: function(e, offset),
-         *   onStop: function()
-         */
-        bindDragNDrop : function (node, handlers) {
-            var events;
-            if (handlers) {
-                var nodeUI = graphics.getNodeUI(node.id);
-                events = dragndrop(nodeUI);
-                if (typeof handlers.onStart === 'function') {
-                    events.onStart(handlers.onStart);
-                }
-                if (typeof handlers.onDrag === 'function') {
-                    events.onDrag(handlers.onDrag);
-                }
-                if (typeof handlers.onStop === 'function') {
-                    events.onStop(handlers.onStop);
-                }
+  var nodeEvents = {};
+  return {
+    /**
+     * Called by renderer to listen to drag-n-drop events from node. E.g. for SVG
+     * graphics we may listen to DOM events, whereas for WebGL the graphics
+     * should provide custom eventing mechanism.
+     *
+     * @param node - to be monitored.
+     * @param handlers - object with set of three callbacks:
+     *   onStart: function(),
+     *   onDrag: function(e, offset),
+     *   onStop: function()
+     */
+    bindDragNDrop: bindDragNDrop
+  };
 
-                nodeEvents[node.id] = events;
-            } else if (( events = nodeEvents[node.id] )) {
-                events.release();
-                delete nodeEvents[node.id];
-            }
-        }
-    };
+  function bindDragNDrop(node, handlers) {
+    var events;
+    if (handlers) {
+      var nodeUI = graphics.getNodeUI(node.id);
+      events = dragndrop(nodeUI);
+      if (typeof handlers.onStart === 'function') {
+        events.onStart(handlers.onStart);
+      }
+      if (typeof handlers.onDrag === 'function') {
+        events.onDrag(handlers.onDrag);
+      }
+      if (typeof handlers.onStop === 'function') {
+        events.onStop(handlers.onStop);
+      }
+
+      nodeEvents[node.id] = events;
+    } else if ((events = nodeEvents[node.id])) {
+      events.release();
+      delete nodeEvents[node.id];
+    }
+  }
 }
 
 },{"./dragndrop.js":36}],36:[function(require,module,exports){
@@ -4513,7 +4515,7 @@ function renderer(graph, settings) {
             releaseGraphEvents();
             releaseContainerDragManager();
             windowEvents.off('resize', onWindowResized);
-            publicEvents.removeAllListeners();
+            publicEvents.off();
             animationTimer.stop();
 
             graph.forEachLink(function (link) {
@@ -6800,7 +6802,7 @@ function webglSquare(size, color) {
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
 // todo: this should be generated at build time.
-module.exports = '0.7.5';
+module.exports = '0.7.6';
 
 },{}]},{},[1])(1)
 });

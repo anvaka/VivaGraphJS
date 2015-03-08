@@ -355,7 +355,7 @@ function renderer(graph, settings) {
             releaseGraphEvents();
             releaseContainerDragManager();
             windowEvents.off('resize', onWindowResized);
-            publicEvents.removeAllListeners();
+            publicEvents.off();
             animationTimer.stop();
 
             graph.forEachLink(function (link) {

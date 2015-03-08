@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>VivaGraph remove graph</title>
+  <script src="../../../dist/vivagraph.js"></script>
+
+  <script type='text/javascript'></script>
+  <script src="index.js"></script>
+  <style type='text/css'>
+    body,
+    svg {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      overflow: hidden;
+      margin: 0px;
+    }
+    .controlPanel {
+      position: absolute;
+      z-index: 1;
+    }
+    .controlPanel a {
+      display: inline-block;
+      margin: 8px;
+    }
+  </style>
+</head>
+
+<body onload="createNewGraph()">
+<div class="controlPanel">
+  <a href="#" onclick='removeGraph()'>Remove graph</a>
+  <a href="#" onclick='createNewGraph()'>Create a new graph</a>
+</div>
+</body>
+
+</html>
