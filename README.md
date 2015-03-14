@@ -13,7 +13,7 @@ Some examples of library usage in the real projects:
 * [YouTube Visualization](http://www.yasiv.com/youtube#/Search?q=write%20in%20c) Shows related videos from YouTube. SVG based.
 * [Facebook Visualization](http://www.yasiv.com/facebook) friendship visualization on Facebook. WebGL based.
 * [Graph Viewer](http://www.yasiv.com/graphs#Bai/rw496) visualization of sparse matrices collection of the University of Florida. WebGL based.
-* [Vkontakte Visualization](http://www.yasiv.com/vk) friendship visualization of the largest social network in Russia [vk.com](vk.com). WebGL based.
+* [Vkontakte Visualization](http://www.yasiv.com/vk) friendship visualization of the largest social network in Russia [vk.com](https://vk.com). WebGL based.
 
 To start using the library include `vivagraph.js` script from the [dist](https://github.com/anvaka/VivaGraphJS/tree/master/dist)
 folder. The following code is the minimum required to render a graph with two nodes and one edge:
