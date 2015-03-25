@@ -190,11 +190,11 @@ function renderer(graph, settings) {
         },
 
         listenNodeEvents = function (node) {
-            var wasPinned = false;
-            var nodeInteractive = (typeof interactive === 'string' && interactive.indexOf('node') !== -1) || interactive;
-            if (!nodeInteractive) {
+            if (!isInteractive('node')) {
                 return;
             }
+
+            var wasPinned = false;
 
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
@@ -325,8 +325,7 @@ function renderer(graph, settings) {
             windowEvents.on('resize', onWindowResized);
 
             releaseContainerDragManager();
-            var canDrag = (typeof interactive === 'string' && interactive.indexOf('drag') !== -1) || interactive;
-            if (canDrag) {
+            if (isInteractive('drag')) {
                 containerDrag = dragndrop(container);
                 containerDrag.onDrag(function (e, offset) {
                     viewPortOffset.x += offset.x;
@@ -337,8 +336,7 @@ function renderer(graph, settings) {
                 });
             }
 
-            var canScroll = (typeof interactive === 'string' && interactive.indexOf('scroll') !== -1) || interactive;
-            if (canScroll) {
+            if (isInteractive('scroll')) {
                 containerDrag.onScroll(function (e, scaleOffset, scrollPoint) {
                     scale(scaleOffset < 0, scrollPoint);
                 });
@@ -460,4 +458,17 @@ function renderer(graph, settings) {
             return this;
         }
     };
+
+    /**
+     * Checks whether given interaction (node/scroll) is enabled
+     */
+    function isInteractive(interactionName) {
+        if (typeof interactive === 'string') {
+            return interactive.indexOf(interactionName) >= 0;
+        } else if (typeof interactive === 'boolean') {
+            return interactive;
+        }
+        return true; // default setting
+    }
 }
+

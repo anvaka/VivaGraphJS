@@ -1,0 +1,25 @@
+body,
+html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: black;
+}
+.graph-container {
+    width: 480px;
+    height: 640px;
+    margin: 0 auto;
+    border: 1px solid gray;
+}
+#message {
+    color: deepskyblue;
+    font-size: 24px;
+    position: absolute;
+    max-width: 320px;
+    display: block;
+    font-family: monospace;
+    color: #999;
+    top: 10px;
+    left: 10px;
+}
