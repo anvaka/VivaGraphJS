@@ -1,5 +1,9 @@
+v0.7.7
+  date Mar 24, 2015
+	  - Upgraded to latest `ngraph` modules
+		- Bug fixes
 v0.7.0
-  date Feb 4, 2014
+  date Feb 4, 2015
 	  - All files are now CommonJS Modules
 		- `Viva.Graph.svg` is replaced with npm module `simplesvg`
 		- `Viva.Graph.graph` is replaced with `ngraph.graph`

@@ -2203,12 +2203,22 @@ module.exports = createGraph;
 
 var eventify = require('ngraph.events');
 
-function createGraph() {
+/**
+ * Creates a new graph
+ */
+function createGraph(options) {
   // Graph structure is maintained as dictionary of nodes
   // and array of links. Each node has 'links' property which
   // hold all links related to that node. And general links
   // array is used to speed up all links enumeration. This is inefficient
   // in terms of memory, but simplifies coding.
+  options = options || {};
+  if (options.uniqueLinkId === undefined) {
+    // Request each link id to be unique between same nodes. This negatively
+    // impacts `addLink()` performance (O(n), where n - number of edges of each
+    // vertex), but makes operations with multigraphs more accessible.
+    options.uniqueLinkId = true;
+  }
 
   var nodes = typeof Object.create === 'function' ? Object.create(null) : {},
     links = [],
@@ -2218,7 +2228,7 @@ function createGraph() {
     suspendEvents = 0,
 
     forEachNode = createNodeIterator(),
-    linkConnectionSymbol = '👉 ',
+    createLink = options.uniqueLinkId ? createUniqueLink : createSingleLink,
 
     // Our graph API provides means to listen to graph changes. Users can subscribe
     // to be notified about changes in the graph by using `on` method. However
@@ -2244,7 +2254,7 @@ function createGraph() {
      * its data is extended with whatever comes in 'data' argument.
      *
      * @param nodeId the node's identifier. A string or number is preferred.
-     *   note: Node id should not contain 'linkConnectionSymbol'. This will break link identifiers
+     *   note: Node id should not contain ''. This will break link identifiers
      * @param [data] additional data for the node being added. If node already
      *   exists its data object is augmented with the new one.
      *
@@ -2440,7 +2450,7 @@ function createGraph() {
 
     var node = getNode(nodeId);
     if (!node) {
-      // TODO: Should I check for linkConnectionSymbol here?
+      // TODO: Should I check for 👉  here?
       node = new Node(nodeId);
       nodesCount++;
       recordNodeChange(node, 'add');
@@ -2490,16 +2500,7 @@ function createGraph() {
     var fromNode = getNode(fromId) || addNode(fromId);
     var toNode = getNode(toId) || addNode(toId);
 
-    var linkId = fromId.toString() + linkConnectionSymbol + toId.toString();
-    var isMultiEdge = multiEdges.hasOwnProperty(linkId);
-    if (isMultiEdge || getLink(fromId, toId)) {
-      if (!isMultiEdge) {
-        multiEdges[linkId] = 0;
-      }
-      linkId += '@' + (++multiEdges[linkId]);
-    }
-
-    var link = new Link(fromId, toId, data, linkId);
+    var link = createLink(fromId, toId, data);
 
     links.push(link);
 
@@ -2515,6 +2516,24 @@ function createGraph() {
     exitModification();
 
     return link;
+  }
+
+  function createSingleLink(fromId, toId, data) {
+    var linkId = fromId.toString() + toId.toString();
+    return new Link(fromId, toId, data, linkId);
+  }
+
+  function createUniqueLink(fromId, toId, data) {
+    var linkId = fromId.toString() + '👉 ' + toId.toString();
+    var isMultiEdge = multiEdges.hasOwnProperty(linkId);
+    if (isMultiEdge || getLink(fromId, toId)) {
+      if (!isMultiEdge) {
+        multiEdges[linkId] = 0;
+      }
+      linkId += '@' + (++multiEdges[linkId]);
+    }
+
+    return new Link(fromId, toId, data, linkId);
   }
 
   function getLinks(nodeId) {
@@ -2560,7 +2579,7 @@ function createGraph() {
   }
 
   function getLink(fromNodeId, toNodeId) {
-    // TODO: Use adjacency matrix to speed up this operation.
+    // TODO: Use sorted links to speed this up
     var node = getNode(fromNodeId),
       i;
     if (!node) {
@@ -2595,26 +2614,38 @@ function createGraph() {
   }
 
   function forEachLinkedNode(nodeId, callback, oriented) {
-    var node = getNode(nodeId),
-      i,
-      link,
-      linkedNodeId;
+    var node = getNode(nodeId);
 
     if (node && node.links && typeof callback === 'function') {
-      // Extracted orientation check out of the loop to increase performance
       if (oriented) {
-        for (i = 0; i < node.links.length; ++i) {
-          link = node.links[i];
-          if (link.fromId === nodeId) {
-            callback(nodes[link.toId], link);
-          }
-        }
+        return forEachOrientedLink(node.links, nodeId, callback);
       } else {
-        for (i = 0; i < node.links.length; ++i) {
-          link = node.links[i];
-          linkedNodeId = link.fromId === nodeId ? link.toId : link.fromId;
+        return forEachNonOrientedLink(node.links, nodeId, callback);
+      }
+    }
+  }
 
-          callback(nodes[linkedNodeId], link);
+  function forEachNonOrientedLink(links, nodeId, callback) {
+    var quitFast;
+    for (var i = 0; i < links.length; ++i) {
+      var link = links[i];
+      var linkedNodeId = link.fromId === nodeId ? link.toId : link.fromId;
+
+      quitFast = callback(nodes[linkedNodeId], link);
+      if (quitFast) {
+        return true; // Client does not need more iterations. Break now.
+      }
+    }
+  }
+
+  function forEachOrientedLink(links, nodeId, callback) {
+    var quitFast;
+    for (var i = 0; i < links.length; ++i) {
+      var link = links[i];
+      if (link.fromId === nodeId) {
+        quitFast = callback(nodes[link.toId], link);
+        if (quitFast) {
+          return true; // Client does not need more iterations. Break now.
         }
       }
     }
@@ -2652,7 +2683,7 @@ function createGraph() {
     var keys = Object.keys(nodes);
     for (var i = 0; i < keys.length; ++i) {
       if (callback(nodes[keys[i]])) {
-        return; // client doesn't want to proceed. Return.
+        return true; // client doesn't want to proceed. Return.
       }
     }
   }
@@ -2665,7 +2696,7 @@ function createGraph() {
 
     for (node in nodes) {
       if (callback(nodes[node])) {
-        return; // client doesn't want to proceed. Return.
+        return true; // client doesn't want to proceed. Return.
       }
     }
   }
@@ -4350,11 +4381,11 @@ function renderer(graph, settings) {
         },
 
         listenNodeEvents = function (node) {
-            var wasPinned = false;
-            var nodeInteractive = (typeof interactive === 'string' && interactive.indexOf('node') !== -1) || interactive;
-            if (!nodeInteractive) {
+            if (!isInteractive('node')) {
                 return;
             }
+
+            var wasPinned = false;
 
             // TODO: This may not be memory efficient. Consider reusing handlers object.
             inputManager.bindDragNDrop(node, {
@@ -4485,8 +4516,7 @@ function renderer(graph, settings) {
             windowEvents.on('resize', onWindowResized);
 
             releaseContainerDragManager();
-            var canDrag = (typeof interactive === 'string' && interactive.indexOf('drag') !== -1) || interactive;
-            if (canDrag) {
+            if (isInteractive('drag')) {
                 containerDrag = dragndrop(container);
                 containerDrag.onDrag(function (e, offset) {
                     viewPortOffset.x += offset.x;
@@ -4497,8 +4527,7 @@ function renderer(graph, settings) {
                 });
             }
 
-            var canScroll = (typeof interactive === 'string' && interactive.indexOf('scroll') !== -1) || interactive;
-            if (canScroll) {
+            if (isInteractive('scroll')) {
                 containerDrag.onScroll(function (e, scaleOffset, scrollPoint) {
                     scale(scaleOffset < 0, scrollPoint);
                 });
@@ -4620,7 +4649,20 @@ function renderer(graph, settings) {
             return this;
         }
     };
+
+    /**
+     * Checks whether given interaction (node/scroll) is enabled
+     */
+    function isInteractive(interactionName) {
+        if (typeof interactive === 'string') {
+            return interactive.indexOf(interactionName) >= 0;
+        } else if (typeof interactive === 'boolean') {
+            return interactive;
+        }
+        return true; // default setting
+    }
 }
+
 
 },{"../Input/domInputManager.js":35,"../Input/dragndrop.js":36,"../Utils/getDimensions.js":43,"../Utils/timer.js":47,"../Utils/windowEvents.js":48,"./svgGraphics.js":50,"ngraph.forcelayout":7,"ngraph.graph":24}],50:[function(require,module,exports){
 /**
@@ -6802,7 +6844,7 @@ function webglSquare(size, color) {
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
 // todo: this should be generated at build time.
-module.exports = '0.7.6';
+module.exports = '0.7.7';
 
 },{}]},{},[1])(1)
 });
