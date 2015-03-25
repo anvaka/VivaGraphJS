@@ -75,7 +75,3 @@ Viva.Graph.View.renderer(graph, {
 // or even shorter, since renderer interactive by default:
 Viva.Graph.View.renderer(graph);
 ```
-
-## Default - Viva
-``` js
-```
