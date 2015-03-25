@@ -41,7 +41,7 @@ Viva.Graph.View.renderer(graph, {
 });
 ```
 
-To allow bot node dragging and canvas dragging:
+To allow both node dragging and canvas dragging:
 
 ``` js
 Viva.Graph.View.renderer(graph, {
