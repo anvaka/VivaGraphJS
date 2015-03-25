@@ -4,6 +4,7 @@ This demo shows how to disable automatic processing of user input by VivaGraph.
 For example, if you want to just render a graph, and let users scroll your page
 this is the right place to start from.
 
+[See online demo](http://anvaka.github.io/VivaGraphJS/demos/other/input-override/)
 
 # How?
 
