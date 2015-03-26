@@ -82,300 +82,10 @@ function renderer(graph, settings) {
       offsetX: 0,
       offsetY: 0,
       scale: 1
-    };
-
-  var prepareSettings = function() {
-      container = container || window.document.body;
-      layout = layout || forceDirected(graph, forceDirected.simulator({
-        springLength: 80,
-        springCoeff: 0.0002,
-      }));
-      graphics = graphics || svgGraphics(graph, {
-        container: container
-      });
-
-      if (!settings.hasOwnProperty('renderLinks')) {
-        settings.renderLinks = true;
-      }
-
-      settings.prerender = settings.prerender || 0;
-      inputManager = (graphics.inputManager || domInputManager)(graph, graphics);
     },
+
     publicEvents = eventify({}),
-    containerDrag,
-
-    renderGraph = function() {
-      graphics.beginRender();
-
-      // todo: move this check graphics
-      if (settings.renderLinks) {
-        graphics.renderLinks();
-      }
-      graphics.renderNodes();
-      graphics.endRender();
-    },
-
-    onRenderFrame = function() {
-      isStable = layout.step() && !userInteraction;
-      renderGraph();
-
-      return !isStable;
-    },
-
-    renderIterations = function(iterationsCount) {
-      if (animationTimer) {
-        totalIterationsCount += iterationsCount;
-        return;
-      }
-
-      if (iterationsCount) {
-        totalIterationsCount += iterationsCount;
-
-        animationTimer = timer(function() {
-          return onRenderFrame();
-        }, FRAME_INTERVAL);
-      } else {
-        currentStep = 0;
-        totalIterationsCount = 0;
-        animationTimer = timer(onRenderFrame, FRAME_INTERVAL);
-      }
-    },
-
-    resetStable = function() {
-      if (isPaused) {
-        return;
-      }
-
-      isStable = false;
-      animationTimer.restart();
-    },
-
-    prerender = function() {
-      // To get good initial positions for the graph
-      // perform several prerender steps in background.
-      var i;
-      if (typeof settings.prerender === 'number' && settings.prerender > 0) {
-        for (i = 0; i < settings.prerender; i += 1) {
-          layout.step();
-        }
-      }
-    },
-
-    updateCenter = function() {
-      var graphRect = layout.getGraphRect(),
-        containerSize = getDimension(container);
-
-      viewPortOffset.x = viewPortOffset.y = 0;
-      transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
-      transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
-      graphics.graphCenterChanged(transform.offsetX, transform.offsetY);
-
-      updateCenterRequired = false;
-    },
-
-    createNodeUi = function(node) {
-      var nodePosition = layout.getNodePosition(node.id);
-      graphics.addNode(node, nodePosition);
-    },
-
-    removeNodeUi = function(node) {
-      graphics.releaseNode(node);
-    },
-
-    createLinkUi = function(link) {
-      var linkPosition = layout.getLinkPosition(link.id);
-      graphics.addLink(link, linkPosition);
-    },
-
-    removeLinkUi = function(link) {
-      graphics.releaseLink(link);
-    },
-
-    listenNodeEvents = function(node) {
-      if (!isInteractive('node')) {
-        return;
-      }
-
-      var wasPinned = false;
-
-      // TODO: This may not be memory efficient. Consider reusing handlers object.
-      inputManager.bindDragNDrop(node, {
-        onStart: function() {
-          wasPinned = layout.isNodePinned(node);
-          layout.pinNode(node, true);
-          userInteraction = true;
-          resetStable();
-        },
-        onDrag: function(e, offset) {
-          var oldPos = layout.getNodePosition(node.id);
-          layout.setNodePosition(node.id,
-            oldPos.x + offset.x / transform.scale,
-            oldPos.y + offset.y / transform.scale);
-
-          userInteraction = true;
-
-          renderGraph();
-        },
-        onStop: function() {
-          layout.pinNode(node, wasPinned);
-          userInteraction = false;
-        }
-      });
-    },
-
-    releaseNodeEvents = function(node) {
-      inputManager.bindDragNDrop(node, null);
-    },
-
-    initDom = function() {
-      graphics.init(container);
-
-      graph.forEachNode(createNodeUi);
-
-      if (settings.renderLinks) {
-        graph.forEachLink(createLinkUi);
-      }
-    },
-
-    releaseDom = function() {
-      graphics.release(container);
-    },
-
-    processNodeChange = function(change) {
-      var node = change.node;
-
-      if (change.changeType === 'add') {
-        createNodeUi(node);
-        listenNodeEvents(node);
-        if (updateCenterRequired) {
-          updateCenter();
-        }
-      } else if (change.changeType === 'remove') {
-        releaseNodeEvents(node);
-        removeNodeUi(node);
-        if (graph.getNodesCount() === 0) {
-          updateCenterRequired = true; // Next time when node is added - center the graph.
-        }
-      } else if (change.changeType === 'update') {
-        releaseNodeEvents(node);
-        removeNodeUi(node);
-
-        createNodeUi(node);
-        listenNodeEvents(node);
-      }
-    },
-
-    processLinkChange = function(change) {
-      var link = change.link;
-      if (change.changeType === 'add') {
-        if (settings.renderLinks) {
-          createLinkUi(link);
-        }
-      } else if (change.changeType === 'remove') {
-        if (settings.renderLinks) {
-          removeLinkUi(link);
-        }
-      } else if (change.changeType === 'update') {
-        throw 'Update type is not implemented. TODO: Implement me!';
-      }
-    },
-
-    onGraphChanged = function(changes) {
-      var i, change;
-      for (i = 0; i < changes.length; i += 1) {
-        change = changes[i];
-        if (change.node) {
-          processNodeChange(change);
-        } else if (change.link) {
-          processLinkChange(change);
-        }
-      }
-
-      resetStable();
-    },
-
-    onWindowResized = function() {
-      updateCenter();
-      onRenderFrame();
-    },
-
-    releaseContainerDragManager = function() {
-      if (containerDrag) {
-        containerDrag.release();
-        containerDrag = null;
-      }
-    },
-
-    releaseGraphEvents = function() {
-      graph.off('changed', onGraphChanged);
-    },
-
-    scale = function(out, scrollPoint) {
-      if (!scrollPoint) {
-        var containerSize = getDimension(container);
-        scrollPoint = {
-          x: containerSize.width / 2,
-          y: containerSize.height / 2
-        };
-      }
-      var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
-      transform.scale = graphics.scale(scaleFactor, scrollPoint);
-
-      renderGraph();
-      publicEvents.fire('scale', transform.scale);
-
-      return transform.scale;
-    },
-
-    listenToEvents = function() {
-      windowEvents.on('resize', onWindowResized);
-
-      releaseContainerDragManager();
-      if (isInteractive('drag')) {
-        containerDrag = dragndrop(container);
-        containerDrag.onDrag(function(e, offset) {
-          viewPortOffset.x += offset.x;
-          viewPortOffset.y += offset.y;
-          graphics.translateRel(offset.x, offset.y);
-
-          renderGraph();
-        });
-      }
-
-      if (isInteractive('scroll')) {
-        containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
-          scale(scaleOffset < 0, scrollPoint);
-        });
-      }
-
-      graph.forEachNode(listenNodeEvents);
-
-      releaseGraphEvents();
-      graph.on('changed', onGraphChanged);
-    },
-
-    stopListenToEvents = function() {
-      rendererInitialized = false;
-      releaseGraphEvents();
-      releaseContainerDragManager();
-      windowEvents.off('resize', onWindowResized);
-      publicEvents.off();
-      animationTimer.stop();
-
-      graph.forEachLink(function(link) {
-        if (settings.renderLinks) {
-          removeLinkUi(link);
-        }
-      });
-
-      graph.forEachNode(function(node) {
-        releaseNodeEvents(node);
-        removeNodeUi(node);
-      });
-
-      layout.dispose();
-      releaseDom();
-    };
+    containerDrag;
 
   return {
     /**
@@ -477,5 +187,295 @@ function renderer(graph, settings) {
       return interactive;
     }
     return true; // default setting
+  }
+
+  function prepareSettings() {
+    container = container || window.document.body;
+    layout = layout || forceDirected(graph, forceDirected.simulator({
+      springLength: 80,
+      springCoeff: 0.0002,
+    }));
+    graphics = graphics || svgGraphics(graph, {
+      container: container
+    });
+
+    if (!settings.hasOwnProperty('renderLinks')) {
+      settings.renderLinks = true;
+    }
+
+    settings.prerender = settings.prerender || 0;
+    inputManager = (graphics.inputManager || domInputManager)(graph, graphics);
+  }
+
+  function renderGraph() {
+    graphics.beginRender();
+
+    // todo: move this check graphics
+    if (settings.renderLinks) {
+      graphics.renderLinks();
+    }
+    graphics.renderNodes();
+    graphics.endRender();
+  }
+
+  function onRenderFrame() {
+    isStable = layout.step() && !userInteraction;
+    renderGraph();
+
+    return !isStable;
+  }
+
+  function renderIterations(iterationsCount) {
+    if (animationTimer) {
+      totalIterationsCount += iterationsCount;
+      return;
+    }
+
+    if (iterationsCount) {
+      totalIterationsCount += iterationsCount;
+
+      animationTimer = timer(function() {
+        return onRenderFrame();
+      }, FRAME_INTERVAL);
+    } else {
+      currentStep = 0;
+      totalIterationsCount = 0;
+      animationTimer = timer(onRenderFrame, FRAME_INTERVAL);
+    }
+  }
+
+  function resetStable() {
+    if (isPaused) {
+      return;
+    }
+
+    isStable = false;
+    animationTimer.restart();
+  }
+
+  function prerender() {
+    // To get good initial positions for the graph
+    // perform several prerender steps in background.
+    if (typeof settings.prerender === 'number' && settings.prerender > 0) {
+      for (var i = 0; i < settings.prerender; i += 1) {
+        layout.step();
+      }
+    }
+  }
+
+  function updateCenter() {
+    var graphRect = layout.getGraphRect(),
+      containerSize = getDimension(container);
+
+    viewPortOffset.x = viewPortOffset.y = 0;
+    transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
+    transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
+    graphics.graphCenterChanged(transform.offsetX, transform.offsetY);
+
+    updateCenterRequired = false;
+  }
+
+  function createNodeUi(node) {
+    var nodePosition = layout.getNodePosition(node.id);
+    graphics.addNode(node, nodePosition);
+  }
+
+  function removeNodeUi(node) {
+    graphics.releaseNode(node);
+  }
+
+  function createLinkUi(link) {
+    var linkPosition = layout.getLinkPosition(link.id);
+    graphics.addLink(link, linkPosition);
+  }
+
+  function removeLinkUi(link) {
+    graphics.releaseLink(link);
+  }
+
+  function listenNodeEvents(node) {
+    if (!isInteractive('node')) {
+      return;
+    }
+
+    var wasPinned = false;
+
+    // TODO: This may not be memory efficient. Consider reusing handlers object.
+    inputManager.bindDragNDrop(node, {
+      onStart: function() {
+        wasPinned = layout.isNodePinned(node);
+        layout.pinNode(node, true);
+        userInteraction = true;
+        resetStable();
+      },
+      onDrag: function(e, offset) {
+        var oldPos = layout.getNodePosition(node.id);
+        layout.setNodePosition(node.id,
+          oldPos.x + offset.x / transform.scale,
+          oldPos.y + offset.y / transform.scale);
+
+        userInteraction = true;
+
+        renderGraph();
+      },
+      onStop: function() {
+        layout.pinNode(node, wasPinned);
+        userInteraction = false;
+      }
+    });
+  }
+
+  function releaseNodeEvents(node) {
+    inputManager.bindDragNDrop(node, null);
+  }
+
+  function initDom() {
+    graphics.init(container);
+
+    graph.forEachNode(createNodeUi);
+
+    if (settings.renderLinks) {
+      graph.forEachLink(createLinkUi);
+    }
+  }
+
+  function releaseDom() {
+    graphics.release(container);
+  }
+
+  function processNodeChange(change) {
+    var node = change.node;
+
+    if (change.changeType === 'add') {
+      createNodeUi(node);
+      listenNodeEvents(node);
+      if (updateCenterRequired) {
+        updateCenter();
+      }
+    } else if (change.changeType === 'remove') {
+      releaseNodeEvents(node);
+      removeNodeUi(node);
+      if (graph.getNodesCount() === 0) {
+        updateCenterRequired = true; // Next time when node is added - center the graph.
+      }
+    } else if (change.changeType === 'update') {
+      releaseNodeEvents(node);
+      removeNodeUi(node);
+
+      createNodeUi(node);
+      listenNodeEvents(node);
+    }
+  }
+
+  function processLinkChange(change) {
+    var link = change.link;
+    if (change.changeType === 'add') {
+      if (settings.renderLinks) {
+        createLinkUi(link);
+      }
+    } else if (change.changeType === 'remove') {
+      if (settings.renderLinks) {
+        removeLinkUi(link);
+      }
+    } else if (change.changeType === 'update') {
+      throw 'Update type is not implemented. TODO: Implement me!';
+    }
+  }
+
+  function onGraphChanged(changes) {
+    var i, change;
+    for (i = 0; i < changes.length; i += 1) {
+      change = changes[i];
+      if (change.node) {
+        processNodeChange(change);
+      } else if (change.link) {
+        processLinkChange(change);
+      }
+    }
+
+    resetStable();
+  }
+
+  function onWindowResized() {
+    updateCenter();
+    onRenderFrame();
+  }
+
+  function releaseContainerDragManager() {
+    if (containerDrag) {
+      containerDrag.release();
+      containerDrag = null;
+    }
+  }
+
+  function releaseGraphEvents() {
+    graph.off('changed', onGraphChanged);
+  }
+
+  function scale(out, scrollPoint) {
+    if (!scrollPoint) {
+      var containerSize = getDimension(container);
+      scrollPoint = {
+        x: containerSize.width / 2,
+        y: containerSize.height / 2
+      };
+    }
+    var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
+    transform.scale = graphics.scale(scaleFactor, scrollPoint);
+
+    renderGraph();
+    publicEvents.fire('scale', transform.scale);
+
+    return transform.scale;
+  }
+
+  function listenToEvents() {
+    windowEvents.on('resize', onWindowResized);
+
+    releaseContainerDragManager();
+    if (isInteractive('drag')) {
+      containerDrag = dragndrop(container);
+      containerDrag.onDrag(function(e, offset) {
+        viewPortOffset.x += offset.x;
+        viewPortOffset.y += offset.y;
+        graphics.translateRel(offset.x, offset.y);
+
+        renderGraph();
+      });
+    }
+
+    if (isInteractive('scroll')) {
+      containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
+        scale(scaleOffset < 0, scrollPoint);
+      });
+    }
+
+    graph.forEachNode(listenNodeEvents);
+
+    releaseGraphEvents();
+    graph.on('changed', onGraphChanged);
+  }
+
+  function stopListenToEvents() {
+    rendererInitialized = false;
+    releaseGraphEvents();
+    releaseContainerDragManager();
+    windowEvents.off('resize', onWindowResized);
+    publicEvents.off();
+    animationTimer.stop();
+
+    graph.forEachLink(function(link) {
+      if (settings.renderLinks) {
+        removeLinkUi(link);
+      }
+    });
+
+    graph.forEachNode(function(node) {
+      releaseNodeEvents(node);
+      removeNodeUi(node);
+    });
+
+    layout.dispose();
+    releaseDom();
   }
 }
