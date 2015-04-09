@@ -4198,7 +4198,7 @@ function off(eventName, handler) {
 
 module.exports = renderer;
 
-var eventify = require('ngraph.graph');
+var eventify = require('ngraph.events');
 var forceDirected = require('ngraph.forcelayout');
 var svgGraphics = require('./svgGraphics.js');
 var windowEvents = require('../Utils/windowEvents.js');
@@ -4359,12 +4359,12 @@ function renderer(graph, settings) {
     },
 
     on: function(eventName, callback) {
-      publicEvents.addEventListener(eventName, callback);
+      publicEvents.on(eventName, callback);
       return this;
     },
 
     off: function(eventName, callback) {
-      publicEvents.removeEventListener(eventName, callback);
+      publicEvents.off(eventName, callback);
       return this;
     }
   };
@@ -4672,7 +4672,7 @@ function renderer(graph, settings) {
   }
 }
 
-},{"../Input/domInputManager.js":35,"../Input/dragndrop.js":36,"../Utils/getDimensions.js":43,"../Utils/timer.js":47,"../Utils/windowEvents.js":48,"./svgGraphics.js":50,"ngraph.forcelayout":7,"ngraph.graph":24}],50:[function(require,module,exports){
+},{"../Input/domInputManager.js":35,"../Input/dragndrop.js":36,"../Utils/getDimensions.js":43,"../Utils/timer.js":47,"../Utils/windowEvents.js":48,"./svgGraphics.js":50,"ngraph.events":6,"ngraph.forcelayout":7}],50:[function(require,module,exports){
 /**
  * @fileOverview Defines a graph renderer that uses SVG based drawings.
  *
