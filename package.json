@@ -33,15 +33,15 @@
   },
   "dependencies": {
     "gintersect": "0.1.0",
-    "ngraph.centrality": "0.1.2",
+    "ngraph.centrality": "0.1.3",
     "ngraph.events": "0.0.3",
-    "ngraph.forcelayout": "0.0.17",
-    "ngraph.fromjson": "0.1.6",
-    "ngraph.generators": "0.0.14",
-    "ngraph.graph": "0.0.10",
+    "ngraph.forcelayout": "0.0.18",
+    "ngraph.fromjson": "0.1.7",
+    "ngraph.generators": "0.0.15",
+    "ngraph.graph": "0.0.11",
     "ngraph.merge": "0.0.1",
     "ngraph.random": "0.0.1",
-    "ngraph.tojson": "0.1.2",
+    "ngraph.tojson": "0.1.3",
     "simplesvg": "0.0.10"
   }
 }
