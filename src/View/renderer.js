@@ -6,7 +6,7 @@
 
 module.exports = renderer;
 
-var eventify = require('ngraph.graph');
+var eventify = require('ngraph.events');
 var forceDirected = require('ngraph.forcelayout');
 var svgGraphics = require('./svgGraphics.js');
 var windowEvents = require('../Utils/windowEvents.js');
@@ -167,12 +167,12 @@ function renderer(graph, settings) {
     },
 
     on: function(eventName, callback) {
-      publicEvents.addEventListener(eventName, callback);
+      publicEvents.on(eventName, callback);
       return this;
     },
 
     off: function(eventName, callback) {
-      publicEvents.removeEventListener(eventName, callback);
+      publicEvents.off(eventName, callback);
       return this;
     }
   };
