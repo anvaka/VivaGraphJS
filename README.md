@@ -5,6 +5,8 @@ library for JavaScript. It is designed to be extensible and to support different
 rendering engines and layout algorithms. At the moment it supports rendering
 graphs using WebGL and SVG.
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/anvaka/VivaGraphJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Enough talking. Show me the demo!
 ----------------------------------------------------
 Some examples of library usage in the real projects:
