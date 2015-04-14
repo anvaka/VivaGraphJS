@@ -17,8 +17,8 @@ var domInputManager = require('../Input/domInputManager.js');
 function svgGraphics() {
     var svgContainer,
         svgRoot,
-        offsetX,
-        offsetY,
+        offsetX = 0,
+        offsetY = 0,
         initCallback,
         actualScale = 1,
         allNodes = {},

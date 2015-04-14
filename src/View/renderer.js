@@ -262,8 +262,10 @@ function renderer(graph, settings) {
     var graphRect = layout.getGraphRect(),
       containerSize = getDimension(container);
 
-    transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
-    transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
+    var cx = (graphRect.x2 + graphRect.x1) / 2;
+    var cy = (graphRect.y2 + graphRect.y1) / 2;
+    transform.offsetX = containerSize.width / 2 - (cx * transform.scale - cx);
+    transform.offsetY = containerSize.height / 2 - (cy * transform.scale - cy);
     graphics.graphCenterChanged(transform.offsetX, transform.offsetY);
 
     updateCenterRequired = false;

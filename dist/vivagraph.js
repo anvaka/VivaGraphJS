@@ -4265,11 +4265,6 @@ function renderer(graph, settings) {
     userInteraction = false,
     isPaused = false,
 
-    viewPortOffset = {
-      x: 0,
-      y: 0
-    },
-
     transform = {
       offsetX: 0,
       offsetY: 0,
@@ -4295,8 +4290,8 @@ function renderer(graph, settings) {
         prepareSettings();
         prerender();
 
-        updateCenter();
         initDom();
+        updateCenter();
         listenToEvents();
 
         rendererInitialized = true;
@@ -4459,9 +4454,10 @@ function renderer(graph, settings) {
     var graphRect = layout.getGraphRect(),
       containerSize = getDimension(container);
 
-    viewPortOffset.x = viewPortOffset.y = 0;
-    transform.offsetX = containerSize.width / 2 - (graphRect.x2 + graphRect.x1) / 2;
-    transform.offsetY = containerSize.height / 2 - (graphRect.y2 + graphRect.y1) / 2;
+    var cx = (graphRect.x2 + graphRect.x1) / 2;
+    var cy = (graphRect.y2 + graphRect.y1) / 2;
+    transform.offsetX = containerSize.width / 2 - (cx * transform.scale - cx);
+    transform.offsetY = containerSize.height / 2 - (cy * transform.scale - cy);
     graphics.graphCenterChanged(transform.offsetX, transform.offsetY);
 
     updateCenterRequired = false;
@@ -4628,8 +4624,6 @@ function renderer(graph, settings) {
     if (isInteractive('drag')) {
       containerDrag = dragndrop(container);
       containerDrag.onDrag(function(e, offset) {
-        viewPortOffset.x += offset.x;
-        viewPortOffset.y += offset.y;
         graphics.translateRel(offset.x, offset.y);
 
         renderGraph();
@@ -4692,8 +4686,8 @@ var domInputManager = require('../Input/domInputManager.js');
 function svgGraphics() {
     var svgContainer,
         svgRoot,
-        offsetX,
-        offsetY,
+        offsetX = 0,
+        offsetY = 0,
         initCallback,
         actualScale = 1,
         allNodes = {},
@@ -6852,7 +6846,7 @@ function webglSquare(size, color) {
 
 },{"./parseColor.js":52}],63:[function(require,module,exports){
 // todo: this should be generated at build time.
-module.exports = '0.7.9';
+module.exports = '0.7.10';
 
 },{}]},{},[1])(1)
 });
