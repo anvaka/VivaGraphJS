@@ -439,6 +439,9 @@ function renderer(graph, settings) {
     }
 
     if (isInteractive('scroll')) {
+      if (!containerDrag) {
+        containerDrag = dragndrop(container);
+      }
       containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
         scale(scaleOffset < 0, scrollPoint);
       });

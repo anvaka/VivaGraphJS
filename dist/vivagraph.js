@@ -4582,6 +4582,9 @@ function renderer(graph, settings) {
     }
 
     if (isInteractive('scroll')) {
+      if (!containerDrag) {
+        containerDrag = dragndrop(container);
+      }
       containerDrag.onScroll(function(e, scaleOffset, scrollPoint) {
         scale(scaleOffset < 0, scrollPoint);
       });
@@ -6797,7 +6800,7 @@ function webglSquare(size, color) {
 
 },{"./parseColor.js":51}],62:[function(require,module,exports){
 // todo: this should be generated at build time.
-module.exports = '0.7.11';
+module.exports = '0.7.12';
 
 },{}]},{},[1])(1)
 });
