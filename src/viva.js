@@ -61,11 +61,7 @@ Viva.Graph = {
   },
 
   Layout: {
-    forceDirected: function(graph, physicsSettings) {
-      // vivagraph had slightly different API:
-      var forceLayout = require('ngraph.forcelayout');
-      return forceLayout(graph, forceLayout.simulator(physicsSettings));
-    },
+    forceDirected: require('ngraph.forcelayout'),
     constant: require('./Layout/constant.js')
   },
 
