@@ -17,17 +17,7 @@
                });
 
                var graphics = Viva.Graph.View.svgGraphics();
-               graphics.node(function(node){
-                 var ui = Viva.Graph.svg('rect')
-                     .attr('width', node.data.width)
-                     .attr('height', node.data.height)
-                     .attr('fill', '#00ef00');
-                 ui.data = node.data;
-                 return ui;
-               }).placeNode(function(nodeUI, pos) {
-                  nodeUI.attr('x', pos.x - nodeUI.data.width/2)
-                     .attr('y', pos.y - nodeUI.data.height/2);
-               });
+               graphics.node(createNodeUI).placeNode(placeNode);
 
                var renderer = Viva.Graph.View.renderer(graph, {
                        layout     : layout,
@@ -60,7 +50,24 @@
                    if (factor < 0 || factor > 10) {
                      direction *= -1;
                    }
-               }, 30)
+               }, 30);
+
+               function createNodeUI(node){
+                  var ui = Viva.Graph.svg('rect')
+                      .attr('width', node.data.width)
+                      .attr('height', node.data.height)
+                      .attr('fill', '#00ef00');
+                  ui.data = node.data;
+
+                  var pos = layout.getNodePosition(node.id);
+                  placeNode(ui, pos);
+                  return ui;
+               }
+
+               function placeNode(nodeUI, pos) {
+                   nodeUI.attr('x', pos.x - nodeUI.data.width/2)
+                      .attr('y', pos.y - nodeUI.data.height/2);
+                }
            }
         </script>
         <style type='text/css'>
