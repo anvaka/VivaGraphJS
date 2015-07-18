@@ -1026,10 +1026,14 @@ function physicsSimulator(settings) {
       quadTree.insertBodies(bodies); // performance: O(n * log n)
       while (i--) {
         body = bodies[i];
-        body.force.reset();
+        // If body is pinned there is no point updating its forces - it should
+        // never move:
+        if (!body.isPinned) {
+          body.force.reset();
 
-        quadTree.updateBodyForce(body);
-        dragForce.update(body);
+          quadTree.updateBodyForce(body);
+          dragForce.update(body);
+        }
       }
     }
 
@@ -6800,7 +6804,7 @@ function webglSquare(size, color) {
 
 },{"./parseColor.js":51}],62:[function(require,module,exports){
 // todo: this should be generated at build time.
-module.exports = '0.7.12';
+module.exports = '0.7.13';
 
 },{}]},{},[1])(1)
 });
