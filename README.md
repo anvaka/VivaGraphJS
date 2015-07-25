@@ -177,7 +177,7 @@ Local Build
 -----------
 Run the following script:
 ```
-git clone git://github.com/anvaka/VivaGraphJS.git
+git clone https://github.com/anvaka/VivaGraphJS.git
 cd ./VivaGraphJS
 npm install
 gulp release
