@@ -107,4 +107,4 @@ g.forEachLinkedNode('hello', function(linkedNode, link){
 });
 ```
 
-Stop now and play with [interactive fiddle](http://jsfiddle.net/anvaka/JA76K/2/) for this article.
+Stop now and play with [interactive fiddle](http://jsfiddle.net/JA76K/182/) for this article.
