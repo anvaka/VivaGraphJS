@@ -1,3 +1,12 @@
+v0.8.1
+  date Sep 9, 2015
+		- Improved layout performance in some cases
+		- Extended WebGL API to transform from/to webgl coordinates space
+		- Custom shaders now receive layout's view of node position. This means
+		that `y` coordinate needs to be replaced to `-y` in your custom shaders
+		code
+		- Bug fixes
+		- Documentation updates
 v0.7.7
   date Mar 24, 2015
 	  - Upgraded to latest `ngraph` modules
