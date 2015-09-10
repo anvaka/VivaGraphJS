@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "gulp",
-    "test": "tap test/*.js"
+    "test": "tap test/*.js",
+    "release": "gulp release"
   },
   "repository": {
     "type": "git",
@@ -18,18 +19,18 @@
     "graph"
   ],
   "author": "Andrei Kashcha",
-  "license": "BSD",
+  "license": "BSD-3-Clause",
   "devDependencies": {
     "browserify": "^8.0.3",
     "del": "^1.1.1",
-    "gulp": "^3.8.10",
+    "gulp": "^3.9.0",
     "gulp-rename": "^1.2.0",
-    "gulp-uglify": "^1.0.2",
     "gulp-run": "^1.6.5",
+    "gulp-uglify": "^1.0.2",
     "gulp-util": "^3.0.2",
+    "tap": "^0.4.13",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.0.0",
-    "tap": "^0.4.13"
+    "vinyl-source-stream": "^1.0.0"
   },
   "dependencies": {
     "gintersect": "0.1.0",
