@@ -5487,20 +5487,41 @@ function webglGraphics(options) {
                 // TODO: unload old shader and reinit.
             }
         },
-        transformClientToGraphCoordinates : function (graphicsRootPos) {
-            // TODO: could be a problem when container has margins?
-            // to save memory we modify incoming parameter:
-            // point in clipspace coordinates:
-            graphicsRootPos.x = 2 * graphicsRootPos.x / width - 1;
-            graphicsRootPos.y = 1 - (2 * graphicsRootPos.y) / height;
-            // apply transform:
-            graphicsRootPos.x = (graphicsRootPos.x - transform[12]) / transform[0];
-            graphicsRootPos.y = (graphicsRootPos.y - transform[13]) / transform[5];
-            // now transform to graph coordinates:
-            graphicsRootPos.x *= width / 2;
-            graphicsRootPos.y *= -height / 2;
 
-            return graphicsRootPos;
+        // TODO: could be a problem when container has margins?
+        // mutates p
+        transformClientToGraphCoordinates: function (p) {
+            // normalize
+            p.x = ((2 * p.x) / width) - 1
+            p.y = 1 - ((2 * p.y) / height)
+
+            // apply transform
+            p.x = (p.x - transform[12]) / transform[0]
+            p.y = (p.y - transform[13]) / transform[5]
+
+            // transform to graph coordinates
+            p.x = p.x * (width / 2)
+            p.y = p.y * (-height / 2)
+
+            return p
+        },
+
+        // TODO: could be a problem when container has margins?
+        // mutates p
+        transformGraphToClientCoordinates: function (p) {
+            // transform from graph coordinates
+            p.x = p.x / (width / 2)
+            p.y = p.y / (-height / 2)
+
+            // apply transform
+            p.x = (p.x * transform[0]) + transform[12]
+            p.y = (p.y * transform[5]) + transform[13]
+
+            // denormalize
+            p.x = ((p.x + 1) * width) / 2
+            p.y = ((1 - p.y) * height) / 2
+
+            return p
         },
 
         getNodeAtClientPos: function (clientPos, preciseCheck) {

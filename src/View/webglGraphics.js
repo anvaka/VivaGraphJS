@@ -503,40 +503,53 @@ function webglGraphics(options) {
             }
         },
 
-        // TODO: could be a problem when container has margins?
-        // mutates p
+        /**
+         * Transforms client coordinates into layout coordinates. Client coordinates
+         * are DOM coordinates relative to the rendering container. Layout
+         * coordinates are those assigned by by layout algorithm to each node.
+         *
+         * @param {Object} p - a point object with `x` and `y` attributes.
+         * This method mutates p.
+         */
         transformClientToGraphCoordinates: function (p) {
+          // TODO: could be a problem when container has margins?
             // normalize
-            p.x = ((2 * p.x) / width) - 1
-            p.y = 1 - ((2 * p.y) / height)
+            p.x = ((2 * p.x) / width) - 1;
+            p.y = 1 - ((2 * p.y) / height);
 
             // apply transform
-            p.x = (p.x - transform[12]) / transform[0]
-            p.y = (p.y - transform[13]) / transform[5]
+            p.x = (p.x - transform[12]) / transform[0];
+            p.y = (p.y - transform[13]) / transform[5];
 
             // transform to graph coordinates
-            p.x = p.x * (width / 2)
-            p.y = p.y * (-height / 2)
+            p.x = p.x * (width / 2);
+            p.y = p.y * (-height / 2);
 
-            return p
+            return p;
         },
 
-        // TODO: could be a problem when container has margins?
-        // mutates p
+        /**
+         * Transforms WebGL coordinates into client coordinates. Reverse of 
+         * `transformClientToGraphCoordinates()`
+         *
+         * @param {Object} p - a point object with `x` and `y` attributes, which
+         * represents a layout coordinate. This method mutates p.
+         */
         transformGraphToClientCoordinates: function (p) {
+          // TODO: could be a problem when container has margins?
             // transform from graph coordinates
-            p.x = p.x / (width / 2)
-            p.y = p.y / (-height / 2)
+            p.x = p.x / (width / 2);
+            p.y = p.y / (-height / 2);
 
             // apply transform
-            p.x = (p.x * transform[0]) + transform[12]
-            p.y = (p.y * transform[5]) + transform[13]
+            p.x = (p.x * transform[0]) + transform[12];
+            p.y = (p.y * transform[5]) + transform[13];
 
             // denormalize
-            p.x = ((p.x + 1) * width) / 2
-            p.y = ((1 - p.y) * height) / 2
+            p.x = ((p.x + 1) * width) / 2;
+            p.y = ((1 - p.y) * height) / 2;
 
-            return p
+            return p;
         },
 
         getNodeAtClientPos: function (clientPos, preciseCheck) {
