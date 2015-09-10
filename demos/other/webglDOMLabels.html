@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>VivaGraphs WebGL DOM Label test page</title>
+        <script src="../../dist/vivagraph.js"></script>
+
+        <script type='text/javascript'>
+            /*global Viva*/
+            function onLoad() {
+				var labelDom = document.getElementById('label');
+
+                var graphGenerator = Viva.Graph.generator();
+                var graph = graphGenerator.path(4);
+
+                var layout = Viva.Graph.Layout.forceDirected(graph, {
+                   springLength : 100,
+                   springCoeff : 0.0008,
+                   dragCoeff : 0.02,
+                   gravity : -1.2
+                });
+
+                var graphics = Viva.Graph.View.webglGraphics();
+
+                var renderer = Viva.Graph.View.renderer(graph, {
+                        layout     : layout,
+                        graphics   : graphics
+                    });
+
+                renderer.run();
+
+				function labelLoop () {
+					var node = graph.getNode(0)
+					var nodeUi = graphics.getNodeUI(node.id)
+					var pos = graphics.transformGraphToClientCoordinates({
+						x: nodeUi.position.x,
+						y: nodeUi.position.y
+					})
+
+					labelDom.style.left = pos.x + 'px'
+					labelDom.style.top = pos.y + 'px'
+
+					requestAnimationFrame(labelLoop)
+				}
+
+				requestAnimationFrame(labelLoop)
+            }
+        </script>
+        <style type='text/css'>
+            body {
+                height: 100%;
+                width: 100%;
+                position: absolute;
+                margin:0px;
+            }
+
+			#label {
+                position: absolute;
+			}
+        </style>
+    </head>
+    <body onload="onLoad()" style="background-color: black;">
+        <span style="color: white; margin: 10px;">This is webgl renderer. You can drag a node and see the console for logs</span>
+        <span id="label" style="color: white; margin: 10px;">X</span>
+    </body>
+</html>
