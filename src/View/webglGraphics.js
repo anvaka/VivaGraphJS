@@ -426,7 +426,7 @@ function webglGraphics(options) {
             for (var i = 0; i < nodesCount; ++i) {
                 var ui = nodes[i];
                 pos.x = ui.position.x;
-                pos.y = -ui.position.y;
+                pos.y = ui.position.y;
                 if (userPlaceNodeCallback) {
                     userPlaceNodeCallback(ui, pos);
                 }

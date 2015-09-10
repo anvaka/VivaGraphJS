@@ -109,7 +109,7 @@ function webglNodeProgram() {
     var idx = nodeUI.id;
 
     positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
-    positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+    positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = -pos.y;
     positions[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.size;
 
     colors[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.color;

@@ -126,7 +126,7 @@
                 position : function (nodeUI, pos) {
                     var idx = nodeUI.id;
                     nodes[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
-                    nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = pos.y;
+                    nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = -pos.y;
                     nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 2] = nodeUI.color;
                     nodes[idx * ATTRIBUTES_PER_PRIMITIVE + 3] = nodeUI.size;
                 },
