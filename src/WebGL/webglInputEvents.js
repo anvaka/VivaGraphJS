@@ -236,11 +236,13 @@ function webglInputEvents(webglGraphics) {
         pos.x = e.clientX - boundRect.left;
         pos.y = e.clientY - boundRect.top;
 
-        args = [getNodeAtClientPos(pos), e];
+        var nodeAtClientPos = getNodeAtClientPos(pos);
+        var sameNode = nodeAtClientPos === lastFound;
+        args = [nodeAtClientPos || lastFound, e];
         if (args[0]) {
           window.document.onselectstart = prevSelectStart;
 
-          if (clickTime - lastClickTime < 400 && args[0] === lastFound) {
+          if (clickTime - lastClickTime < 400 && sameNode) {
             invoke(dblClickCallback, args);
           } else {
             invoke(clickCallback, args);
