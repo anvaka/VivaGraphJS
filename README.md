@@ -11,7 +11,6 @@ Some examples of library usage in the real projects:
 
 * [Amazon Visualization](http://www.yasiv.com/amazon#/Search?q=graph%20drawing&category=Books&lang=US) Shows related products on Amazon.com, uses SVG as graph output
 * [YouTube Visualization](http://www.yasiv.com/youtube#/Search?q=write%20in%20c) Shows related videos from YouTube. SVG based.
-* [Facebook Visualization](http://www.yasiv.com/facebook) friendship visualization on Facebook. WebGL based.
 * [Graph Viewer](http://www.yasiv.com/graphs#Bai/rw496) visualization of sparse matrices collection of the University of Florida. WebGL based.
 * [Vkontakte Visualization](http://www.yasiv.com/vk) friendship visualization of the largest social network in Russia [vk.com](https://vk.com). WebGL based.
 
