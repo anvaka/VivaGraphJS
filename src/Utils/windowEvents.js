@@ -3,7 +3,7 @@ var nullEvents = require('./nullEvents.js');
 module.exports = createDocumentEvents();
 
 function createDocumentEvents() {
-  if (typeof window === undefined) {
+  if (typeof window === 'undefined') {
     return nullEvents;
   }
 
