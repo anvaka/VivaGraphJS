@@ -1,6 +1,6 @@
 VivaGraph [![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
 ==================================================
-**VivaGraphJS** is the fastest graph drawing javascript library ([proof](https://www.youtube.com/watch?v=Ax7KSQZ0_hk)). It is designed to be extensible and to support different
+**VivaGraphJS** is designed to be extensible and to support different
 rendering engines and layout algorithms. Underlying modules can be found via [ngraph](https://www.npmjs.com/search?q=ngraph) query.
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/anvaka/VivaGraphJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
