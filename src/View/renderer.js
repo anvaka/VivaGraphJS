@@ -435,6 +435,7 @@ function renderer(graph, settings) {
         graphics.translateRel(offset.x, offset.y);
 
         renderGraph();
+        publicEvents.fire('drag', offset);
       });
     }
 
