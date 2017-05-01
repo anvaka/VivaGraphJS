@@ -163,6 +163,8 @@ Now the result is much better:
 
 ![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
 
+You can tune values during simulation with `layout.simulation.springLength(newValue)`, `layout.simulation.springCoeff(newValue)`, etc.
+
 Tuning layout algorithm is definitely one of the hardest part of using this library.
 It has to be improved in future to simplify usage. Each of the force directed
 algorithm parameters are described in the source code.
