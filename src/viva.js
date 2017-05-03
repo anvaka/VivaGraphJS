@@ -62,6 +62,7 @@ Viva.Graph = {
 
   Layout: {
     forceDirected: require('ngraph.forcelayout'),
+    forceAtlas2: require('ngraph.forceAtlas2'),
     constant: require('./Layout/constant.js')
   },
 
