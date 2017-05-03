@@ -1,7 +1,9 @@
 VivaGraph [![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
 ==================================================
 **VivaGraphJS** is designed to be extensible and to support different
-rendering engines and layout algorithms. Underlying modules can be found via [ngraph](https://www.npmjs.com/search?q=ngraph) query.
+rendering engines and layout algorithms. Underlying algorithms have been broken out into [ngraph](https://github.com/anvaka/ngraph).
+
+The larger family of modules can be found by [querying npm for "ngraph"](https://www.npmjs.com/search?q=ngraph).
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/anvaka/VivaGraphJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
