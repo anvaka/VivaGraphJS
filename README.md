@@ -1,7 +1,9 @@
 VivaGraph [![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
 ==================================================
 **VivaGraphJS** is designed to be extensible and to support different
-rendering engines and layout algorithms. Underlying modules can be found via [ngraph](https://www.npmjs.com/search?q=ngraph) query.
+rendering engines and layout algorithms. Underlying algorithms have been broken out into [ngraph](https://github.com/anvaka/ngraph).
+
+The larger family of modules can be found by [querying npm for "ngraph"](https://www.npmjs.com/search?q=ngraph).
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/anvaka/VivaGraphJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -162,6 +164,8 @@ renderer.run();
 Now the result is much better:
 
 ![Grid 3x3](https://github.com/anvaka/VivaGraphJS/raw/master/packages/Images/gridGood.png)
+
+You can tune values during simulation with `layout.simulator.springLength(newValue)`, `layout.simulator.springCoeff(newValue)`, etc. See all the values that you can tune in [this source file](https://github.com/anvaka/ngraph.physics.simulator/blob/master/index.js#L12).
 
 Tuning layout algorithm is definitely one of the hardest part of using this library.
 It has to be improved in future to simplify usage. Each of the force directed
