@@ -578,8 +578,11 @@ function augment(source, target, key) {
 module.exports = createLayout;
 module.exports.simulator = require('ngraph.physics.simulator');
 
+var eventify = require('ngraph.events');
+
 /**
  * Creates force based layout for a given graph.
+ *
  * @param {ngraph.graph} graph which needs to be laid out
  * @param {object} physicsSettings if you need custom settings
  * for physics simulator you can pass your own settings here. If it's not passed
@@ -593,21 +596,46 @@ function createLayout(graph, physicsSettings) {
   var createSimulator = require('ngraph.physics.simulator');
   var physicsSimulator = createSimulator(physicsSettings);
 
-  var nodeBodies = typeof Object.create === 'function' ? Object.create(null) : {};
+  var nodeBodies = Object.create(null);
   var springs = {};
+  var bodiesCount = 0;
 
   var springTransform = physicsSimulator.settings.springTransform || noop;
 
-  // Initialize physical objects according to what we have in the graph:
+  // Initialize physics with what we have in the graph:
   initPhysics();
-  listenToGraphEvents();
+  listenToEvents();
+
+  var wasStable = false;
 
   var api = {
     /**
      * Performs one step of iterative layout algorithm
+     *
+     * @returns {boolean} true if the system should be considered stable; Flase otherwise.
+     * The system is stable if no further call to `step()` can improve the layout.
      */
     step: function() {
-      return physicsSimulator.step();
+      if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
+
+      var lastMove = physicsSimulator.step();
+
+      // Save the movement in case if someone wants to query it in the step
+      // callback.
+      api.lastMove = lastMove;
+
+      // Allow listeners to perform low-level actions after nodes are updated.
+      api.fire('step');
+
+      var ratio = lastMove/bodiesCount;
+      var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
+
+      if (wasStable !== isStableNow) {
+        wasStable = isStableNow;
+        onStableChanged(isStableNow);
+      }
+
+      return isStableNow;
     },
 
     /**
@@ -653,6 +681,11 @@ function createLayout(graph, physicsSettings) {
       return physicsSimulator.getBBox();
     },
 
+    /**
+     * Iterates over each body in the layout simulator and performs a callback(body, nodeId)
+     */
+    forEachBody: forEachBody,
+
     /*
      * Requests layout algorithm to pin/unpin node to its current position
      * Pinned nodes should not be affected by layout algorithm and always
@@ -675,6 +708,7 @@ function createLayout(graph, physicsSettings) {
      */
     dispose: function() {
       graph.off('changed', onGraphChanged);
+      api.fire('disposed');
     },
 
     /**
@@ -696,15 +730,33 @@ function createLayout(graph, physicsSettings) {
     /**
      * [Read only] Gets current physics simulator
      */
-    simulator: physicsSimulator
+    simulator: physicsSimulator,
+
+    /**
+     * Gets the graph that was used for layout
+     */
+    graph: graph,
+
+    /**
+     * Gets amount of movement performed during last step opeartion
+     */
+    lastMove: 0
   };
 
+  eventify(api);
+
   return api;
+
+  function forEachBody(cb) {
+    Object.keys(nodeBodies).forEach(function(bodyId) {
+      cb(nodeBodies[bodyId], bodyId);
+    });
+  }
 
   function getSpring(fromId, toId) {
     var linkId;
     if (toId === undefined) {
-      if (typeof fromId === 'string') {
+      if (typeof fromId !== 'object') {
         // assume fromId as a linkId:
         linkId = fromId;
       } else {
@@ -725,8 +777,12 @@ function createLayout(graph, physicsSettings) {
     return nodeBodies[nodeId];
   }
 
-  function listenToGraphEvents() {
+  function listenToEvents() {
     graph.on('changed', onGraphChanged);
+  }
+
+  function onStableChanged(isStable) {
+    api.fire('stable', isStable);
   }
 
   function onGraphChanged(changes) {
@@ -748,12 +804,17 @@ function createLayout(graph, physicsSettings) {
         }
       }
     }
+    bodiesCount = graph.getNodesCount();
   }
 
   function initPhysics() {
+    bodiesCount = 0;
+
     graph.forEachNode(function (node) {
       initBody(node.id);
+      bodiesCount += 1;
     });
+
     graph.forEachLink(initLink);
   }
 
@@ -772,6 +833,7 @@ function createLayout(graph, physicsSettings) {
       }
 
       body = physicsSimulator.addBodyAt(pos);
+      body.id = nodeId;
 
       nodeBodies[nodeId] = body;
       updateBodyMass(nodeId);
@@ -872,13 +934,15 @@ function createLayout(graph, physicsSettings) {
    * @returns {Number} recommended mass of the body;
    */
   function nodeMass(nodeId) {
-    return 1 + graph.getLinks(nodeId).length / 3.0;
+    var links = graph.getLinks(nodeId);
+    if (!links) return 1;
+    return 1 + links.length / 3.0;
   }
 }
 
 function noop() { }
 
-},{"ngraph.physics.simulator":15}],10:[function(require,module,exports){
+},{"ngraph.events":7,"ngraph.physics.simulator":15}],10:[function(require,module,exports){
 module.exports = load;
 
 var createGraph = require('ngraph.graph');
@@ -1888,6 +1952,7 @@ function physicsSimulator(settings) {
   var Spring = require('./lib/spring');
   var expose = require('ngraph.expose');
   var merge = require('ngraph.merge');
+  var eventify = require('ngraph.events');
 
   settings = merge(settings, {
       /**
@@ -1924,11 +1989,6 @@ function physicsSimulator(settings) {
        * Default time step (dt) for forces integration
        */
       timeStep : 20,
-
-      /**
-        * Maximum movement of the system which can be considered as stabilized
-        */
-      stableThreshold: 0.009
   });
 
   // We allow clients to override basic factory methods:
@@ -1946,6 +2006,8 @@ function physicsSimulator(settings) {
       springForce = createSpringForce(settings),
       dragForce = createDragForce(settings);
 
+  var totalMovement = 0; // how much movement we made on last step
+
   var publicApi = {
     /**
      * Array of bodies, registered with current simulator
@@ -1954,6 +2016,8 @@ function physicsSimulator(settings) {
      * exposed for testing/performance purposes.
      */
     bodies: bodies,
+
+    quadTree: quadTree,
 
     /**
      * Array of springs, registered with current simulator
@@ -1975,11 +2039,11 @@ function physicsSimulator(settings) {
      */
     step: function () {
       accumulateForces();
-      var totalMovement = integrate(bodies, settings.timeStep);
 
+      var movement = integrate(bodies, settings.timeStep);
       bounds.update();
 
-      return totalMovement < settings.stableThreshold;
+      return movement;
     },
 
     /**
@@ -2058,6 +2122,13 @@ function physicsSimulator(settings) {
     },
 
     /**
+     * Returns amount of movement performed on last step() call
+     */
+    getTotalMovement: function () {
+      return totalMovement;
+    },
+
+    /**
      * Removes spring from the system
      *
      * @param {Object} spring to remove. Spring is an object returned by addSpring
@@ -2108,6 +2179,8 @@ function physicsSimulator(settings) {
   // allow settings modification via public API:
   expose(settings, publicApi);
 
+  eventify(publicApi);
+
   return publicApi;
 
   function accumulateForces() {
@@ -2138,7 +2211,7 @@ function physicsSimulator(settings) {
   }
 };
 
-},{"./lib/bounds":16,"./lib/createBody":17,"./lib/dragForce":18,"./lib/eulerIntegrator":19,"./lib/spring":20,"./lib/springForce":21,"ngraph.expose":8,"ngraph.merge":13,"ngraph.quadtreebh":22}],16:[function(require,module,exports){
+},{"./lib/bounds":16,"./lib/createBody":17,"./lib/dragForce":18,"./lib/eulerIntegrator":19,"./lib/spring":20,"./lib/springForce":21,"ngraph.events":7,"ngraph.expose":8,"ngraph.merge":13,"ngraph.quadtreebh":22}],16:[function(require,module,exports){
 module.exports = function (bodies, settings) {
   var random = require('ngraph.random').random(42);
   var boundingBox =  { x1: 0, y1: 0, x2: 0, y2: 0 };
@@ -2272,6 +2345,10 @@ function integrate(bodies, timeStep) {
       i,
       max = bodies.length;
 
+  if (max === 0) {
+    return 0;
+  }
+
   for (i = 0; i < max; ++i) {
     var body = bodies[i],
         coeff = timeStep / body.mass;
@@ -2296,7 +2373,7 @@ function integrate(bodies, timeStep) {
     tx += Math.abs(dx); ty += Math.abs(dy);
   }
 
-  return (tx * tx + ty * ty)/bodies.length;
+  return (tx * tx + ty * ty)/max;
 }
 
 },{}],20:[function(require,module,exports){
@@ -2393,270 +2470,16 @@ module.exports = function(options) {
 
     nodesCache = [],
     currentInCache = 0,
-    newNode = function() {
-      // To avoid pressure on GC we reuse nodes.
-      var node = nodesCache[currentInCache];
-      if (node) {
-        node.quad0 = null;
-        node.quad1 = null;
-        node.quad2 = null;
-        node.quad3 = null;
-        node.body = null;
-        node.mass = node.massX = node.massY = 0;
-        node.left = node.right = node.top = node.bottom = 0;
-      } else {
-        node = new Node();
-        nodesCache[currentInCache] = node;
-      }
-
-      ++currentInCache;
-      return node;
-    },
-
-    root = newNode(),
-
-    // Inserts body to the tree
-    insert = function(newBody) {
-      insertStack.reset();
-      insertStack.push(root, newBody);
-
-      while (!insertStack.isEmpty()) {
-        var stackItem = insertStack.pop(),
-          node = stackItem.node,
-          body = stackItem.body;
-
-        if (!node.body) {
-          // This is internal node. Update the total mass of the node and center-of-mass.
-          var x = body.pos.x;
-          var y = body.pos.y;
-          node.mass = node.mass + body.mass;
-          node.massX = node.massX + body.mass * x;
-          node.massY = node.massY + body.mass * y;
-
-          // Recursively insert the body in the appropriate quadrant.
-          // But first find the appropriate quadrant.
-          var quadIdx = 0, // Assume we are in the 0's quad.
-            left = node.left,
-            right = (node.right + left) / 2,
-            top = node.top,
-            bottom = (node.bottom + top) / 2;
-
-          if (x > right) { // somewhere in the eastern part.
-            quadIdx = quadIdx + 1;
-            var oldLeft = left;
-            left = right;
-            right = right + (right - oldLeft);
-          }
-          if (y > bottom) { // and in south.
-            quadIdx = quadIdx + 2;
-            var oldTop = top;
-            top = bottom;
-            bottom = bottom + (bottom - oldTop);
-          }
-
-          var child = getChild(node, quadIdx);
-          if (!child) {
-            // The node is internal but this quadrant is not taken. Add
-            // subnode to it.
-            child = newNode();
-            child.left = left;
-            child.top = top;
-            child.right = right;
-            child.bottom = bottom;
-            child.body = body;
-
-            setChild(node, quadIdx, child);
-          } else {
-            // continue searching in this quadrant.
-            insertStack.push(child, body);
-          }
-        } else {
-          // We are trying to add to the leaf node.
-          // We have to convert current leaf into internal node
-          // and continue adding two nodes.
-          var oldBody = node.body;
-          node.body = null; // internal nodes do not cary bodies
-
-          if (isSamePosition(oldBody.pos, body.pos)) {
-            // Prevent infinite subdivision by bumping one node
-            // anywhere in this quadrant
-            var retriesCount = 3;
-            do {
-              var offset = random.nextDouble();
-              var dx = (node.right - node.left) * offset;
-              var dy = (node.bottom - node.top) * offset;
-
-              oldBody.pos.x = node.left + dx;
-              oldBody.pos.y = node.top + dy;
-              retriesCount -= 1;
-              // Make sure we don't bump it out of the box. If we do, next iteration should fix it
-            } while (retriesCount > 0 && isSamePosition(oldBody.pos, body.pos));
-
-            if (retriesCount === 0 && isSamePosition(oldBody.pos, body.pos)) {
-              // This is very bad, we ran out of precision.
-              // if we do not return from the method we'll get into
-              // infinite loop here. So we sacrifice correctness of layout, and keep the app running
-              // Next layout iteration should get larger bounding box in the first step and fix this
-              return;
-            }
-          }
-          // Next iteration should subdivide node further.
-          insertStack.push(node, oldBody);
-          insertStack.push(node, body);
-        }
-      }
-    },
-
-    update = function(sourceBody) {
-      var queue = updateQueue,
-        v,
-        dx,
-        dy,
-        r, fx = 0,
-        fy = 0,
-        queueLength = 1,
-        shiftIdx = 0,
-        pushIdx = 1;
-
-      queue[0] = root;
-
-      while (queueLength) {
-        var node = queue[shiftIdx],
-          body = node.body;
-
-        queueLength -= 1;
-        shiftIdx += 1;
-        var differentBody = (body !== sourceBody);
-        if (body && differentBody) {
-          // If the current node is a leaf node (and it is not source body),
-          // calculate the force exerted by the current node on body, and add this
-          // amount to body's net force.
-          dx = body.pos.x - sourceBody.pos.x;
-          dy = body.pos.y - sourceBody.pos.y;
-          r = Math.sqrt(dx * dx + dy * dy);
-
-          if (r === 0) {
-            // Poor man's protection against zero distance.
-            dx = (random.nextDouble() - 0.5) / 50;
-            dy = (random.nextDouble() - 0.5) / 50;
-            r = Math.sqrt(dx * dx + dy * dy);
-          }
-
-          // This is standard gravition force calculation but we divide
-          // by r^3 to save two operations when normalizing force vector.
-          v = gravity * body.mass * sourceBody.mass / (r * r * r);
-          fx += v * dx;
-          fy += v * dy;
-        } else if (differentBody) {
-          // Otherwise, calculate the ratio s / r,  where s is the width of the region
-          // represented by the internal node, and r is the distance between the body
-          // and the node's center-of-mass
-          dx = node.massX / node.mass - sourceBody.pos.x;
-          dy = node.massY / node.mass - sourceBody.pos.y;
-          r = Math.sqrt(dx * dx + dy * dy);
-
-          if (r === 0) {
-            // Sorry about code duplucation. I don't want to create many functions
-            // right away. Just want to see performance first.
-            dx = (random.nextDouble() - 0.5) / 50;
-            dy = (random.nextDouble() - 0.5) / 50;
-            r = Math.sqrt(dx * dx + dy * dy);
-          }
-          // If s / r < θ, treat this internal node as a single body, and calculate the
-          // force it exerts on sourceBody, and add this amount to sourceBody's net force.
-          if ((node.right - node.left) / r < theta) {
-            // in the if statement above we consider node's width only
-            // because the region was squarified during tree creation.
-            // Thus there is no difference between using width or height.
-            v = gravity * node.mass * sourceBody.mass / (r * r * r);
-            fx += v * dx;
-            fy += v * dy;
-          } else {
-            // Otherwise, run the procedure recursively on each of the current node's children.
-
-            // I intentionally unfolded this loop, to save several CPU cycles.
-            if (node.quad0) {
-              queue[pushIdx] = node.quad0;
-              queueLength += 1;
-              pushIdx += 1;
-            }
-            if (node.quad1) {
-              queue[pushIdx] = node.quad1;
-              queueLength += 1;
-              pushIdx += 1;
-            }
-            if (node.quad2) {
-              queue[pushIdx] = node.quad2;
-              queueLength += 1;
-              pushIdx += 1;
-            }
-            if (node.quad3) {
-              queue[pushIdx] = node.quad3;
-              queueLength += 1;
-              pushIdx += 1;
-            }
-          }
-        }
-      }
-
-      sourceBody.force.x += fx;
-      sourceBody.force.y += fy;
-    },
-
-    insertBodies = function(bodies) {
-      var x1 = Number.MAX_VALUE,
-        y1 = Number.MAX_VALUE,
-        x2 = Number.MIN_VALUE,
-        y2 = Number.MIN_VALUE,
-        i,
-        max = bodies.length;
-
-      // To reduce quad tree depth we are looking for exact bounding box of all particles.
-      i = max;
-      while (i--) {
-        var x = bodies[i].pos.x;
-        var y = bodies[i].pos.y;
-        if (x < x1) {
-          x1 = x;
-        }
-        if (x > x2) {
-          x2 = x;
-        }
-        if (y < y1) {
-          y1 = y;
-        }
-        if (y > y2) {
-          y2 = y;
-        }
-      }
-
-      // Squarify the bounds.
-      var dx = x2 - x1,
-        dy = y2 - y1;
-      if (dx > dy) {
-        y2 = y1 + dx;
-      } else {
-        x2 = x1 + dy;
-      }
-
-      currentInCache = 0;
-      root = newNode();
-      root.left = x1;
-      root.right = x2;
-      root.top = y1;
-      root.bottom = y2;
-
-      i = max - 1;
-      if (i > 0) {
-        root.body = bodies[i];
-      }
-      while (i--) {
-        insert(bodies[i], root);
-      }
-    };
+    root = newNode();
 
   return {
     insertBodies: insertBodies,
+    /**
+     * Gets root node if its present
+     */
+    getRoot: function() {
+      return root;
+    },
     updateBodyForce: update,
     options: function(newOptions) {
       if (newOptions) {
@@ -2676,6 +2499,263 @@ module.exports = function(options) {
       };
     }
   };
+
+  function newNode() {
+    // To avoid pressure on GC we reuse nodes.
+    var node = nodesCache[currentInCache];
+    if (node) {
+      node.quad0 = null;
+      node.quad1 = null;
+      node.quad2 = null;
+      node.quad3 = null;
+      node.body = null;
+      node.mass = node.massX = node.massY = 0;
+      node.left = node.right = node.top = node.bottom = 0;
+    } else {
+      node = new Node();
+      nodesCache[currentInCache] = node;
+    }
+
+    ++currentInCache;
+    return node;
+  }
+
+  function update(sourceBody) {
+    var queue = updateQueue,
+      v,
+      dx,
+      dy,
+      r, fx = 0,
+      fy = 0,
+      queueLength = 1,
+      shiftIdx = 0,
+      pushIdx = 1;
+
+    queue[0] = root;
+
+    while (queueLength) {
+      var node = queue[shiftIdx],
+        body = node.body;
+
+      queueLength -= 1;
+      shiftIdx += 1;
+      var differentBody = (body !== sourceBody);
+      if (body && differentBody) {
+        // If the current node is a leaf node (and it is not source body),
+        // calculate the force exerted by the current node on body, and add this
+        // amount to body's net force.
+        dx = body.pos.x - sourceBody.pos.x;
+        dy = body.pos.y - sourceBody.pos.y;
+        r = Math.sqrt(dx * dx + dy * dy);
+
+        if (r === 0) {
+          // Poor man's protection against zero distance.
+          dx = (random.nextDouble() - 0.5) / 50;
+          dy = (random.nextDouble() - 0.5) / 50;
+          r = Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // This is standard gravition force calculation but we divide
+        // by r^3 to save two operations when normalizing force vector.
+        v = gravity * body.mass * sourceBody.mass / (r * r * r);
+        fx += v * dx;
+        fy += v * dy;
+      } else if (differentBody) {
+        // Otherwise, calculate the ratio s / r,  where s is the width of the region
+        // represented by the internal node, and r is the distance between the body
+        // and the node's center-of-mass
+        dx = node.massX / node.mass - sourceBody.pos.x;
+        dy = node.massY / node.mass - sourceBody.pos.y;
+        r = Math.sqrt(dx * dx + dy * dy);
+
+        if (r === 0) {
+          // Sorry about code duplucation. I don't want to create many functions
+          // right away. Just want to see performance first.
+          dx = (random.nextDouble() - 0.5) / 50;
+          dy = (random.nextDouble() - 0.5) / 50;
+          r = Math.sqrt(dx * dx + dy * dy);
+        }
+        // If s / r < θ, treat this internal node as a single body, and calculate the
+        // force it exerts on sourceBody, and add this amount to sourceBody's net force.
+        if ((node.right - node.left) / r < theta) {
+          // in the if statement above we consider node's width only
+          // because the region was squarified during tree creation.
+          // Thus there is no difference between using width or height.
+          v = gravity * node.mass * sourceBody.mass / (r * r * r);
+          fx += v * dx;
+          fy += v * dy;
+        } else {
+          // Otherwise, run the procedure recursively on each of the current node's children.
+
+          // I intentionally unfolded this loop, to save several CPU cycles.
+          if (node.quad0) {
+            queue[pushIdx] = node.quad0;
+            queueLength += 1;
+            pushIdx += 1;
+          }
+          if (node.quad1) {
+            queue[pushIdx] = node.quad1;
+            queueLength += 1;
+            pushIdx += 1;
+          }
+          if (node.quad2) {
+            queue[pushIdx] = node.quad2;
+            queueLength += 1;
+            pushIdx += 1;
+          }
+          if (node.quad3) {
+            queue[pushIdx] = node.quad3;
+            queueLength += 1;
+            pushIdx += 1;
+          }
+        }
+      }
+    }
+
+    sourceBody.force.x += fx;
+    sourceBody.force.y += fy;
+  }
+
+  function insertBodies(bodies) {
+    var x1 = Number.MAX_VALUE,
+      y1 = Number.MAX_VALUE,
+      x2 = Number.MIN_VALUE,
+      y2 = Number.MIN_VALUE,
+      i,
+      max = bodies.length;
+
+    // To reduce quad tree depth we are looking for exact bounding box of all particles.
+    i = max;
+    while (i--) {
+      var x = bodies[i].pos.x;
+      var y = bodies[i].pos.y;
+      if (x < x1) {
+        x1 = x;
+      }
+      if (x > x2) {
+        x2 = x;
+      }
+      if (y < y1) {
+        y1 = y;
+      }
+      if (y > y2) {
+        y2 = y;
+      }
+    }
+
+    // Squarify the bounds.
+    var dx = x2 - x1,
+      dy = y2 - y1;
+    if (dx > dy) {
+      y2 = y1 + dx;
+    } else {
+      x2 = x1 + dy;
+    }
+
+    currentInCache = 0;
+    root = newNode();
+    root.left = x1;
+    root.right = x2;
+    root.top = y1;
+    root.bottom = y2;
+
+    i = max - 1;
+    if (i >= 0) {
+      root.body = bodies[i];
+    }
+    while (i--) {
+      insert(bodies[i], root);
+    }
+  }
+
+  function insert(newBody) {
+    insertStack.reset();
+    insertStack.push(root, newBody);
+
+    while (!insertStack.isEmpty()) {
+      var stackItem = insertStack.pop(),
+        node = stackItem.node,
+        body = stackItem.body;
+
+      if (!node.body) {
+        // This is internal node. Update the total mass of the node and center-of-mass.
+        var x = body.pos.x;
+        var y = body.pos.y;
+        node.mass = node.mass + body.mass;
+        node.massX = node.massX + body.mass * x;
+        node.massY = node.massY + body.mass * y;
+
+        // Recursively insert the body in the appropriate quadrant.
+        // But first find the appropriate quadrant.
+        var quadIdx = 0, // Assume we are in the 0's quad.
+          left = node.left,
+          right = (node.right + left) / 2,
+          top = node.top,
+          bottom = (node.bottom + top) / 2;
+
+        if (x > right) { // somewhere in the eastern part.
+          quadIdx = quadIdx + 1;
+          left = right;
+          right = node.right;
+        }
+        if (y > bottom) { // and in south.
+          quadIdx = quadIdx + 2;
+          top = bottom;
+          bottom = node.bottom;
+        }
+
+        var child = getChild(node, quadIdx);
+        if (!child) {
+          // The node is internal but this quadrant is not taken. Add
+          // subnode to it.
+          child = newNode();
+          child.left = left;
+          child.top = top;
+          child.right = right;
+          child.bottom = bottom;
+          child.body = body;
+
+          setChild(node, quadIdx, child);
+        } else {
+          // continue searching in this quadrant.
+          insertStack.push(child, body);
+        }
+      } else {
+        // We are trying to add to the leaf node.
+        // We have to convert current leaf into internal node
+        // and continue adding two nodes.
+        var oldBody = node.body;
+        node.body = null; // internal nodes do not cary bodies
+
+        if (isSamePosition(oldBody.pos, body.pos)) {
+          // Prevent infinite subdivision by bumping one node
+          // anywhere in this quadrant
+          var retriesCount = 3;
+          do {
+            var offset = random.nextDouble();
+            var dx = (node.right - node.left) * offset;
+            var dy = (node.bottom - node.top) * offset;
+
+            oldBody.pos.x = node.left + dx;
+            oldBody.pos.y = node.top + dy;
+            retriesCount -= 1;
+            // Make sure we don't bump it out of the box. If we do, next iteration should fix it
+          } while (retriesCount > 0 && isSamePosition(oldBody.pos, body.pos));
+
+          if (retriesCount === 0 && isSamePosition(oldBody.pos, body.pos)) {
+            // This is very bad, we ran out of precision.
+            // if we do not return from the method we'll get into
+            // infinite loop here. So we sacrifice correctness of layout, and keep the app running
+            // Next layout iteration should get larger bounding box in the first step and fix this
+            return;
+          }
+        }
+        // Next iteration should subdivide node further.
+        insertStack.push(node, oldBody);
+        insertStack.push(node, body);
+      }
+    }
+  }
 };
 
 function getChild(node, idx) {
