@@ -291,6 +291,12 @@ function webglGraphics(options) {
         },
 
        /**
+        * Resizes the graphic without resetting the scale. 
+        * Useful with viva graph in a dynamic container
+        */
+        updateSize: updateSize,
+
+       /**
         * Called by Viva.Graph.View.renderer to let concrete graphic output
         * provider prepare to render.
         */
