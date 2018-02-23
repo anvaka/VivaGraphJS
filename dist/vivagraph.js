@@ -4106,7 +4106,7 @@ function Rect (x1, y1, x2, y2) {
 },{}],46:[function(require,module,exports){
 (function (global){
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 module.exports = createTimer();
@@ -4709,7 +4709,7 @@ function renderer(graph, settings) {
 /**
  * @fileOverview Defines a graph renderer that uses SVG based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 module.exports = svgGraphics;
@@ -5692,7 +5692,7 @@ function Texture(size) {
 /**
  * @fileOverview Utility functions for webgl rendering.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 module.exports = webgl;
@@ -6036,7 +6036,7 @@ function webglImage(size, src) {
  * @fileOverview Defines an image nodes for webglGraphics class.
  * Shape of nodes is square.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 var WebglAtlas = require('./webglAtlas.js');

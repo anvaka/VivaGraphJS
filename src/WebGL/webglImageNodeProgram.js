@@ -2,7 +2,7 @@
  * @fileOverview Defines an image nodes for webglGraphics class.
  * Shape of nodes is square.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 var WebglAtlas = require('./webglAtlas.js');

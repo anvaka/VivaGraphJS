@@ -1,7 +1,7 @@
 /**
  * @fileOverview Defines a graph renderer that uses SVG based drawings.
  *
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 module.exports = svgGraphics;

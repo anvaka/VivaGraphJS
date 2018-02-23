@@ -1,5 +1,5 @@
 /**
- * @author Andrei Kashcha (aka anvaka) / http://anvaka.blogspot.com
+ * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
 module.exports = createTimer();
