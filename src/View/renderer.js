@@ -67,8 +67,6 @@ function renderer(graph, settings) {
     rendererInitialized = false,
     updateCenterRequired = true,
 
-    currentStep = 0,
-    totalIterationsCount = 0,
     isStable = false,
     userInteraction = false,
     isPaused = false,
@@ -222,19 +220,20 @@ function renderer(graph, settings) {
 
   function renderIterations(iterationsCount) {
     if (animationTimer) {
-      totalIterationsCount += iterationsCount;
       return;
     }
 
-    if (iterationsCount) {
-      totalIterationsCount += iterationsCount;
-
+    if (iterationsCount !== undefined) {
       animationTimer = timer(function() {
+        iterationsCount -= 1;
+        if (iterationsCount < 0) {
+          var needMoreFrames = false;
+          return needMoreFrames;
+        }
+
         return onRenderFrame();
       }, FRAME_INTERVAL);
     } else {
-      currentStep = 0;
-      totalIterationsCount = 0;
       animationTimer = timer(onRenderFrame, FRAME_INTERVAL);
     }
   }
