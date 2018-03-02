@@ -85,7 +85,7 @@ function renderer(graph, settings) {
      * Performs rendering of the graph.
      *
      * @param iterationsCount if specified renderer will run only given number of iterations
-     * and then stop. Otherwise graph rendering is performed infinitely.
+     * and then stop. Otherwise graph rendering is performed indefinitely.
      *
      * Note: if rendering stopped by used started dragging nodes or new nodes were added to the
      * graph renderer will give run more iterations to reflect changes.
@@ -135,6 +135,13 @@ function renderer(graph, settings) {
 
     zoomIn: function() {
       return scale(false);
+    },
+
+    /**
+     * Returns current transformation matrix.
+     */
+    getTransform: function() {
+      return transform;
     },
 
     /**
