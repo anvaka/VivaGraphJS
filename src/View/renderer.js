@@ -38,7 +38,7 @@ var dragndrop = require('../Input/dragndrop.js');
  *
  *     // Layout algorithm to be used. The algorithm is expected to comply with defined
  *     // interface and is expected to be iterative. Renderer will use it then to calculate
- *     // grpaph's layout. For examples of the interface refer to Viva.Graph.Layout.forceDirected()
+ *     // graph's layout. For examples of the interface refer to Viva.Graph.Layout.forceDirected()
  *     layout : Viva.Graph.Layout.forceDirected(),
  *
  *     // Directs renderer to display links. Usually rendering links is the slowest part of this
@@ -157,6 +157,13 @@ function renderer(graph, settings) {
      */
     getGraphics: function() {
       return graphics;
+    },
+    
+    /**
+     * Gets current layout.
+     */
+    getLayout: function() {
+      return layout;
     },
 
     /**
