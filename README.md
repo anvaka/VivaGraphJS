@@ -112,8 +112,7 @@ graphics.node(function(node) {
         nodeUI.attr('x', pos.x - 12).attr('y', pos.y - 12);
     });
 
-var renderer = Viva.Graph.View.renderer(graph,
-    {
+var renderer = Viva.Graph.View.renderer(graph, {
         graphics : graphics
     });
 renderer.run();
