@@ -110,27 +110,27 @@ function webglImageNodeProgram() {
   function position(nodeUI, pos) {
     var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
     nodes[idx] = pos.x - nodeUI.size;
-    nodes[idx + 1] = pos.y - nodeUI.size;
+    nodes[idx + 1] = -pos.y - nodeUI.size;
     nodes[idx + 2] = nodeUI._offset * 4;
 
     nodes[idx + 3] = pos.x + nodeUI.size;
-    nodes[idx + 4] = pos.y - nodeUI.size;
+    nodes[idx + 4] = -pos.y - nodeUI.size;
     nodes[idx + 5] = nodeUI._offset * 4 + 1;
 
     nodes[idx + 6] = pos.x - nodeUI.size;
-    nodes[idx + 7] = pos.y + nodeUI.size;
+    nodes[idx + 7] = -pos.y + nodeUI.size;
     nodes[idx + 8] = nodeUI._offset * 4 + 2;
 
     nodes[idx + 9] = pos.x - nodeUI.size;
-    nodes[idx + 10] = pos.y + nodeUI.size;
+    nodes[idx + 10] = -pos.y + nodeUI.size;
     nodes[idx + 11] = nodeUI._offset * 4 + 2;
 
     nodes[idx + 12] = pos.x + nodeUI.size;
-    nodes[idx + 13] = pos.y - nodeUI.size;
+    nodes[idx + 13] = -pos.y - nodeUI.size;
     nodes[idx + 14] = nodeUI._offset * 4 + 1;
 
     nodes[idx + 15] = pos.x + nodeUI.size;
-    nodes[idx + 16] = pos.y + nodeUI.size;
+    nodes[idx + 16] = -pos.y + nodeUI.size;
     nodes[idx + 17] = nodeUI._offset * 4 + 3;
   }
 
