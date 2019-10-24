@@ -188,6 +188,9 @@ function webglInputEvents(webglGraphics) {
         node = getNodeAtClientPos(pos);
 
         if (node && lastFound !== node) {
+          if(lastFound){ 
+            invoke(mouseLeaveCallback, [lastFound]);
+          }
           lastFound = node;
           cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
         } else if (node === null && lastFound !== node) {
