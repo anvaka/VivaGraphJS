@@ -6434,13 +6434,16 @@ module.exports = webglImageNodeProgram;
 
 /**
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as an image.
+ * 
+ * @param {number} tilesPerTexture
+ * 
  */
-function webglImageNodeProgram() {
+function webglImageNodeProgram(tilesPerTexture) {
   // WebGL is gian state machine, we store some properties of the state here:
   var ATTRIBUTES_PER_PRIMITIVE = 18;
   var nodesFS = createNodeFragmentShader();
   var nodesVS = createNodeVertexShader();
-  var tilesPerTexture = 1024; // TODO: Get based on max texture size
+  var tilesPerTexture = tilesPerTexture || 1024; // TODO: Get based on max texture size
   var atlas;
   var program;
   var gl;
@@ -6874,6 +6877,9 @@ function webglInputEvents(webglGraphics) {
         node = getNodeAtClientPos(pos);
 
         if (node && lastFound !== node) {
+          if(lastFound){ 
+            invoke(mouseLeaveCallback, [lastFound]);
+          }
           lastFound = node;
           cancelBubble = cancelBubble || invoke(mouseEnterCallback, [lastFound]);
         } else if (node === null && lastFound !== node) {
