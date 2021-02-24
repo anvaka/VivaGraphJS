@@ -130,7 +130,7 @@ function dragndrop(element) {
             }
 
             e.returnValue = false;
-            var delta,
+            var delta = e.deltaY,
                 mousePos = getMousePos(e),
                 elementOffset = findElementPosition(element),
                 relMousePos = {
@@ -138,29 +138,15 @@ function dragndrop(element) {
                     y: mousePos[1] - elementOffset[1]
                 };
 
-            if (e.wheelDelta) {
-                delta = e.wheelDelta / 360; // Chrome/Safari
-            } else {
-                delta = e.detail / -9; // Mozilla
-            }
-
             scroll(e, delta, relMousePos);
         },
 
         updateScrollEvents = function (scrollCallback) {
             if (!scroll && scrollCallback) {
                 // client is interested in scrolling. Start listening to events:
-                if (browserInfo.browser === 'webkit') {
-                    element.addEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
-                } else {
-                    element.addEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
-                }
+                element.addEventListener('wheel', handleMouseWheel, false);
             } else if (scroll && !scrollCallback) {
-                if (browserInfo.browser === 'webkit') {
-                    element.removeEventListener('mousewheel', handleMouseWheel, false); // Chrome/Safari
-                } else {
-                    element.removeEventListener('DOMMouseScroll', handleMouseWheel, false); // Others
-                }
+                element.removeEventListener('wheel', handleMouseWheel, false);
             }
 
             scroll = scrollCallback;
