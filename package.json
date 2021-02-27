@@ -9,7 +9,8 @@
   "scripts": {
     "start": "gulp",
     "test": "tap test/*.js",
-    "release": "gulp release"
+    "release": "gulp release",
+    "build": "gulp release"
   },
   "repository": {
     "type": "git",
@@ -23,15 +24,14 @@
   "devDependencies": {
     "browserify": "^8.0.3",
     "del": "^1.1.1",
-    "gulp": "^3.9.0",
-    "gulp-rename": "^1.2.0",
-    "gulp-run": "^1.6.5",
-    "gulp-uglify": "^1.0.2",
-    "gulp-util": "^3.0.2",
+    "gulp": "^4.0.2",
+    "gulp-rename": "^2.0.0",
+    "gulp-run": "^1.7.1",
+    "gulp-uglify": "^3.0.2",
     "ngraph.remove-overlaps": "^1.0.0",
     "tap": "^0.4.13",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.0.0"
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   },
   "dependencies": {
     "gintersect": "0.1.0",
