@@ -130,7 +130,7 @@ function dragndrop(element) {
             }
 
             e.returnValue = false;
-            var delta = e.deltaY,
+            var delta = -e.deltaY,
                 mousePos = getMousePos(e),
                 elementOffset = findElementPosition(element),
                 relMousePos = {
