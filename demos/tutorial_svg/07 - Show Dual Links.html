@@ -4,7 +4,7 @@
     <script type="text/javascript" src='../../dist/vivagraph.js'></script>
     <script type="text/javascript">
         function main() {
-            var graph = Viva.Graph.graph(),
+            var graph = Viva.Graph.graph({multigraph: true}),
                 graphics = Viva.Graph.View.svgGraphics(),
                 renderer = Viva.Graph.View.renderer(graph, {
                     graphics: graphics
