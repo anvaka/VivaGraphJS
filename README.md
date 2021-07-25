@@ -1,4 +1,4 @@
-VivaGraph [![Build Status](https://travis-ci.org/anvaka/VivaGraphJS.svg)](https://travis-ci.org/anvaka/VivaGraphJS)
+VivaGraph [![build status](https://github.com/anvaka/VivaGraphJS/actions/workflows/tests.yaml/badge.svg)](https://github.com/anvaka/VivaGraphJS/actions/workflows/tests.yaml)
 ==================================================
 **VivaGraphJS** is designed to be extensible and to support different
 rendering engines and layout algorithms. Underlying algorithms have been broken out into [ngraph](https://github.com/anvaka/ngraph).
