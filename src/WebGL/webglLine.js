@@ -1,4 +1,4 @@
-var parseColor = require('./parseColor.js');
+let parseColor = require('./parseColor.js');
 
 module.exports = webglLine;
 
