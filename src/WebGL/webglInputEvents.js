@@ -1,4 +1,4 @@
-var documentEvents = require('../Utils/documentEvents.js');
+let documentEvents = require('../Utils/documentEvents.js');
 
 module.exports = webglInputEvents;
 
@@ -13,7 +13,7 @@ function webglInputEvents(webglGraphics) {
     return webglGraphics.webglInputEvents;
   }
 
-  var mouseCapturedNode = null,
+  let mouseCapturedNode = null,
     mouseEnterCallback = [],
     mouseLeaveCallback = [],
     mouseDownCallback = [],
@@ -24,10 +24,10 @@ function webglInputEvents(webglGraphics) {
     prevSelectStart,
     boundRect;
 
-  var root = webglGraphics.getGraphicsRoot();
+  let root = webglGraphics.getGraphicsRoot();
   startListen(root);
 
-  var api = {
+  let api = {
     mouseEnter: mouseEnter,
     mouseLeave: mouseLeave,
     mouseDown: mouseDown,
@@ -103,7 +103,7 @@ function webglInputEvents(webglGraphics) {
 
   function preciseCheck(nodeUI, x, y) {
     if (nodeUI && nodeUI.size) {
-      var pos = nodeUI.position,
+      let pos = nodeUI.position,
         half = nodeUI.size;
 
       return pos.x - half < x && x < pos.x + half &&
@@ -131,7 +131,7 @@ function webglInputEvents(webglGraphics) {
   }
 
   function invoke(callbacksChain, args) {
-    var i, stopPropagation;
+    let i, stopPropagation;
     for (i = 0; i < callbacksChain.length; i += 1) {
       stopPropagation = callbacksChain[i].apply(undefined, args);
       if (stopPropagation) {
@@ -141,7 +141,7 @@ function webglInputEvents(webglGraphics) {
   }
 
   function startListen(root) {
-    var pos = {
+    let pos = {
         x: 0,
         y: 0
       },
@@ -179,7 +179,7 @@ function webglInputEvents(webglGraphics) {
           updateBoundRect();
           lastUpdate = 1;
         }
-        var cancelBubble = false,
+        let cancelBubble = false,
           node;
 
         pos.x = e.clientX - boundRect.left;
@@ -205,7 +205,7 @@ function webglInputEvents(webglGraphics) {
 
     root.addEventListener('mousedown',
       function(e) {
-        var cancelBubble = false,
+        let cancelBubble = false,
           args;
         updateBoundRect();
         pos.x = e.clientX - boundRect.left;
@@ -233,14 +233,14 @@ function webglInputEvents(webglGraphics) {
 
     root.addEventListener('mouseup',
       function(e) {
-        var clickTime = +new Date(),
+        let clickTime = +new Date(),
           args;
 
         pos.x = e.clientX - boundRect.left;
         pos.y = e.clientY - boundRect.top;
 
-        var nodeAtClientPos = getNodeAtClientPos(pos);
-        var sameNode = nodeAtClientPos === lastFound;
+        let nodeAtClientPos = getNodeAtClientPos(pos);
+        let sameNode = nodeAtClientPos === lastFound;
         args = [nodeAtClientPos || lastFound, e];
         if (args[0]) {
           window.document.onselectstart = prevSelectStart;
