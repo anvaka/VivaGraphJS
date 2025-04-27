@@ -1,7 +1,7 @@
 module.exports = parseColor;
 
 function parseColor(color) {
-  var parsedColor = 0x009ee8ff;
+  let parsedColor = 0x009ee8ff;
 
   if (typeof color === 'string' && color) {
     if (color.length === 4) { // #rgb
