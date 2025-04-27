@@ -15,6 +15,9 @@ var timer = require('../Utils/timer.js');
 var getDimension = require('../Utils/getDimensions.js');
 var dragndrop = require('../Input/dragndrop.js');
 
+var zoomInFactor = Math.pow(1 + 0.4, 0.2);
+var zoomOutFactor = Math.pow(1 + 0.4, -0.2);
+
 /**
  * This is heart of the rendering. Class accepts graph to be rendered and rendering settings.
  * It monitors graph changes and depicts them accordingly.
@@ -130,12 +133,14 @@ function renderer(graph, settings) {
     },
 
     zoomOut: function() {
-      return scale(true);
+      return scale(zoomInFactor);
     },
 
     zoomIn: function() {
-      return scale(false);
+      return scale(zoomOutFactor);
     },
+
+    scale: scale,
 
     /**
      * Returns current transformation matrix.
@@ -421,7 +426,11 @@ function renderer(graph, settings) {
     graph.off('changed', onGraphChanged);
   }
 
-  function scale(out, scrollPoint) {
+  function scale(factor, scrollPoint) {
+    if (typeof factor !== 'number' || factor <= 0) {
+      return;
+    }
+
     if (!scrollPoint) {
       var containerSize = getDimension(container);
       scrollPoint = {
@@ -429,8 +438,8 @@ function renderer(graph, settings) {
         y: containerSize.height / 2
       };
     }
-    var scaleFactor = Math.pow(1 + 0.4, out ? -0.2 : 0.2);
-    transform.scale = graphics.scale(scaleFactor, scrollPoint);
+
+    transform.scale = graphics.scale(factor, scrollPoint);
 
     renderGraph();
     publicEvents.fire('scale', transform.scale);
