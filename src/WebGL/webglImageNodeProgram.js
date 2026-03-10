@@ -5,8 +5,8 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-var WebglAtlas = require('./webglAtlas.js');
-var glUtils = require('./webgl.js');
+let WebglAtlas = require('./webglAtlas.js');
+let glUtils = require('./webgl.js');
 
 module.exports = webglImageNodeProgram;
 
@@ -18,22 +18,22 @@ module.exports = webglImageNodeProgram;
  */
 function webglImageNodeProgram(tilesPerTexture) {
   // WebGL is gian state machine, we store some properties of the state here:
-  var ATTRIBUTES_PER_PRIMITIVE = 18;
-  var nodesFS = createNodeFragmentShader();
-  var nodesVS = createNodeVertexShader();
-  var tilesPerTexture = tilesPerTexture || 1024; // TODO: Get based on max texture size
-  var atlas;
-  var program;
-  var gl;
-  var buffer;
-  var utils;
-  var locations;
-  var nodesCount = 0;
-  var nodes = new Float32Array(64);
-  var width;
-  var height;
-  var transform;
-  var sizeDirty;
+  let ATTRIBUTES_PER_PRIMITIVE = 18;
+  let nodesFS = createNodeFragmentShader();
+  let nodesVS = createNodeVertexShader();
+  let tilesPerTexture = tilesPerTexture || 1024; // TODO: Get based on max texture size
+  let atlas;
+  let program;
+  let gl;
+  let buffer;
+  let utils;
+  let locations;
+  let nodesCount = 0;
+  let nodes = new Float32Array(64);
+  let width;
+  let height;
+  let transform;
+  let sizeDirty;
 
 
   return {
@@ -65,7 +65,7 @@ function webglImageNodeProgram(tilesPerTexture) {
       gl.deleteTexture(texture.nativeObject);
     }
 
-    var nativeObject = gl.createTexture();
+    let nativeObject = gl.createTexture();
     gl.activeTexture(gl["TEXTURE" + idx]);
     gl.bindTexture(gl.TEXTURE_2D, nativeObject);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
@@ -80,7 +80,7 @@ function webglImageNodeProgram(tilesPerTexture) {
 
   function ensureAtlasTextureUpdated() {
     if (atlas.isDirty) {
-      var textures = atlas.getTextures(),
+      let textures = atlas.getTextures(),
         i;
       for (i = 0; i < textures.length; ++i) {
         if (textures[i].isDirty || !textures[i].nativeObject) {
@@ -111,7 +111,7 @@ function webglImageNodeProgram(tilesPerTexture) {
   }
 
   function position(nodeUI, pos) {
-    var idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
+    let idx = nodeUI.id * ATTRIBUTES_PER_PRIMITIVE;
     nodes[idx] = pos.x - nodeUI.size;
     nodes[idx + 1] = -pos.y - nodeUI.size;
     nodes[idx + 2] = nodeUI._offset * 4;
@@ -141,7 +141,7 @@ function webglImageNodeProgram(tilesPerTexture) {
     nodes = utils.extendArray(nodes, nodesCount, ATTRIBUTES_PER_PRIMITIVE);
     nodesCount += 1;
 
-    var coordinates = atlas.getCoordinates(ui.src);
+    let coordinates = atlas.getCoordinates(ui.src);
     if (coordinates) {
       ui._offset = coordinates.offset;
     } else {
