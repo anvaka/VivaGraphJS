@@ -119,6 +119,10 @@ function renderer(graph, settings) {
       animationTimer.stop();
     },
 
+    isPaused: function() {
+      return isPaused;
+    },
+
     resume: function() {
       isPaused = false;
       animationTimer.restart();
