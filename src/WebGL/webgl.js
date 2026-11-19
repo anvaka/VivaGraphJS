@@ -18,12 +18,12 @@ function webgl(gl) {
   };
 
   function createShader(shaderText, type) {
-    var shader = gl.createShader(type);
+    let shader = gl.createShader(type);
     gl.shaderSource(shader, shaderText);
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      var msg = gl.getShaderInfoLog(shader);
+      let msg = gl.getShaderInfoLog(shader);
       window.alert(msg);
       throw msg;
     }
@@ -32,16 +32,16 @@ function webgl(gl) {
   }
 
   function createProgram(vertexShaderSrc, fragmentShaderSrc) {
-    var program = gl.createProgram();
-    var vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER);
-    var fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
+    let program = gl.createProgram();
+    let vs = createShader(vertexShaderSrc, gl.VERTEX_SHADER);
+    let fs = createShader(fragmentShaderSrc, gl.FRAGMENT_SHADER);
 
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      var msg = gl.getShaderInfoLog(program);
+      let msg = gl.getShaderInfoLog(program);
       window.alert(msg);
       throw msg;
     }
@@ -53,7 +53,7 @@ function webgl(gl) {
     if ((itemsInBuffer + 1) * elementsPerItem > buffer.length) {
       // Every time we run out of space create new array twice bigger.
       // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-      var extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
+      let extendedArray = new Float32Array(buffer.length * elementsPerItem * 2);
       extendedArray.set(buffer);
 
       return extendedArray;
@@ -63,10 +63,10 @@ function webgl(gl) {
   }
 
   function getLocations(program, uniformOrAttributeNames) {
-    var foundLocations = {};
-    for (var i = 0; i < uniformOrAttributeNames.length; ++i) {
-      var name = uniformOrAttributeNames[i];
-      var location = -1;
+    let foundLocations = {};
+    for (let i = 0; i < uniformOrAttributeNames.length; ++i) {
+      let name = uniformOrAttributeNames[i];
+      let location = -1;
       if (name[0] === 'a' && name[1] === '_') {
         location = gl.getAttribLocation(program, name);
         if (location === -1) {
@@ -91,14 +91,14 @@ function webgl(gl) {
 }
 
 function copyArrayPart(array, to, from, elementsCount) {
-  for (var i = 0; i < elementsCount; ++i) {
+  for (let i = 0; i < elementsCount; ++i) {
     array[to + i] = array[from + i];
   }
 }
 
 function swapArrayPart(array, from, to, elementsCount) {
-  for (var i = 0; i < elementsCount; ++i) {
-    var tmp = array[from + i];
+  for (let i = 0; i < elementsCount; ++i) {
+    let tmp = array[from + i];
     array[from + i] = array[to + i];
     array[to + i] = tmp;
   }
