@@ -3,7 +3,7 @@
  * This form allows to change color of links.
  **/
 
-var glUtils = require('./webgl.js');
+let glUtils = require('./webgl.js');
 
 module.exports = webglLinkProgram;
 
@@ -11,7 +11,7 @@ module.exports = webglLinkProgram;
  * Defines UI for links in webgl renderer.
  */
 function webglLinkProgram() {
-    var ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
+    let ATTRIBUTES_PER_PRIMITIVE = 6, // primitive is Line with two points. Each has x,y and color = 3 * 2 attributes.
         BYTES_PER_LINK = 2 * (2 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT), // two nodes * (x, y + color)
         linksFS = [
             'precision mediump float;',
@@ -56,7 +56,7 @@ function webglLinkProgram() {
             if ((linksCount+1)*BYTES_PER_LINK > storage.byteLength) {
                 // Every time we run out of space create new array twice bigger.
                 // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-                var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+                let extendedStorage = new ArrayBuffer(storage.byteLength * 2),
                     extendedPositions = new Float32Array(extendedStorage),
                     extendedColors = new Uint32Array(extendedStorage);
 
@@ -83,7 +83,7 @@ function webglLinkProgram() {
         },
 
         position: function (linkUi, fromPos, toPos) {
-            var linkIdx = linkUi.id,
+            let linkIdx = linkUi.id,
                 offset = linkIdx * ATTRIBUTES_PER_PRIMITIVE;
             positions[offset] = fromPos.x;
             positions[offset + 1] = fromPos.y;
