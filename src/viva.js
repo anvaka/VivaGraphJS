@@ -3,9 +3,9 @@
  * modules individually - you are more than welcome to do so.
  */
 
-var random = require('ngraph.random');
+let random = require('ngraph.random');
 
-var Viva = {
+let Viva = {
   lazyExtend: function() {
     return require('ngraph.merge').apply(this, arguments);
   },
