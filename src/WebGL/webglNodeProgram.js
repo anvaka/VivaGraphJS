@@ -5,7 +5,7 @@
  * @author Andrei Kashcha (aka anvaka) / https://github.com/anvaka
  */
 
-var glUtils = require('./webgl.js');
+let glUtils = require('./webgl.js');
 
 module.exports = webglNodeProgram;
 
@@ -13,10 +13,10 @@ module.exports = webglNodeProgram;
  * Defines simple UI for nodes in webgl renderer. Each node is rendered as square. Color and size can be changed.
  */
 function webglNodeProgram() {
-  var ATTRIBUTES_PER_PRIMITIVE = 4; // Primitive is point, x, y, size, color
+  let ATTRIBUTES_PER_PRIMITIVE = 4; // Primitive is point, x, y, size, color
   // x, y, z - floats, color = uint.
-  var BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT;
-  var nodesFS = [
+  let BYTES_PER_NODE = 3 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT;
+  let nodesFS = [
     'precision mediump float;',
     'varying vec4 color;',
 
@@ -24,7 +24,7 @@ function webglNodeProgram() {
     '   gl_FragColor = color;',
     '}'
   ].join('\n');
-  var nodesVS = [
+  let nodesVS = [
     'attribute vec3 a_vertexPos;',
     'attribute vec4 a_color;',
     'uniform vec2 u_screenSize;',
@@ -38,19 +38,19 @@ function webglNodeProgram() {
     '}'
   ].join('\n');
 
-  var program;
-  var gl;
-  var buffer;
-  var locations;
-  var utils;
-  var storage = new ArrayBuffer(16 * BYTES_PER_NODE);
-  var positions = new Float32Array(storage);
-  var colors = new Uint32Array(storage);
-  var nodesCount = 0;
-  var width;
-  var height;
-  var transform;
-  var sizeDirty;
+  let program;
+  let gl;
+  let buffer;
+  let locations;
+  let utils;
+  let storage = new ArrayBuffer(16 * BYTES_PER_NODE);
+  let positions = new Float32Array(storage);
+  let colors = new Uint32Array(storage);
+  let nodesCount = 0;
+  let width;
+  let height;
+  let transform;
+  let sizeDirty;
 
   return {
     load: load,
@@ -80,7 +80,7 @@ function webglNodeProgram() {
     if ((nodesCount + 1) * BYTES_PER_NODE >= storage.byteLength) {
       // Every time we run out of space create new array twice bigger.
       // TODO: it seems buffer size is limited. Consider using multiple arrays for huge graphs
-      var extendedStorage = new ArrayBuffer(storage.byteLength * 2),
+      let extendedStorage = new ArrayBuffer(storage.byteLength * 2),
         extendedPositions = new Float32Array(extendedStorage),
         extendedColors = new Uint32Array(extendedStorage);
 
@@ -106,7 +106,7 @@ function webglNodeProgram() {
   }
 
   function position(nodeUI, pos) {
-    var idx = nodeUI.id;
+    let idx = nodeUI.id;
 
     positions[idx * ATTRIBUTES_PER_PRIMITIVE] = pos.x;
     positions[idx * ATTRIBUTES_PER_PRIMITIVE + 1] = -pos.y;
