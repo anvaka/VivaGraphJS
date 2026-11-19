@@ -348,7 +348,18 @@ function svgGraphics() {
         var svgRoot = svg("svg");
 
         svgContainer = svg("g")
-              .attr("buffered-rendering", "dynamic");
+              .attr("buffered-rendering", "dynamic")
+              .attr("id", "scene");
+
+        // group nodes and links for readability of elements  
+        svgNodes = svg("g")
+                .attr("id", "nodes");
+
+        svgEdges = svg("g")
+                .attr("id", "edges");
+
+        svgContainer.appendChild(svgEdges);
+        svgContainer.appendChild(svgNodes);
 
         svgRoot.appendChild(svgContainer);
         return svgRoot;
