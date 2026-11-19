@@ -1,4 +1,4 @@
-var Texture = require('./texture.js');
+let Texture = require('./texture.js');
 
 module.exports = webglAtlas;
 
@@ -11,7 +11,7 @@ module.exports = webglAtlas;
  *          parameter a new canvas will be created.
  */
 function webglAtlas(tilesPerTexture) {
-  var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
+  let tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
     tileSize = tilesPerRow,
     lastLoadedIdx = 1,
     loadedImages = {},
@@ -25,7 +25,7 @@ function webglAtlas(tilesPerTexture) {
   }
 
   // this is the return object
-  var api = {
+  let api = {
     /**
      * indicates whether atlas has changed texture in it. If true then
      * some of the textures has isDirty flag set as well.
@@ -67,7 +67,7 @@ function webglAtlas(tilesPerTexture) {
   return api;
 
   function clearDirty() {
-    var i;
+    let i;
     api.isDirty = false;
     for (i = 0; i < textures.length; ++i) {
       textures[i].isDirty = false;
@@ -75,7 +75,7 @@ function webglAtlas(tilesPerTexture) {
   }
 
   function remove(imgUrl) {
-    var coordinates = loadedImages[imgUrl];
+    let coordinates = loadedImages[imgUrl];
     if (!coordinates) {
       return false;
     }
@@ -87,12 +87,12 @@ function webglAtlas(tilesPerTexture) {
       return true; // Ignore if it's last image in the whole set.
     }
 
-    var tileToRemove = getTileCoordinates(coordinates.offset),
+    let tileToRemove = getTileCoordinates(coordinates.offset),
       lastTileInSet = getTileCoordinates(lastLoadedIdx);
 
     copy(lastTileInSet, tileToRemove);
 
-    var replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
+    let replacedOffset = loadedImages[trackedUrls[lastLoadedIdx]];
     replacedOffset.offset = coordinates.offset;
     trackedUrls[coordinates.offset] = trackedUrls[lastLoadedIdx];
 
@@ -112,7 +112,7 @@ function webglAtlas(tilesPerTexture) {
     if (loadedImages.hasOwnProperty(imgUrl)) {
       callback(loadedImages[imgUrl]);
     } else {
-      var img = new window.Image(),
+      let img = new window.Image(),
         imgId = lastLoadedIdx;
 
       lastLoadedIdx += 1;
@@ -127,12 +127,12 @@ function webglAtlas(tilesPerTexture) {
   }
 
   function createTexture() {
-    var texture = new Texture(tilesPerRow * tileSize);
+    let texture = new Texture(tilesPerRow * tileSize);
     textures.push(texture);
   }
 
   function drawAt(tileNumber, img, callback) {
-    var tilePosition = getTileCoordinates(tileNumber),
+    let tilePosition = getTileCoordinates(tileNumber),
       coordinates = {
         offset: tileNumber
       };
@@ -140,7 +140,7 @@ function webglAtlas(tilesPerTexture) {
     if (tilePosition.textureNumber >= textures.length) {
       createTexture();
     }
-    var currentTexture = textures[tilePosition.textureNumber];
+    let currentTexture = textures[tilePosition.textureNumber];
 
     currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
     trackedUrls[tileNumber] = img.src;
@@ -152,7 +152,7 @@ function webglAtlas(tilesPerTexture) {
   }
 
   function getTileCoordinates(absolutePosition) {
-    var textureNumber = (absolutePosition / tilesPerTexture) << 0,
+    let textureNumber = (absolutePosition / tilesPerTexture) << 0,
       localTileNumber = (absolutePosition % tilesPerTexture),
       row = (localTileNumber / tilesPerRow) << 0,
       col = (localTileNumber % tilesPerRow);
@@ -186,7 +186,7 @@ function webglAtlas(tilesPerTexture) {
   }
 
   function copy(from, to) {
-    var fromCanvas = textures[from.textureNumber].canvas,
+    let fromCanvas = textures[from.textureNumber].canvas,
       toCtx = textures[to.textureNumber].ctx,
       x = to.col * tileSize,
       y = to.row * tileSize;
