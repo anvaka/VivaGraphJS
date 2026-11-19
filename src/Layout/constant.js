@@ -115,7 +115,7 @@ function constant(graph, userSettings) {
          * Request to release all resources
          */
         dispose : function () {
-            graph.off('change', onGraphChanged);
+            graph.off('changed', onGraphChanged);
         },
 
         /*
