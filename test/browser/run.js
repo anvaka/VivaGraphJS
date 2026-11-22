@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 
 const root = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const TYPES = {'.html': 'text/html', '.js': 'text/javascript'};
+const TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json'};
 
 const chrome = [
   process.env.CHROME_PATH,
@@ -391,6 +391,60 @@ test('the module build loads from <script type="module">', async () => {
   assert.deepEqual(page.errors, []);
   assert.ok(result.steps > 0);
   assert.ok(result.exports.includes('render') && result.exports.includes('createGraph') && result.exports.includes('labelNodes'));
+  await page.close();
+});
+
+// The pages that GitHub Pages serves (see scripts/site.js)
+for (let example of ['hello', 'groups', 'big', '3d', 'dynamic']) {
+  test('the ' + example + ' example opens and draws', async () => {
+    let page = await openPage('examples/' + example + '.html');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    let result = await page.evaluate(() => {
+      let canvas = document.querySelector('canvas');
+      return {
+        size: canvas && [canvas.width, canvas.height],
+        // the examples that keep what render() returns call it viva
+        steps: typeof viva === 'undefined' ? null : viva.stats().steps
+      };
+    });
+    assert.deepEqual(page.errors, []);
+    assert.ok(result.size && result.size[0] > 0 && result.size[1] > 0, 'the page has a canvas with a size');
+    if (result.steps !== null) assert.ok(result.steps > 0, 'the layout runs');
+    await page.close();
+  });
+}
+
+test('the real graphs example loads a file, colors it and names its nodes', async () => {
+  let page = await openPage('examples/graphs.html?graph=countries');
+  await page.waitForFunction(() => document.querySelector('canvas'));
+  await new Promise(resolve => setTimeout(resolve, 500));
+  let result = await page.evaluate(() => ({
+    picked: document.getElementById('pick').value,
+    choices: document.getElementById('pick').options.length,
+    text: document.getElementById('text').textContent,
+    links: [...document.querySelectorAll('#credit a')].map(a => a.href)
+  }));
+  assert.deepEqual(page.errors, []);
+  assert.equal(result.picked, 'countries');
+  assert.equal(result.choices, 19);
+  assert.match(result.text, /252 nodes, 331 links/);
+  assert.deepEqual(result.links, ['https://download.geonames.org/export/dump/countryInfo.txt']);
+
+  // Picking another graph draws it in place: the page is not loaded again
+  await page.evaluate(() => { window.samePage = true; });
+  await page.select('#pick', 'miserables');
+  await page.waitForFunction(() => /77 nodes/.test(document.getElementById('text').textContent));
+  let switched = await page.evaluate(() => ({
+    samePage: window.samePage === true,
+    canvases: document.querySelectorAll('canvas').length,
+    address: location.search
+  }));
+  assert.deepEqual(switched, {samePage: true, canvases: 1, address: '?graph=miserables'});
+  // and Back returns to the graph before
+  await page.goBack();
+  await page.waitForFunction(() => /252 nodes/.test(document.getElementById('text').textContent));
+  assert.equal(await page.evaluate(() => document.getElementById('pick').value), 'countries');
+  assert.deepEqual(page.errors, []);
   await page.close();
 });
 
