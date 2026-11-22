@@ -396,7 +396,12 @@ function isElement(value) {
 // `target` (the whole window when there is no target)
 function createCanvas(target) {
   if (target && target.tagName === 'CANVAS') return {canvas: target, dispose() {}};
-  let container = target || document.body;
+  let container = target || (typeof document !== 'undefined' && document.body);
+  if (!container) {
+    // A script in <head> runs before the page has a body
+    throw new Error('render() has nowhere to draw: the page has no <body> yet. Call it from a script at ' +
+      'the end of <body> or after DOMContentLoaded, or pass it an element.');
+  }
   let canvas = document.createElement('canvas');
   canvas.style.cssText = target
     ? 'display:block;width:100%;height:100%'
