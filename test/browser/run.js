@@ -394,6 +394,24 @@ test('the module build loads from <script type="module">', async () => {
   await page.close();
 });
 
+test('a script in <head> is told that the page has no body yet', async () => {
+  let page = await openPage('test/browser/head.html');
+  let early = await page.evaluate(() => window.early);
+  assert.match(early, /no <body> yet/);
+  // The same call works once the page has loaded
+  let steps = await page.evaluate(async () => {
+    let viva = Viva.render(graph, {gpu: false});
+    await viva.ready;
+    await new Promise(resolve => setTimeout(resolve, 200));
+    let steps = viva.stats().steps;
+    viva.dispose();
+    return steps;
+  });
+  assert.ok(steps > 0);
+  assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
 let failed = 0;
 for (let {name, fn} of tests) {
   try {

@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>VivaGraph browser test: a script in head</title>
+<script src="../../dist/vivagraph.js"></script>
+<script>
+// The page has no <body> yet
+var graph = Viva.createGraph();
+graph.addLink('Alice', 'Bob');
+try {
+  Viva.render(graph);
+} catch (e) {
+  window.early = e.message;
+}
+</script>
+</head>
+<body>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "vivagraphjs",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "Draws graphs in the browser: force layout, WebGL drawing, labels and interaction in one call",
   "type": "module",
   "main": "dist/vivagraph.js",
@@ -11,7 +11,9 @@
     ".": {
       "import": "./dist/vivagraph.module.js",
       "default": "./dist/vivagraph.js"
-    }
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",

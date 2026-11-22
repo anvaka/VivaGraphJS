@@ -1,3 +1,9 @@
+# 1.0.0-alpha.1 (not released)
+
+* `render(graph)` from a script in `<head>`, before the page has a `<body>`, now says so instead
+  of failing with `Cannot read properties of null`.
+* `vivagraphjs/dist/*` and `vivagraphjs/package.json` can be imported: the `exports` map hid them.
+
 # 1.0.0-alpha.0 (2026-11-22)
 
 On npm as `vivagraphjs@next`.
