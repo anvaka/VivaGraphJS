@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VivaGraph: a graph that grows</title>
+<link rel="icon" href="data:,">
+<style>#hint {position: fixed; left: 12px; top: 12px; font: 13px system-ui, sans-serif; color: #e6ebf2}</style>
+</head>
+<body>
+<div id="hint">Tap a node to grow three more from it.</div>
+<script src="../dist/vivagraph.min.js"></script>
+<script>
+  const graph = Viva.createGraph();
+  graph.addLink(0, 1);
+  graph.addLink(1, 2);
+  graph.addLink(2, 0);
+  let next = 3;
+
+  // `start: 'random'`: new nodes appear next to their neighbours, wherever those are now
+  const viva = Viva.render(graph, {start: 'random'});
+
+  // The view reports taps (mouse, pen or finger) with the node under them. The graph changes,
+  // the settled layout wakes up, and the drawing follows.
+  viva.view.on('tap', e => {
+    if (!e.node) return;
+    for (let i = 0; i < 3; i++) graph.addLink(e.node.id, next++);
+  });
+</script>
+</body>
+</html>

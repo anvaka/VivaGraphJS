@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VivaGraph: 3D</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<script src="../dist/vivagraph.min.js"></script>
+<script>
+  // A 12 x 12 x 12 cube of nodes
+  const graph = Viva.createGraph();
+  const n = 12, id = (x, y, z) => x + n * (y + n * z);
+  for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) for (let z = 0; z < n; z++) {
+    if (x + 1 < n) graph.addLink(id(x, y, z), id(x + 1, y, z));
+    if (y + 1 < n) graph.addLink(id(x, y, z), id(x, y + 1, z));
+    if (z + 1 < n) graph.addLink(id(x, y, z), id(x, y, z + 1));
+  }
+
+  // The layout works in any number of dimensions; the view draws the first three
+  Viva.render(graph, {layout: {dimensions: 3}});
+</script>
+</body>
+</html>
