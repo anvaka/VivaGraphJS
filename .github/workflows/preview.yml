@@ -1,0 +1,47 @@
+name: PR Preview
+
+# Per-PR preview of the examples, entirely on GitHub (no external accounts or secrets).
+# On open/update: build the library from the PR's commit, test it, and publish the examples with
+# that build (site/, see scripts/site.js) to pr-preview/pr-<N>/ on the gh-pages branch, served at
+# https://anvaka.github.io/VivaGraphJS/pr-preview/pr-<N>/, then post the link as a sticky
+# comment. On close: the action removes that folder again.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+# Serialize per PR so an update doesn't race its own previous run.
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write       # push the preview to gh-pages
+  pull-requests: write  # comment the preview URL
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    # Forks can't push to gh-pages; only run for same-repo PRs.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      # Skip the build entirely on close (the action only removes the folder).
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 24  # keep in sync with deploy.yml
+          cache: npm
+      - run: npm ci
+        if: github.event.action != 'closed'
+      - run: npm run build
+        if: github.event.action != 'closed'
+      - run: npm test
+        if: github.event.action != 'closed'
+      - run: npm run site
+        if: github.event.action != 'closed'
+
+      - name: Deploy / update / remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: site

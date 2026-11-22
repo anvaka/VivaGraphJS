@@ -1,0 +1,42 @@
+name: Deploy examples to GitHub Pages
+
+# On every push to master: build the library, test it, and publish the examples with that build
+# (site/, see scripts/site.js) to the ROOT of the gh-pages branch, which GitHub Pages serves at
+# https://anvaka.github.io/VivaGraphJS/. Per-PR previews live under pr-preview/ in the same
+# branch (see preview.yml): clean-exclude keeps this deploy from wiping them, and force: false
+# adds a commit instead of rewriting history, so the two workflows don't clobber each other.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24  # keep in sync with preview.yml
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # A failure here means site/ is never published, so the pages keep the last good build.
+      - run: npm test
+      - run: npm run test:browser
+      - run: npm run site
+      - name: Publish to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: site
+          branch: gh-pages
+          clean: true
+          clean-exclude: pr-preview/
+          force: false
