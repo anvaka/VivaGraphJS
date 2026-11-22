@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VivaGraph: hello</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<script src="../dist/vivagraph.min.js"></script>
+<script>
+  const graph = Viva.createGraph();
+  graph.addLink('Alice', 'Bob');
+  graph.addLink('Bob', 'Carol');
+  graph.addLink('Carol', 'Alice');
+  graph.addLink('Carol', 'Dave');
+
+  Viva.render(graph);
+</script>
+</body>
+</html>

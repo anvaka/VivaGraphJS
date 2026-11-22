@@ -1,49 +1,52 @@
 {
   "name": "vivagraphjs",
-  "version": "0.12.0",
-  "description": "Graph Drawing Library",
-  "main": "src/viva",
-  "directories": {
-    "doc": "docs"
+  "version": "1.0.0-alpha.0",
+  "description": "Draws graphs in the browser: force layout, WebGL drawing, labels and interaction in one call",
+  "type": "module",
+  "main": "dist/vivagraph.js",
+  "module": "dist/vivagraph.module.js",
+  "jsdelivr": "dist/vivagraph.min.js",
+  "unpkg": "dist/vivagraph.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vivagraph.module.js",
+      "default": "./dist/vivagraph.js"
+    }
   },
+  "files": [
+    "dist",
+    "THIRD-PARTY-NOTICES.md"
+  ],
   "scripts": {
-    "start": "gulp",
-    "test": "tap test/*.js",
-    "release": "gulp release",
-    "build": "gulp release"
+    "build": "rollup -c",
+    "start": "rollup -c -w",
+    "test": "node --test test/*.test.js",
+    "test:browser": "node test/browser/run.js",
+    "prepublishOnly": "npm run build && npm test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/anvaka/VivaGraphJS.git"
+    "url": "git+https://github.com/anvaka/VivaGraphJS.git"
   },
   "keywords": [
-    "graph"
+    "graph",
+    "network",
+    "visualization",
+    "force layout",
+    "webgl",
+    "ngraph"
   ],
   "author": "Andrei Kashcha",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "browserify": "^8.0.3",
-    "del": "^1.1.1",
-    "gulp": "^4.0.2",
-    "gulp-rename": "^2.0.0",
-    "gulp-run": "^1.7.1",
-    "gulp-uglify": "^3.0.2",
-    "ngraph.remove-overlaps": "^1.0.0",
-    "tap": "^0.4.13",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
-  },
-  "dependencies": {
-    "gintersect": "0.1.0",
-    "ngraph.centrality": "0.3.0",
-    "ngraph.events": "0.0.3",
-    "ngraph.forcelayout": "0.5.0",
-    "ngraph.fromjson": "0.1.9",
-    "ngraph.generators": "0.0.19",
-    "ngraph.graph": "0.0.14",
-    "ngraph.merge": "0.0.1",
-    "ngraph.random": "0.0.1",
-    "ngraph.tojson": "0.1.4",
-    "simplesvg": "0.0.10"
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "ngraph.events": "^1.4.0",
+    "ngraph.forcelayout": "https://codeload.github.com/anvaka/ngraph.forcelayout/tar.gz/6818df8a7d073e38032cdbda70f0859f1eff8a3e",
+    "ngraph.graph": "^20.1.2",
+    "puppeteer-core": "^25.18.1",
+    "rollup": "^4.68.8",
+    "terser": "^5.51.4",
+    "w-gl": "^0.21.1"
   }
 }

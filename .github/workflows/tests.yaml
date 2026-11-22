@@ -13,14 +13,16 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 18.x]
+        node-version: [20.x, 22.x, 24.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run build --if-present
+      - run: npm run build
       - run: npm test
+      # The built library in headless Chrome (the runner's own; WebGL through SwiftShader)
+      - run: npm run test:browser
