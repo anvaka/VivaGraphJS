@@ -426,9 +426,25 @@ test('the real graphs example loads a file, colors it and names its nodes', asyn
   }));
   assert.deepEqual(page.errors, []);
   assert.equal(result.picked, 'countries');
-  assert.equal(result.choices, 9);
+  assert.equal(result.choices, 19);
   assert.match(result.text, /252 nodes, 331 links/);
   assert.deepEqual(result.links, ['https://download.geonames.org/export/dump/countryInfo.txt']);
+
+  // Picking another graph draws it in place: the page is not loaded again
+  await page.evaluate(() => { window.samePage = true; });
+  await page.select('#pick', 'miserables');
+  await page.waitForFunction(() => /77 nodes/.test(document.getElementById('text').textContent));
+  let switched = await page.evaluate(() => ({
+    samePage: window.samePage === true,
+    canvases: document.querySelectorAll('canvas').length,
+    address: location.search
+  }));
+  assert.deepEqual(switched, {samePage: true, canvases: 1, address: '?graph=miserables'});
+  // and Back returns to the graph before
+  await page.goBack();
+  await page.waitForFunction(() => /252 nodes/.test(document.getElementById('text').textContent));
+  assert.equal(await page.evaluate(() => document.getElementById('pick').value), 'countries');
+  assert.deepEqual(page.errors, []);
   await page.close();
 });
 

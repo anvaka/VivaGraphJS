@@ -168,11 +168,13 @@ exported. [src/render.js](src/render.js) is a few hundred lines that show how th
 
 * [Real graphs](https://anvaka.github.io/VivaGraphJS/examples/graphs.html), each loaded from a JSON file:
   the [London Underground](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=london-underground),
-  [Les Misérables](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=miserables),
+  [who influenced whom](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=influence),
+  the [royal houses of Europe](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=royal-houses),
+  [programming languages](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=programming-languages),
+  [air routes](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=air-routes),
   [US counties](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=us-counties),
-  [metros of the world](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=world-metros),
   [74,000 English nouns](https://anvaka.github.io/VivaGraphJS/examples/graphs.html?graph=wordnet-nouns)
-  and more. ([source](examples/graphs.html), [data](examples/data))
+  and a dozen more. ([source](examples/graphs.html), [data](examples/data))
 * [Hello](https://anvaka.github.io/VivaGraphJS/examples/hello.html): four nodes, one call. ([source](examples/hello.html))
 * [Colors from the data](https://anvaka.github.io/VivaGraphJS/examples/groups.html), with a legend. ([source](examples/groups.html))
 * [20,000 nodes](https://anvaka.github.io/VivaGraphJS/examples/big.html), on WebGPU where the device has one. ([source](examples/big.html))
