@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VivaGraph: colors from the data</title>
+<link rel="icon" href="data:,">
+<style>
+  #legend {position: fixed; left: 12px; bottom: 12px; font: 13px system-ui, sans-serif; color: #e6ebf2}
+  #legend i {display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px}
+</style>
+</head>
+<body>
+<div id="legend"></div>
+<script src="../dist/vivagraph.min.js"></script>
+<script>
+  // Six teams of 40 people: most links stay inside a team, a few cross
+  const teams = ['Design', 'Research', 'Platform', 'Sales', 'Support', 'Finance'];
+  const graph = Viva.createGraph();
+  const random = seededRandom(7);
+  const pick = n => Math.floor(random() * n);
+  teams.forEach(team => {
+    for (let i = 0; i < 40; i++) graph.addNode(`${team} ${i + 1}`, {team});
+  });
+  teams.forEach(team => {
+    for (let i = 0; i < 40; i++) {
+      for (let k = 0; k < 2; k++) {
+        const j = pick(40);
+        if (j !== i) graph.addLink(`${team} ${i + 1}`, `${team} ${j + 1}`);
+      }
+      if (random() < 0.08) graph.addLink(`${team} ${i + 1}`, `${teams[pick(teams.length)]} ${pick(40) + 1}`);
+    }
+  });
+
+  // Colors come from a field of the nodes' data; the legend says which is which
+  const viva = Viva.render(graph, {style: {colorBy: 'team'}});
+  const legend = viva.view.getModule('style').legend();
+  legend.items.forEach(item => {
+    const row = document.getElementById('legend').appendChild(document.createElement('div'));
+    row.appendChild(document.createElement('i')).style.background = item.color;
+    row.append(`${item.label} (${item.count})`);
+  });
+
+  function seededRandom(seed) {
+    return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  }
+</script>
+</body>
+</html>
