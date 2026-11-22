@@ -1,4 +1,6 @@
-# 1.0.0 (not released)
+# 1.0.0-alpha.0 (2026-11-22)
+
+On npm as `vivagraphjs@next`.
 
 A rewrite. VivaGraph is now a small front door to
 [ngraph.forcelayout](https://github.com/anvaka/ngraph.forcelayout) and its add-on modules:

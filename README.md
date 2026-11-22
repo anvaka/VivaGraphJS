@@ -15,8 +15,9 @@ Viva.render(graph);
 
 ![240 people in six teams, colored by team](docs/groups.png)
 
-> **Version 1.0 is a rewrite and is not on npm yet.** `npm install vivagraphjs` still installs
-> 0.12. The 0.x library (SVG and WebGL renderers, `Viva.Graph.View.renderer`) lives on the
+> **Version 1.0 is a rewrite, and it is in alpha.** `npm install vivagraphjs@next` installs it;
+> `npm install vivagraphjs` still installs 0.12. The 0.x library (SVG and WebGL renderers,
+> `Viva.Graph.View.renderer`) lives on the
 > [`0.x` branch](https://github.com/anvaka/VivaGraphJS/tree/0.x) and stays on npm as
 > `vivagraphjs@0`. See [Coming from 0.x](#coming-from-0x).
 
@@ -46,22 +47,22 @@ and the modules that live next to it. `render()` makes the choices their
 With a script tag (the global is `Viva`):
 
 ``` html
-<script src="https://unpkg.com/vivagraphjs@1/dist/vivagraph.min.js"></script>
+<script src="https://unpkg.com/vivagraphjs@next/dist/vivagraph.min.js"></script>
 ```
 
 With a bundler:
 
 ``` sh
-npm install vivagraphjs
+npm install vivagraphjs@next
 ```
 
 ``` js
 import {render, createGraph} from 'vivagraphjs';
 ```
 
-Until 1.0 is published, build it from this repository: `npm install && npm run build` writes
-`dist/vivagraph.js`, `dist/vivagraph.min.js` (script tag) and `dist/vivagraph.module.js`
-(ES module). The [examples](examples) use that build.
+The package holds `dist/vivagraph.js` and `dist/vivagraph.min.js` (script tag) and
+`dist/vivagraph.module.js` (ES module). It has no dependencies: the layout and the drawing are
+inside.
 
 ## Usage
 
@@ -163,7 +164,8 @@ exported. [src/render.js](src/render.js) is a few hundred lines that show how th
 
 ## Examples
 
-In [examples](examples), each a script tag and a few lines:
+In [examples](examples), each a script tag and a few lines. They load the build in `dist/`, so
+run `npm install && npm run build` first:
 
 * [hello.html](examples/hello.html): four nodes, one call.
 * [groups.html](examples/groups.html): colors from the data, with a legend.
