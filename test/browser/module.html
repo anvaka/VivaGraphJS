@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>VivaGraph module build test</title>
+<style>html, body {margin: 0; height: 100%}</style>
+</head>
+<body>
+<script type="module">
+import * as Viva from '../../dist/vivagraph.module.js';
+window.exported = Object.keys(Viva);
+const graph = Viva.createGraph();
+for (let i = 0; i < 30; i++) graph.addLink(i, (i * 7 + 1) % 30);
+window.started = Promise.resolve(Viva.render(graph));
+</script>
+</body>
+</html>
