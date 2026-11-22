@@ -41,7 +41,7 @@
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "ngraph.events": "^1.4.0",
-    "ngraph.forcelayout": "https://codeload.github.com/anvaka/ngraph.forcelayout/tar.gz/feb6c37b1734651071f26c265b8d854fc2e886d9",
+    "ngraph.forcelayout": "https://codeload.github.com/anvaka/ngraph.forcelayout/tar.gz/6818df8a7d073e38032cdbda70f0859f1eff8a3e",
     "ngraph.graph": "^20.1.2",
     "puppeteer-core": "^25.18.1",
     "rollup": "^4.68.8",
