@@ -6,6 +6,8 @@
 <title>VivaGraph: real graphs</title>
 <link rel="icon" href="data:,">
 <style>
+  /* The canvas color, so the page does not flash before the first frame */
+  html {background: #0e1624}
   #about {position: fixed; left: 12px; top: 12px; max-width: min(26em, calc(100vw - 24px)); font: 13px/1.45 system-ui, sans-serif; color: #e6ebf2}
   #about select {font: inherit; color: inherit; background: #151e2d; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 4px 6px; max-width: 100%}
   #about p {margin: 8px 0 0; color: #a9b4c4}
@@ -24,39 +26,63 @@
   // server (`npx serve`, for one) and not straight from the disk.
   const GRAPHS = {
     'london-underground': 'London Underground',
+    'influence': 'Who influenced whom (6,000 people)',
+    'royal-houses': 'Royal houses of Europe',
+    'greek-mythology': 'Greek mythology',
+    'programming-languages': 'Programming languages',
+    'nobel-advisors': 'Nobel laureates and their teachers',
+    'air-routes': 'Air routes',
+    'constellations': 'Constellations',
+    'muscles-and-bones': 'Muscles and bones',
+    'burgess-shale': 'Burgess Shale food web',
     'miserables': 'Les Misérables',
+    'word-ladders': 'Word ladders',
     'countries': 'Countries and their borders',
-    'wordnet-mammals': 'Mammals (WordNet)',
     'us-counties': 'US counties',
+    'wordnet-mammals': 'Mammals (WordNet)',
     'chess-openings': 'Chess openings',
     'languages': 'Languages of the world (13,000 nodes)',
     'world-metros': 'Metros of the world (16,000 nodes)',
     'wordnet-nouns': 'English nouns (74,000 nodes, best on WebGPU)'
   };
-  const asked = new URLSearchParams(location.search).get('graph');
-  const name = Object.hasOwn(GRAPHS, asked) ? asked : 'london-underground';
-
   const pick = document.getElementById('pick');
-  for (const key in GRAPHS) pick.add(new Option(GRAPHS[key], key, false, key === name));
-  pick.onchange = () => { location.search = '?graph=' + pick.value; };
+  for (const key in GRAPHS) pick.add(new Option(GRAPHS[key], key));
+  // Picking a graph changes the address, so every graph has a link and Back goes to the last one
+  pick.onchange = () => { history.pushState(null, '', '?graph=' + pick.value); show(); };
+  window.onpopstate = show;
 
-  fetch(`data/${name}.json`).then(response => response.json()).then(file => {
-    const graph = toGraph(file);
+  let viva = null, turn = 0;
+  show();
 
-    // The file says which field colors the nodes and which one puts the important names first
-    const style = {};
-    if (file.colorBy) style.colorBy = file.colorBy;
-    if (file.palette) style.palette = file.palette;
-    if (file.linkData && file.linkColors) style.linkColors = file.linkColors;
-    Viva.render(graph, {style, labels: file.importance ? {importance: file.importance} : true});
+  // Draws the graph that the address names, in place of the one on screen
+  function show() {
+    const asked = new URLSearchParams(location.search).get('graph');
+    const name = Object.hasOwn(GRAPHS, asked) ? asked : 'london-underground';
+    const mine = ++turn;
+    pick.value = name;
+    document.getElementById('text').textContent = 'Loading…';
+    document.getElementById('credit').textContent = '';
 
-    const count = n => n.toLocaleString('en-US');
-    document.getElementById('text').textContent =
-      `${file.about} ${count(graph.getNodesCount())} nodes, ${count(graph.getLinksCount())} links.`;
-    credit(document.getElementById('credit'), `Data: ${file.source}. ${file.license}.`);
-  }).catch(error => {
-    document.getElementById('text').textContent = `Could not load the graph (${error.message}).`;
-  });
+    fetch(`data/${name}.json`).then(response => response.json()).then(file => {
+      if (mine !== turn) return;  // another graph was picked while this one was on its way
+      const graph = toGraph(file);
+
+      // The file says which field colors the nodes and which one puts the important names first
+      const style = {};
+      if (file.colorBy) style.colorBy = file.colorBy;
+      if (file.palette) style.palette = file.palette;
+      if (file.linkData && file.linkColors) style.linkColors = file.linkColors;
+      if (viva) viva.dispose();
+      viva = Viva.render(graph, {style, labels: file.importance ? {importance: file.importance} : true});
+
+      const count = n => n.toLocaleString('en-US');
+      document.getElementById('text').textContent =
+        `${file.about} ${count(graph.getNodesCount())} nodes, ${count(graph.getLinksCount())} links.`;
+      credit(document.getElementById('credit'), `Data: ${file.source}. ${file.license}.`);
+    }).catch(error => {
+      if (mine === turn) document.getElementById('text').textContent = `Could not load the graph (${error.message}).`;
+    });
+  }
 
   // A file is {fields, nodes: [[...fields]], links: [from, to, from, to, ...], linkData?} and a few
   // words about itself. A node's row holds `fields` in order: "id" is its id (the row number when
