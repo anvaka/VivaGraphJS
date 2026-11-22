@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 
 const root = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const TYPES = {'.html': 'text/html', '.js': 'text/javascript'};
+const TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json'};
 
 const chrome = [
   process.env.CHROME_PATH,
@@ -413,6 +413,24 @@ for (let example of ['hello', 'groups', 'big', '3d', 'dynamic']) {
     await page.close();
   });
 }
+
+test('the real graphs example loads a file, colors it and names its nodes', async () => {
+  let page = await openPage('examples/graphs.html?graph=countries');
+  await page.waitForFunction(() => document.querySelector('canvas'));
+  await new Promise(resolve => setTimeout(resolve, 500));
+  let result = await page.evaluate(() => ({
+    picked: document.getElementById('pick').value,
+    choices: document.getElementById('pick').options.length,
+    text: document.getElementById('text').textContent,
+    links: [...document.querySelectorAll('#credit a')].map(a => a.href)
+  }));
+  assert.deepEqual(page.errors, []);
+  assert.equal(result.picked, 'countries');
+  assert.equal(result.choices, 9);
+  assert.match(result.text, /252 nodes, 331 links/);
+  assert.deepEqual(result.links, ['https://download.geonames.org/export/dump/countryInfo.txt']);
+  await page.close();
+});
 
 let failed = 0;
 for (let {name, fn} of tests) {
