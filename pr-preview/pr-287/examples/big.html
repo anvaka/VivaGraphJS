@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VivaGraph: 20,000 nodes</title>
+<link rel="icon" href="data:,">
+<style>#stats {position: fixed; left: 12px; top: 12px; font: 13px ui-monospace, monospace; color: #e6ebf2}</style>
+</head>
+<body>
+<div id="stats"></div>
+<script src="../dist/vivagraph.min.js"></script>
+<script>
+  // Preferential attachment: each new node links to two nodes, picked by their links
+  const graph = Viva.createGraph();
+  const random = seededRandom(42), ends = [0, 1];
+  graph.addLink(0, 1);
+  for (let i = 2; i < 20000; i++) {
+    const targets = new Set();
+    while (targets.size < 2) targets.add(ends[Math.floor(random() * ends.length)]);
+    targets.forEach(t => { graph.addLink(i, t); ends.push(i, t); });
+  }
+
+  // A graph this size runs on WebGPU when the device has a real GPU, and on the CPU otherwise
+  const viva = Viva.render(graph);
+  const line = document.getElementById('stats');
+  setInterval(() => {
+    const s = viva.stats();
+    line.textContent = `${s.nodes} nodes, ${s.links} links | ${s.backend} | ${s.steps} steps, ${s.msPerStep.toFixed(2)} ms each` +
+      (s.settled ? ` | settled at step ${s.settled.step}` : '');
+  }, 250);
+
+  function seededRandom(seed) {
+    return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  }
+</script>
+</body>
+</html>
