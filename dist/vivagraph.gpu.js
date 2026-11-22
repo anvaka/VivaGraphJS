@@ -1,4 +1,4 @@
-/*! VivaGraph 1.0.0-alpha.0 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
+/*! VivaGraph 1.0.0-alpha.1 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
 import { g as getDefaultExportFromCjs, r as requireFormula } from './vivagraph.index.js';
 
 // The device: requesting it with the adapter's limits, watching it for errors and loss, its

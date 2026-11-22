@@ -1,4 +1,4 @@
-/*! VivaGraph 1.0.0-alpha.0 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
+/*! VivaGraph 1.0.0-alpha.1 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
 function eventify(subject) {
   validateSubject$1(subject);
 
@@ -20770,7 +20770,12 @@ function isElement(value) {
 // `target` (the whole window when there is no target)
 function createCanvas(target) {
   if (target && target.tagName === 'CANVAS') return {canvas: target, dispose() {}};
-  let container = target || document.body;
+  let container = target || (typeof document !== 'undefined' && document.body);
+  if (!container) {
+    // A script in <head> runs before the page has a body
+    throw new Error('render() has nowhere to draw: the page has no <body> yet. Call it from a script at ' +
+      'the end of <body> or after DOMContentLoaded, or pass it an element.');
+  }
   let canvas = document.createElement('canvas');
   canvas.style.cssText = target
     ? 'display:block;width:100%;height:100%'
@@ -20817,6 +20822,6 @@ function watchSize(canvas, onChange) {
 }
 
 // Kept equal to package.json's version (test/render.test.js checks)
-var version = '1.0.0-alpha.0';
+var version = '1.0.0-alpha.1';
 
 export { GPU_MIN_NODES as G, PALETTE as P, createLayout as a, createScene as b, createGraph as c, createView as d, dragNodes as e, fitLayout as f, getDefaultExportFromCjs as g, hasHardwareWebGPU as h, hasNames as i, hoverNodes as j, inspectNodes as k, labelNodes as l, pulseNodes as m, navigateNodes as n, render as o, placeNodes as p, selectNodes as q, requireFormula as r, searchNodes as s, stepsForFrame as t, styleNodes as u, version as v };

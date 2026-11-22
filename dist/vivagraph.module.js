@@ -1,2 +1,2 @@
-/*! VivaGraph 1.0.0-alpha.0 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
+/*! VivaGraph 1.0.0-alpha.1 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
 export { G as GPU_MIN_NODES, P as PALETTE, c as createGraph, a as createLayout, b as createScene, d as createView, e as dragNodes, f as fitLayout, h as hasHardwareWebGPU, i as hasNames, j as hoverNodes, k as inspectNodes, l as labelNodes, n as navigateNodes, p as placeNodes, m as pulseNodes, o as render, s as searchNodes, q as selectNodes, t as stepsForFrame, u as styleNodes, v as version } from './vivagraph.index.js';
