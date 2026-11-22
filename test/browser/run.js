@@ -394,6 +394,26 @@ test('the module build loads from <script type="module">', async () => {
   await page.close();
 });
 
+// The pages that GitHub Pages serves (see scripts/site.js)
+for (let example of ['hello', 'groups', 'big', '3d', 'dynamic']) {
+  test('the ' + example + ' example opens and draws', async () => {
+    let page = await openPage('examples/' + example + '.html');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    let result = await page.evaluate(() => {
+      let canvas = document.querySelector('canvas');
+      return {
+        size: canvas && [canvas.width, canvas.height],
+        // the examples that keep what render() returns call it viva
+        steps: typeof viva === 'undefined' ? null : viva.stats().steps
+      };
+    });
+    assert.deepEqual(page.errors, []);
+    assert.ok(result.size && result.size[0] > 0 && result.size[1] > 0, 'the page has a canvas with a size');
+    if (result.steps !== null) assert.ok(result.steps > 0, 'the layout runs');
+    await page.close();
+  });
+}
+
 let failed = 0;
 for (let {name, fn} of tests) {
   try {

@@ -164,14 +164,16 @@ exported. [src/render.js](src/render.js) is a few hundred lines that show how th
 
 ## Examples
 
-In [examples](examples), each a script tag and a few lines. They load the build in `dist/`, so
-run `npm install && npm run build` first:
+[Live](https://anvaka.github.io/VivaGraphJS/), each a script tag and a few lines:
 
-* [hello.html](examples/hello.html): four nodes, one call.
-* [groups.html](examples/groups.html): colors from the data, with a legend.
-* [big.html](examples/big.html): 20,000 nodes, on WebGPU where the device has one.
-* [3d.html](examples/3d.html): a cube of 1,728 nodes in 3D.
-* [dynamic.html](examples/dynamic.html): tap a node to grow the graph.
+* [Hello](https://anvaka.github.io/VivaGraphJS/examples/hello.html): four nodes, one call. ([source](examples/hello.html))
+* [Colors from the data](https://anvaka.github.io/VivaGraphJS/examples/groups.html), with a legend. ([source](examples/groups.html))
+* [20,000 nodes](https://anvaka.github.io/VivaGraphJS/examples/big.html), on WebGPU where the device has one. ([source](examples/big.html))
+* [3D](https://anvaka.github.io/VivaGraphJS/examples/3d.html): a cube of 1,728 nodes. ([source](examples/3d.html))
+* [A graph that grows](https://anvaka.github.io/VivaGraphJS/examples/dynamic.html): tap a node to add more. ([source](examples/dynamic.html))
+
+The pages are built from `master`. To open them from a checkout, run `npm install && npm run build`
+first: they load the build in `dist/`.
 
 ## Browser support
 

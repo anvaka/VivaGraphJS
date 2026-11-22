@@ -22,6 +22,7 @@
     "start": "rollup -c -w",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/browser/run.js",
+    "site": "node scripts/site.js",
     "prepublishOnly": "npm run build && npm test"
   },
   "repository": {
