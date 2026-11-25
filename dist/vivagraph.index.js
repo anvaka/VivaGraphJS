@@ -1,4 +1,4 @@
-/*! VivaGraph 1.0.0-alpha.1 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
+/*! VivaGraph 1.0.0-alpha.2 | BSD-3-Clause | https://github.com/anvaka/VivaGraphJS */
 function eventify(subject) {
   validateSubject$1(subject);
 
@@ -14435,6 +14435,114 @@ function medianOf(values, n, cache) {
   return part[m >> 1];
 }
 
+// theme: everything in the view that depends on whether the background is dark or light.
+//
+//   createView(scene, {graph, layout, theme: 'light'});
+//   view.setTheme(themeOf('#ffffff'));   // 'light'
+//
+// The view and its modules read their default colors here: nodes and links, the rings and fills
+// of highlighted nodes, label text, and the panels modules put on the page (tooltip, search,
+// help, the selection box). The style module picks the theme from its `background`, so a page
+// that uses it only says which background it wants.
+
+const THEMES = {
+  dark: {
+    // The view's own defaults (0xRRGGBBAA)
+    nodeColor: 0x90f8fcff,
+    linkColor: 0xffffff10,
+    // What differs in the view's styles for flagged nodes (see STYLES in index.js)
+    styles: {pointedColor: 0xffffffff, selectedColor: 0xffc24bff, ringHalo: 0x000000cc},
+    // The style module: nodes without a category, links between categories (0xRRGGBB00), text
+    // and lit links, and the rings
+    node: '#90f8fc',
+    link: 0xffffff00,
+    // Opacity of links where they crowd: what reads as much on this background
+    linkInk: 0.25,
+    text: 0xe6ebf2ff,
+    pointedRing: 0xffffffff,
+    selectedRing: 0xffc24bff,
+    focusedRing: 0x7fe7efff,
+    // Labels without the style module
+    labelColor: 0xffffffff,
+    labelHalo: 0x0c2952e6,
+    // Panels on the page
+    panel: 'rgba(9,22,44,0.96)',
+    panelText: '#e8f1ff',
+    panelBorder: 'rgba(255,255,255,0.18)',
+    panelShadow: '0 2px 10px rgba(0,0,0,0.45)',
+    field: 'rgba(0,0,0,0.35)',
+    fieldBorder: 'rgba(255,255,255,0.3)',
+    chosen: 'rgba(255,255,255,0.16)',
+    box: 'rgba(255,255,255,0.08)',
+    boxBorder: 'rgba(255,255,255,0.85)'
+  },
+  light: {
+    nodeColor: 0x0b7a8aff,
+    linkColor: 0x1b243330,
+    styles: {pointedColor: 0x111827ff, selectedColor: 0xb45309ff, ringHalo: 0xffffffcc},
+    node: '#0b7a8a',
+    link: 0x1b243300,
+    // Dark on white contrasts less than white on dark at the same opacity
+    linkInk: 0.35,
+    text: 0x1b2433ff,
+    pointedRing: 0x111827ff,
+    selectedRing: 0xb45309ff,
+    focusedRing: 0x0e7490ff,
+    labelColor: 0x1b2433ff,
+    labelHalo: 0xffffffe6,
+    panel: 'rgba(255,255,255,0.97)',
+    panelText: '#1b2433',
+    panelBorder: 'rgba(27,36,51,0.2)',
+    panelShadow: '0 2px 10px rgba(27,36,51,0.18)',
+    field: 'rgba(27,36,51,0.04)',
+    fieldBorder: 'rgba(27,36,51,0.35)',
+    chosen: 'rgba(27,36,51,0.1)',
+    box: 'rgba(27,36,51,0.06)',
+    boxBorder: 'rgba(27,36,51,0.8)'
+  }
+};
+
+/** The theme's values; throws on a name that isn't a theme */
+function themeValues(name) {
+  if (!Object.prototype.hasOwnProperty.call(THEMES, name)) {
+    throw new Error('Unknown theme: ' + name + '. Expected `dark` or `light`');
+  }
+  return THEMES[name];
+}
+
+/**
+ * 'light' or 'dark' for a background ('#rrggbb' or '#rgb'): light when black text reads better
+ * on it than white text does
+ */
+function themeOf(background) {
+  return luminance(toRGB(background)) > 0.179 ? 'light' : 'dark';
+}
+
+/** Colors of a panel on the page (a tooltip, the search box, the help card) */
+function paintPanel(element, name) {
+  let theme = themeValues(name);
+  let style = element.style;
+  style.background = theme.panel;
+  style.color = theme.panelText;
+  style.border = '1px solid ' + theme.panelBorder;
+  style.boxShadow = theme.panelShadow;
+}
+
+function toRGB(hex) {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
+}
+
+/** WCAG relative luminance of [r, g, b] (0 to 255 each) */
+function luminance(rgb) {
+  let [r, g, b] = rgb.map(c => {
+    c /= 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 // hover: the node a mouse or pen rests on is flagged HOVERED, and 'hover' fires with the node and
 // the previous one (node null: nothing is hovered now). The cursor shows at once what a press
 // would do there.
@@ -14878,10 +14986,9 @@ var dragNodes = {
 //
 // Options:
 // - `box` (true): a long press on the background, or Shift-drag, draws a selection box.
-// - `boxStyle`: CSS for the box element.
+// - `boxStyle`: CSS for the box element, added to its own (whose colors follow the view's theme).
 
-const BOX_STYLE = 'position:fixed;pointer-events:none;z-index:2147483647;box-sizing:border-box;' +
-  'border:1px solid rgba(255,255,255,0.85);background:rgba(255,255,255,0.08);';
+const BOX_STYLE = 'position:fixed;pointer-events:none;z-index:2147483647;box-sizing:border-box;';
 
 var selectNodes = {
   name: 'select',
@@ -15044,7 +15151,8 @@ var selectNodes = {
     function createBoxElement() {
       if (typeof document === 'undefined') return null;
       let element = document.createElement('div');
-      element.style.cssText = BOX_STYLE + (options.boxStyle || '');
+      let theme = themeValues(ctx.view.getTheme());
+      element.style.cssText = BOX_STYLE + 'border:1px solid ' + theme.boxBorder + ';background:' + theme.box + ';' + (options.boxStyle || '');
       document.body.appendChild(element);
       return element;
     }
@@ -15124,13 +15232,13 @@ function idOf(nodeOrId) {
 //   Strings are always text, never HTML.
 // - `hover` (true): show tooltips on hover (needs the hover module). `tap` (true): keep one open
 //   on tap. `delay` (280): ms a hovered node waits for its card.
-// - `style`: CSS added to the tooltip's own. `className`: a class for it.
+// - `style`: CSS added to the tooltip's own (whose colors follow the view's theme). `className`:
+//   a class for it.
 //
 // API: show(node), hide(), get() (the node shown, or null).
 
 const STYLE = 'position:fixed;z-index:2147483646;max-width:280px;padding:6px 8px;border-radius:4px;' +
-  'background:rgba(9,22,44,0.94);color:#e8f1ff;border:1px solid rgba(255,255,255,0.18);' +
-  'font:12px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 2px 10px rgba(0,0,0,0.45);' +
+  'font:12px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;' +
   'pointer-events:auto;user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;display:none;' +
   // A finger may scroll a docked card, but a pinch on it must not zoom the page
   'touch-action:pan-y;';
@@ -15203,6 +15311,8 @@ var inspectNodes = {
   attach(ctx, options = {}) {
     let content = options.content || (node => describeNode(node, ctx.graph, ctx.labelOf ? ctx.labelOf(node) : undefined));
     let card = null;
+    // The theme the card has the colors of
+    let painted = null;
     let natural = null;
     let fade = null;
     // What is shown: {node, pinned, source} (source: 'hover', 'focus' or 'tap')
@@ -15290,6 +15400,7 @@ var inspectNodes = {
       let body = content(node);
       if (body === null || body === undefined) return hide();
       ensureCard();
+      if (painted !== ctx.view.getTheme()) paint();
       if (!shown || shown.node !== node) fill(body);
       let same = shown && shown.node === node;
       shown = {node, pinned, source, side: same ? shown.side : null, narrow: same ? shown.narrow : null, size: same ? shown.size : 0};
@@ -15522,13 +15633,21 @@ var inspectNodes = {
       return points;
     }
 
+    // The theme's colors, then the page's own CSS on top of them
+    function paint() {
+      painted = ctx.view.getTheme();
+      paintPanel(card, painted);
+      if (options.style) card.style.cssText += ';' + options.style;
+    }
+
     function ensureCard() {
       if (card) return;
       card = document.createElement('div');
       card.setAttribute('role', 'tooltip');
       // It moves with the node it describes: it doesn't hide the canvas (see visible.js)
       card.setAttribute('data-graph-overlay', '');
-      card.style.cssText = STYLE + (options.style || '');
+      card.style.cssText = STYLE;
+      paint();
       // Its own size caps (STYLE's, or the `style` option's): what a card that shrank goes back to
       natural = {maxWidth: card.style.maxWidth, maxHeight: card.style.maxHeight};
       if (options.className) card.className = options.className;
@@ -15659,8 +15778,7 @@ const HELP = [
 ];
 
 const CARD_STYLE = 'position:fixed;z-index:2147483646;max-width:360px;padding:8px 10px;border-radius:4px;' +
-  'background:rgba(9,22,44,0.96);color:#e8f1ff;border:1px solid rgba(255,255,255,0.18);' +
-  'font:12px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 2px 10px rgba(0,0,0,0.45);';
+  'font:12px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;';
 const HIDDEN_STYLE = 'position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;' +
   'overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;';
 
@@ -16051,6 +16169,7 @@ var navigateNodes = {
       if (help) return closeHelp();
       help = document.createElement('div');
       help.style.cssText = CARD_STYLE;
+      paintPanel(help, ctx.view.getTheme());
       help.setAttribute('data-graph-overlay', '');
       help.setAttribute('role', 'dialog');
       help.setAttribute('aria-label', 'Keys and gestures');
@@ -16232,10 +16351,8 @@ function restoreAttributes(element, saved) {
 // Height kept free below the box's top for the list of matches (CSS pixels)
 const RESULTS_ROOM = 260;
 const ROOT_STYLE = 'position:fixed;z-index:2147483646;width:300px;max-width:calc(100vw - 24px);padding:6px;' +
-  'border-radius:4px;background:rgba(9,22,44,0.96);border:1px solid rgba(255,255,255,0.18);' +
-  'box-shadow:0 2px 10px rgba(0,0,0,0.45);font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:#e8f1ff;';
-const INPUT_STYLE = 'width:100%;box-sizing:border-box;padding:5px 7px;border-radius:3px;border:1px solid rgba(255,255,255,0.3);' +
-  'background:rgba(0,0,0,0.35);color:inherit;font:inherit;outline-offset:1px;';
+  'border-radius:4px;font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;';
+const INPUT_STYLE = 'width:100%;box-sizing:border-box;padding:5px 7px;border-radius:3px;color:inherit;font:inherit;outline-offset:1px;';
 const LIST_STYLE = 'list-style:none;margin:4px 0 0;padding:0;max-height:50vh;overflow:auto;';
 const OPTION_STYLE = 'display:flex;justify-content:space-between;gap:8px;padding:3px 6px;border-radius:3px;cursor:pointer;';
 
@@ -16296,6 +16413,12 @@ var searchNodes = {
 
     function open(text) {
       if (!box) createBox();
+      // The view's theme of now
+      let name = ctx.view.getTheme();
+      box.theme = themeValues(name);
+      paintPanel(box.root, name);
+      box.input.style.border = '1px solid ' + box.theme.fieldBorder;
+      box.input.style.background = box.theme.field;
       box.input.value = text || '';
       box.root.style.display = 'block';
       // At the top of what shows, not under a panel, with room for the results below it
@@ -16355,7 +16478,7 @@ var searchNodes = {
         let option = e.target.closest('[role=option]');
         if (option) pick(+option.dataset.index, true);
       });
-      box = {root, input, list, status, matches: [], active: -1};
+      box = {root, input, list, status, matches: [], active: -1, theme: null};
     }
 
     function update() {
@@ -16399,7 +16522,7 @@ var searchNodes = {
       for (let i = 0; i < items.length; ++i) {
         let on = i === box.active;
         items[i].setAttribute('aria-selected', on ? 'true' : 'false');
-        items[i].style.background = on ? 'rgba(255,255,255,0.16)' : '';
+        items[i].style.background = on ? box.theme.chosen : '';
       }
       if (box.active >= 0) {
         box.input.setAttribute('aria-activedescendant', `${listId}-${box.active}`);
@@ -17196,7 +17319,8 @@ function pagerank(graph, rowOf, count, scores) {
 //   always at full brightness.
 // - `text`: `node => string`, the label's text (default: the view's `labelOf`). Return '' for
 //   nodes that should have no label, e.g. nodes that have only an id.
-// - `font` (system-ui and friends), `color` (0xffffffff), `halo` (0x0c2952e6), `haloWidth` (2 px),
+// - `font` (system-ui and friends), `color` and `halo` (the view's theme's: 0xffffffff on
+//   0x0c2952e6 when it is dark, near black on white when it is light), `haloWidth` (2 px),
 //   `gap` (3 px between the node and its label), `every` (250 ms), `fade` (300 ms), `maxLength` (40).
 //
 // API: update(options) (new options; importance, text and look are read again), refresh() (labels
@@ -17224,8 +17348,8 @@ const DEFAULTS$5 = {
   // Pixels kept free around each label: room to breathe, so dense parts aren't a wall of text
   padding: 'auto',
   font: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  color: 0xffffffff,
-  halo: 0x0c2952e6,
+  color: undefined,
+  halo: undefined,
   haloWidth: 2,
   gap: 3,
   every: 250,
@@ -17277,7 +17401,12 @@ var labelNodes = {
     let data = new Float32Array(64 * STRIDE);
     let count = 0;
     let look = {count: 0, atlas: atlas.texture, time: 0, fade: settings.fade / 1000, gap: settings.gap,
-      textColor: rgba$1(settings.color), haloColor: rgba$1(settings.halo)};
+      textColor: null, haloColor: null};
+    paint();
+    ctx.on('theme', () => {
+      paint();
+      ctx.requestFrame();
+    });
 
     let pending = true;
     // The layout or the camera moved since the last placement
@@ -17342,14 +17471,20 @@ var labelNodes = {
     graph.on('changed', onGraphChanged);
     ctx.requestFrame();
 
+    // The colors the options give, or else the theme's
+    function paint() {
+      let theme = themeValues(ctx.view.getTheme());
+      look.textColor = rgba$1(settings.color !== undefined ? settings.color : theme.labelColor);
+      look.haloColor = rgba$1(settings.halo !== undefined ? settings.halo : theme.labelHalo);
+    }
+
     return {
       update(newOptions) {
         settings = merge(Object.assign({}, options, newOptions));
         options = Object.assign({}, options, newOptions);
         look.fade = settings.fade / 1000;
         look.gap = settings.gap;
-        look.textColor = rgba$1(settings.color);
-        look.haloColor = rgba$1(settings.halo);
+        paint();
         restart();
       },
       refresh: restart,
@@ -17988,8 +18123,10 @@ function rgba$1(color) {
 // following the node as it moves. With prefers-reduced-motion nothing moves: no pulse (the
 // highlight stays).
 //
-// Options: `on` (['search']: view events whose node pulses), `color` (0xffffffff), `halo`
-// (0x0e1624b3: a dark band either side of the ring, so it reads over bright areas), `width` (2
+// Options: `on` (['search']: view events whose node pulses), `color` (the focused node's ring
+// in the view's styles; without one, white on a dark theme and near black on a light one), `halo`
+// (the styles' ringHalo: a band of the background either side of the ring, so it reads over the
+// drawing), `width` (2
 // CSS pixels), `radius` (64: how far the rings spread), `count` (2), `duration` (900),
 // `stagger` (300).
 //
@@ -17997,8 +18134,8 @@ function rgba$1(color) {
 
 const DEFAULTS$4 = {
   on: ['search'],
-  color: 0xffffffff,
-  halo: 0x0e1624b3,
+  color: undefined,
+  halo: undefined,
   width: 2,
   radius: 64,
   count: 2,
@@ -18053,7 +18190,7 @@ var pulseNodes = {
     let info = createProgram(gl, VERTEX, FRAGMENT, ['point'],
       ['modelViewProjection', 'positions', 'positionsSize', 'resolution', 'row', 'reach', 'color', 'halo', 'radius', 'width', 'alpha']);
     let quad = createBuffer(gl, QUAD);
-    let color = rgba(settings.color), halo = rgba(settings.halo);
+    let color = null, halo = null;
     // {node, start} while a pulse runs
     let running = null;
     let reduced = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
@@ -18120,6 +18257,12 @@ var pulseNodes = {
       if (reduced && reduced.matches) return;
       let node = typeof nodeOrId === 'object' && nodeOrId ? nodeOrId : ctx.graph.getNode(nodeOrId);
       if (!node) return;
+      // The colors of now: the styles and the theme may have changed since the last pulse
+      let styles = ctx.view.getStyles();
+      let own = settings.color !== undefined ? settings.color
+        : styles.focusedRing || themeValues(ctx.view.getTheme()).pointedRing;
+      color = rgba(own);
+      halo = rgba(settings.halo !== undefined ? settings.halo : ((styles.ringHalo & 0xffffff00) | 0xb3) >>> 0);
       running = {node, start: performance.now()};
       ctx.requestFrame();
     }
@@ -18135,13 +18278,15 @@ function rgba(color) {
 //   view.use(styleNodes);                                   // colors by node.data.group, if any
 //   let style = view.use(styleNodes, {colorBy: 'branch', background: '#0e1624'});
 //   style.legend(); // {title, items: [{color, label, count}], more} or null
+//   style.update({background: '#ffffff'}); // the light look
 //
-// One set of rules for any graph, made for a dark background:
+// One set of rules for any graph, on a dark background or a light one:
 // - **Color from a category** (`colorBy`: a field of node.data, or `node => value`; default
 //   `group` when nodes have one). Categories take PALETTE in order of size, the biggest first;
 //   past its eight colors they share OTHER. A `palette` ({value: color}) gives the data's own
 //   colors, and values that are colors themselves (`'#e42313'`, `'red'`) are drawn as they are.
-//   Any color too dark for the background is lightened to 3:1 against it. Links inside a category
+//   Any color too close to the background is moved away from it (lightened on a dark one,
+//   darkened on a light one) to 3:1 against it. Links inside a category
 //   take its color; links between categories are neutral and fainter. `linkColors`
 //   ({value: color} for `link.data`, or `'self'` when link.data is a color) colors links by the
 //   data instead. Nodes without a category are `color`.
@@ -18155,20 +18300,26 @@ function rgba(color) {
 //   wider than `room` of the distance to their nearest neighbour as big (the view's nodeRoom).
 // - **Highlights**: nodes keep their color and get a ring, with a halo of the background: white
 //   under the pointer, cyan (the page's focus color) when focused or found by search, amber when
-//   selected; lit links in one light color.
-// - **`background`**: the scene's clear color, the rings' halo and the labels' halo.
+//   selected; lit links in one light color. On a light background: near black, dark cyan, dark
+//   amber, and dark lit links.
+// - **`background`** (any CSS color): the scene's clear color, the rings' halo and the labels'
+//   halo. It also picks the view's theme (see theme.js): a background that black text reads
+//   better on than white text is light, and then links, label text, the rings and the panels of
+//   the other modules (tooltip, search, help) are dark on light.
 // - In 3D, `fog` fades the far side of the drawing.
 //
-// Options (defaults): colorBy, palette, linkColors, color ('#90f8fc'), background ('#0e1624'),
-// unit (1), ink (0.25), alpha ([0.05 / 255, 0.5]), crossLinks (0.6, alpha share of links between
+// Options (defaults): colorBy, palette, linkColors, color ('#90f8fc'; '#0b7a8a' on a light
+// background), background ('#0e1624'),
+// unit (1), ink (0.25; 0.35 on a light background), alpha ([0.05 / 255, 0.5]), crossLinks (0.6, alpha share of links between
 // categories), minSize (3.5), room (0.7), fog (0.3), rings (true), dim (0.3: the alpha of what
 // isn't selected or next to it, while something is selected), linkWidth (2).
 //
-// API: legend(), colorOf(node) (0xRRGGBBAA), linkAlpha(), nodeMinSize(), update(), dispose().
+// API: legend(), colorOf(node) (0xRRGGBBAA), linkAlpha(), nodeMinSize(), update(options) (reads
+// the data again, with new options when given), dispose().
 
-// Eight categorical colors for a dark background, in this order. Checked with the dataviz palette
-// validator against #0e1624: every color 3:1 or more, in the dark lightness band (OKLCH L
-// 0.48-0.67), chroma 0.10 or more; every adjacent pair, and all pairs of the first four, pass both
+// Eight categorical colors, in this order, for the dark background and for a white one. Checked
+// with the dataviz palette validator against #0e1624 and against #ffffff: every color 3:1 or
+// more, in the lightness band of both (OKLCH L 0.48-0.67), chroma 0.10 or more; every adjacent pair, and all pairs of the first four, pass both
 // color-vision checks (CVD ΔE >= 8, normal ΔE >= 15). All eight at once can't: gold and orange
 // look alike to deuteranopes, teal and green are close. Categories sit together in a layout, and
 // a legend and the tooltip name them.
@@ -18180,10 +18331,12 @@ const DEFAULTS$3 = {
   colorBy: undefined,
   palette: null,
   linkColors: null,
-  color: '#90f8fc',
+  // The theme's: '#90f8fc' on a dark background, '#0b7a8a' on a light one
+  color: undefined,
   background: '#0e1624',
   unit: 1,
-  ink: 0.25,
+  // The theme's: 0.25 on a dark background, 0.35 on a light one
+  ink: undefined,
   alpha: [0.05 / 255, 0.5],
   crossLinks: 0.6,
   minSize: 3.5,
@@ -18216,8 +18369,11 @@ var styleNodes = {
       colorOf: node => colors.nodeColor(node),
       linkAlpha: () => alpha,
       nodeMinSize: () => minSize,
-      // Read the data again (after its fields changed)
-      update: apply,
+      // Read the data again (after its fields changed), with new options when there are any
+      update(newOptions) {
+        if (newOptions) Object.assign(settings, newOptions);
+        apply();
+      },
       dispose() {
         clearTimeout(timer);
         graph.off('changed', onGraphChanged);
@@ -18229,10 +18385,14 @@ var styleNodes = {
     }
 
     function apply() {
+      let background = backgroundOf(settings.background);
+      let theme = THEMES[themeOf(background)];
       colors = colorsOf(graph, settings);
-      let rgb = toRGB(settings.background);
+      let rgb = toRGB(background);
       ctx.scene.setClearColor(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, 1);
-      let halo = toRGBA$1(settings.background);
+      // The rest of the view follows: its own defaults, the labels, the panels of other modules
+      view.setTheme(themeOf(background));
+      let halo = toRGBA$1(background);
       view.setDrawing({
         nodeSize: sizeByLinks(settings.unit),
         nodeRoom: settings.room,
@@ -18244,14 +18404,14 @@ var styleNodes = {
       view.setNodeMinSize(minSize);
       // While something is selected the rest fades to `dim`: enough to show the selection, not so
       // much that the visitor loses where it is (the rings mark the selection already)
-      let styles = {litLinkColor: 0xe6ebf2ff, litLinkAlpha: 0.7, dimAlpha: settings.dim};
+      let styles = {litLinkColor: theme.text, litLinkAlpha: 0.7, dimAlpha: settings.dim};
       if (settings.rings) {
         Object.assign(styles, {
-          pointedColor: 0, pointedMinSize: 10, pointedRing: 0xffffffff,
-          selectedColor: 0, selectedMinSize: 8, selectedRing: 0xffc24bff,
+          pointedColor: 0, pointedMinSize: 10, pointedRing: theme.pointedRing,
+          selectedColor: 0, selectedMinSize: 8, selectedRing: theme.selectedRing,
           // Focus (the keyboard's place, a node search went to) in the page's focus color, so a
           // found node and a hovered one never look the same
-          focusedRing: 0x7fe7efff,
+          focusedRing: theme.focusedRing,
           ringHalo: halo, ringGap: 2, ringWidth: 2
         });
       }
@@ -18267,7 +18427,8 @@ var styleNodes = {
       labelsStyled = true;
       // A thin, part-see-through halo: enough to lift the text off links and dots, without
       // punching dark boxes into the drawing
-      labels.update({color: 0xe6ebf2ff, halo: (toRGBA$1(settings.background) & 0xffffff00 | 0xb3) >>> 0, haloWidth: 2});
+      let background = backgroundOf(settings.background);
+      labels.update({color: THEMES[themeOf(background)].text, halo: (toRGBA$1(background) & 0xffffff00 | 0xb3) >>> 0, haloWidth: 2});
     }
 
     function schedule() {
@@ -18301,11 +18462,15 @@ var styleNodes = {
       let crowded = linkCrowding(pos, D, springs, rect, k, settings.linkWidth);
       if (!(crowded > 0)) return;
       let [low, high] = settings.alpha;
-      let next = Math.min(high, Math.max(low, settings.ink / Math.max(crowded, 1e-9)));
+      let next = Math.min(high, Math.max(low, inkOf() / Math.max(crowded, 1e-9)));
       // Rebuilding link colors costs a pass over the links: only for a visible change
       if (Math.abs(next - alpha) / alpha < 0.15) return;
       alpha = next;
       view.setLinkColor(colors.linkColor(alpha));
+    }
+
+    function inkOf() {
+      return settings.ink !== undefined ? settings.ink : THEMES[view.getTheme()].linkInk;
     }
 
     // CSS pixels per unit of the scene at the middle of the drawing
@@ -18387,14 +18552,16 @@ function linkCrowding(pos, D, springs, rect, pixelsPerUnit, linkWidth) {
  */
 function colorsOf(graph, options = {}) {
   let settings = Object.assign({}, DEFAULTS$3, options);
-  let background = settings.background;
+  let background = backgroundOf(settings.background);
+  let theme = THEMES[themeOf(background)];
   let readableOn = hex => readable(hex, background);
   let valueOf = typeof settings.colorBy === 'function' ? settings.colorBy
     : settings.colorBy ? node => node.data && node.data[settings.colorBy]
     : hasField(graph, 'group') ? node => node.data && node.data.group : null;
   let title = typeof settings.colorBy === 'string' ? settings.colorBy.replace(/^_/, '') : 'group';
-  let plain = toRGBA$1(readableOn(settings.color));
-  let linkRGB = 0xffffff00;
+  let plain = toRGBA$1(readableOn(settings.color || theme.node));
+  // Links between categories, and all links when there are none: white on dark, ink on light
+  let linkRGB = theme.link;
   let ownLinks = settings.linkColors ? linkColorsOf(settings.linkColors, readableOn) : null;
   if (!valueOf) {
     return {nodeColor: () => plain, legend: null, linkColor: thinned(alpha => ownLinks ? withOwn(ownLinks, alpha, (linkRGB | alphaByte(alpha)) >>> 0) : (linkRGB | alphaByte(alpha)) >>> 0)};
@@ -18530,33 +18697,30 @@ function parseColor(value) {
   return /^#[0-9a-f]{6}$/i.test(parsed) ? parsed : null;
 }
 
-/** The color, mixed toward white just enough for `ratio` (3:1) against `against` */
+/**
+ * The color, mixed just enough for `ratio` (3:1) against `against`: toward white when that is a
+ * dark background, toward black when it is a light one
+ */
 function readable(hex, against = '#0e1624', ratio = 3) {
-  let rgb = toRGB(hex);
-  if (contrast(rgb, toRGB(against)) >= ratio) return hex;
+  let rgb = toRGB(hex), other = toRGB(against);
+  if (contrast(rgb, other) >= ratio) return hex;
+  let end = themeOf(against) === 'light' ? 0 : 255;
   for (let t = 0.05; t <= 1.001; t += 0.05) {
-    let mixed = rgb.map(c => c + (255 - c) * t);
-    if (contrast(mixed, toRGB(against)) >= ratio) return toHex(mixed);
+    let mixed = rgb.map(c => c + (end - c) * t);
+    if (contrast(mixed, other) >= ratio) return toHex(mixed);
   }
-  return '#ffffff';
+  return end ? '#ffffff' : '#000000';
 }
 
-function toRGB(hex) {
-  let h = hex.replace('#', '');
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
-  return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
+// The background as '#rrggbb', from any CSS color
+function backgroundOf(value) {
+  let hex = parseColor(String(value));
+  if (!hex) throw new Error('The style module needs a color for its background, and got: ' + value);
+  return hex;
 }
 
 function toHex(rgb) {
   return '#' + rgb.map(c => Math.round(c).toString(16).padStart(2, '0')).join('');
-}
-
-function luminance(rgb) {
-  let [r, g, b] = rgb.map(c => {
-    c /= 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function contrast(a, b) {
@@ -19279,8 +19443,12 @@ const DEFAULTS$1 = {
     }
     return String(node.id);
   },
-  nodeColor: 0x90f8fcff,
-  linkColor: 0xffffff10,
+  // 'dark' or 'light': what the background is. It sets the colors that nothing else set: the
+  // defaults of nodeColor, linkColor and the styles here, and of the modules (see theme.js)
+  theme: 'dark',
+  // By default the theme's: 0x90f8fcff and 0xffffff10 on dark
+  nodeColor: undefined,
+  linkColor: undefined,
   linkWidth: 2,
   // Size of a node's dot in scene units
   nodeSize: node => (node.data && node.data.size) || 1,
@@ -19297,7 +19465,8 @@ const DEFAULTS$1 = {
   fog: 1
 };
 
-// How flagged nodes and links look. "Pointed" is hovered, dragged or focused.
+// How flagged nodes and links look. "Pointed" is hovered, dragged or focused. The colors here are
+// the dark theme's; the light theme has its own pointedColor, selectedColor and ringHalo.
 const STYLES = {
   pointedColor: 0xffffffff,
   pointedScale: 1.5,
@@ -19343,6 +19512,8 @@ const ON_TOP_LIMITS = {nodes: 1000, links: 100000};
  * - `nodeLabel`: `node => text` that stands for a node in tooltips, search and announcements
  *   (default: `data.label`, `data.name`, or the id).
  * - `styles`: how flagged nodes look (STYLES above).
+ * - `theme`: 'dark' (default) or 'light', for the background the page gives the canvas: the
+ *   colors that weren't set follow it, here and in the modules.
  * - `camera`: camera input options (see camera.js), `input`: thresholds (see input.js), or
  *   `input: false` to leave the scene's own controls alone (no modules then).
  * - `reach`: picking reach in pixels per pointer type (REACH above).
@@ -19362,10 +19533,13 @@ function createView(scene, options = {}) {
   let canvas = scene.getDrawContext().canvas;
 
   let settings = {...DEFAULTS$1};
-  ['nodeColor', 'linkColor', 'linkWidth', 'nodeSize', 'nodeLabel', 'nodeMinSize', 'nodeRoom', 'blend', 'fog'].forEach(name => {
+  ['theme', 'nodeColor', 'linkColor', 'linkWidth', 'nodeSize', 'nodeLabel', 'nodeMinSize', 'nodeRoom', 'blend', 'fog'].forEach(name => {
     if (options[name] !== undefined) settings[name] = options[name];
   });
-  let styles = {...STYLES, ...(options.styles || {})};
+  let theme = themeValues(settings.theme);
+  // The styles the page set; the rest are STYLES with the theme's colors
+  let ownStyles = {...(options.styles || {})};
+  let styles = {...STYLES, ...theme.styles, ...ownStyles};
   let reach = {...REACH, ...(options.reach || {})};
   let style = {
     pointedColor: new Float32Array(4), pointedSize: new Float32Array(2),
@@ -19460,6 +19634,8 @@ function createView(scene, options = {}) {
     setDrawing,
     setStyles,
     getStyles: () => ({...styles}),
+    setTheme,
+    getTheme: () => settings.theme,
     invalidate,
     refresh,
     use,
@@ -19532,7 +19708,24 @@ function createView(scene, options = {}) {
 
   /** New styles for flagged nodes and links (any of STYLES) */
   function setStyles(newStyles) {
+    Object.assign(ownStyles, newStyles);
     Object.assign(styles, newStyles);
+    scene.renderFrame();
+  }
+
+  /**
+   * 'dark' or 'light', for the background the canvas has now. The colors that the page didn't
+   * set change with it (nodes, links, highlights), and modules follow: listeners of the 'theme'
+   * event at once, panels the next time they show.
+   */
+  function setTheme(name) {
+    theme = themeValues(name);
+    if (name === settings.theme) return;
+    settings.theme = name;
+    styles = {...STYLES, ...theme.styles, ...ownStyles};
+    if (settings.nodeColor === undefined) nodesDirty = true;
+    if (settings.linkColor === undefined) edgesDirty = true;
+    events.emit('theme', {theme: name});
     scene.renderFrame();
   }
 
@@ -20043,9 +20236,9 @@ function createView(scene, options = {}) {
   function buildNodes() {
     let size = settings.nodeSize;
     let sizeOf = typeof size === 'function' ? size : () => size;
-    let color = settings.nodeColor;
+    let color = settings.nodeColor === undefined ? theme.nodeColor : settings.nodeColor;
     let colorOf = typeof color === 'function' ? color : null;
-    let defaultColor = colorOf ? DEFAULTS$1.nodeColor : color;
+    let defaultColor = colorOf ? theme.nodeColor : color;
     let built = collectNodes(graph, layout, colorOf, sizeOf, defaultColor);
     let count = built.sizes.length;
 
@@ -20143,7 +20336,7 @@ function createView(scene, options = {}) {
 
   function buildEdges() {
     let colorOf = linkColorOf();
-    let built = collectEdges(graph, layout, colorOf, DEFAULTS$1.linkColor);
+    let built = collectEdges(graph, layout, colorOf, theme.linkColor);
     setBufferData(gl, edges.ends, built.ends);
     setBufferData(gl, edges.colors, built.colors);
     edges.count = built.count;
@@ -20153,7 +20346,7 @@ function createView(scene, options = {}) {
   }
 
   function linkColorOf() {
-    let color = settings.linkColor;
+    let color = settings.linkColor === undefined ? theme.linkColor : settings.linkColor;
     return typeof color === 'function' ? color : () => color;
   }
 
@@ -20206,7 +20399,7 @@ function createView(scene, options = {}) {
       if (from < 0 || to < 0) return;
       ends[2 * k] = from;
       ends[2 * k + 1] = to;
-      linkColors[k] = colorOf(link) || DEFAULTS$1.linkColor;
+      linkColors[k] = colorOf(link) || theme.linkColor;
       k += 1;
     });
     setBufferData(gl, top.edges.ends, ends.subarray(0, 2 * k));
@@ -20418,7 +20611,8 @@ const DEFAULTS = {
   autoStop: true,
   // Start running at once
   run: true,
-  // Canvas color
+  // Canvas color, any CSS color. A light one gets the light look: dark links, text and rings,
+  // light tooltip and search box.
   background: '#0e1624',
   // Options of the view's style module (colorBy, palette, color, ...); false: don't attach it
   style: {},
@@ -20456,7 +20650,7 @@ function render(graph, target, options) {
   let layout = startLayout();
   let view, fitter = null;
   try {
-    view = createView(scene, Object.assign({graph, layout}, settings.view));
+    view = createView(scene, Object.assign({graph, layout, theme: themeOf(hexOf(settings.background))}, settings.view));
     attachModules();
   } catch (e) {
     // e.g. WebGL lacks what the view needs: leave nothing behind
@@ -20504,6 +20698,7 @@ function render(graph, target, options) {
     isRunning: () => isRunning,
     restart,
     fit,
+    setBackground,
     stats,
     setStepsPerFrame(n) { stepsPerFrame = Math.max(0, Math.round(n) || 0); },
     on(name, fn) { events.on(name, fn); return api; },
@@ -20536,6 +20731,8 @@ function render(graph, target, options) {
       // Node sizes follow the length of links
       if (springLength > 0 && springLength !== 10) style.unit = springLength / 10;
       view.use(styleNodes, Object.assign(style, settings.style));
+    } else {
+      clearTo(settings.background);
     }
     if (settings.fit) {
       // No room for labels at the sides when there are none
@@ -20551,7 +20748,7 @@ function render(graph, target, options) {
       view.use(searchNodes);
       // A node that search goes to comes close and sends out two fading rings: on a big graph it
       // is a dot among thousands. Fit (the 0 key) goes back to the whole drawing.
-      view.use(pulseNodes, {color: 0x7fe7efff});
+      view.use(pulseNodes);
       view.on('search', e => { if (e.node && fitter) fitter.zoomTo(e.node); });
     }
     if (settings.labels === true) view.use(labelNodes);
@@ -20645,6 +20842,26 @@ function render(graph, target, options) {
       resumeIfSettled();
       fit();
     });
+  }
+
+  /**
+   * A new canvas color. Whether it is dark or light, the colors that follow the background
+   * change with it (links, text, rings, the tooltip and the search box).
+   */
+  function setBackground(color) {
+    if (disposed) return;
+    hexOf(color);
+    let style = view.getModule('style');
+    if (style) style.update({background: color});
+    else clearTo(color);
+  }
+
+  // Without the style module: the canvas color and the view's theme
+  function clearTo(color) {
+    let hex = hexOf(color);
+    let rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+    scene.setClearColor(rgb[0], rgb[1], rgb[2], 1);
+    view.setTheme(themeOf(hex));
   }
 
   /** Back to the whole drawing, following it again */
@@ -20762,6 +20979,13 @@ function render(graph, target, options) {
   }
 }
 
+// '#rrggbb' for a CSS color
+function hexOf(color) {
+  let hex = parseColor(String(color));
+  if (!hex) throw new Error('The background has to be a color, such as `#ffffff` or `white`. Got: ' + color);
+  return hex;
+}
+
 function isElement(value) {
   return !!value && typeof value === 'object' && value.nodeType === 1;
 }
@@ -20822,6 +21046,6 @@ function watchSize(canvas, onChange) {
 }
 
 // Kept equal to package.json's version (test/render.test.js checks)
-var version = '1.0.0-alpha.1';
+var version = '1.0.0-alpha.2';
 
 export { GPU_MIN_NODES as G, PALETTE as P, createLayout as a, createScene as b, createGraph as c, createView as d, dragNodes as e, fitLayout as f, getDefaultExportFromCjs as g, hasHardwareWebGPU as h, hasNames as i, hoverNodes as j, inspectNodes as k, labelNodes as l, pulseNodes as m, navigateNodes as n, render as o, placeNodes as p, selectNodes as q, requireFormula as r, searchNodes as s, stepsForFrame as t, styleNodes as u, version as v };
