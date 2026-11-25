@@ -1,4 +1,16 @@
-# 1.0.0-alpha.1 (not released)
+# 1.0.0-alpha.2 (not released)
+
+* A light look. Give `background` a light color and the rest follows: dark links, names and
+  rings, data colors darkened where they would be too pale, and a light tooltip, search box and
+  help card. Before, a white background left links invisible and names light on light.
+* `viva.setBackground(color)` changes the canvas color while the graph is on screen, and switches
+  between the dark and the light look.
+* `background` takes any CSS color (`'white'`, `'rgb(250, 250, 250)'`), and applies with
+  `style: false` too.
+* The real graphs example is light or dark as the visitor's system is, with a button that
+  switches; `?theme=light` or `?theme=dark` in its address fixes the look.
+
+# 1.0.0-alpha.1 (2026-11-22)
 
 * `render(graph)` from a script in `<head>`, before the page has a `<body>`, now says so instead
   of failing with `Cannot read properties of null`.

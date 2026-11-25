@@ -90,7 +90,7 @@ child of the element, so what the element already holds (a legend, a toolbar) st
 | `frameBudget` | 8, or 4 on phones and tablets | Milliseconds of layout work per frame when `stepsPerFrame` is 0. |
 | `autoStop` | `true` | Stop stepping once the layout has settled. |
 | `run` | `true` | Start running at once. `false`: call `viva.resume()` yourself. |
-| `background` | `'#0e1624'` | Canvas color. The default colors are made for a dark background. |
+| `background` | `'#0e1624'` | Canvas color, any CSS color. A light one gets the light look: dark links, names and rings, and a light tooltip, search box and help card. See [Light and dark](#recipes). |
 | `style` | `{}` | How nodes and links look: `colorBy`, `palette`, `color`, `linkColors`, `minSize` and the rest of the view's [style module](https://github.com/anvaka/ngraph.forcelayout/tree/main/modules/view#style). `false`: leave colors and sizes to the `view` options. |
 | `labels` | `'auto'` | `'auto'`: labels when nodes have names (`data.label`, `data.name`, or ids that are words). `true`: always. `false`: never. An object: options of the [labels module](https://github.com/anvaka/ngraph.forcelayout/tree/main/modules/view#labels), such as `{importance: 'pagerank'}`. |
 | `interactive` | `true` | Hover, drag, select, tooltips, keyboard navigation and search. `false` leaves only the camera. |
@@ -106,6 +106,7 @@ child of the element, so what the element already holds (a legend, a toolbar) st
 | `viva.pause()`, `viva.resume()`, `viva.isRunning()` | Stop and run the layout. A paused drawing still pans and zooms, and nodes can still be dragged. |
 | `viva.restart()` | A fresh layout of the same graph with the same settings. Returns a promise. |
 | `viva.fit()` | Bring the whole drawing back into view. |
+| `viva.setBackground(color)` | A new canvas color; the look follows when it goes from dark to light or back. |
 | `viva.stats()` | `{backend, gpuReason, running, settled, steps, msPerStep, stepsPerFrame, nodes, links}`. `gpuReason` says why a layout that asked for WebGPU runs on the CPU. |
 | `viva.on(name, fn)`, `viva.off(name, fn)` | `'settled'` (`{step, reason}`) when the layout has settled, `'wake'` when it moves again. |
 | `viva.setStepsPerFrame(n)` | Change `stepsPerFrame`. |
@@ -121,6 +122,19 @@ graph.addNode('Ada', {team: 'Research'});
 const viva = Viva.render(graph, {style: {colorBy: 'team'}});
 viva.view.getModule('style').legend();   // {title, items: [{color, label, count}], more}
 ```
+
+**Light and dark.** The background is the whole setting. On a light one, links, names and rings
+are dark, colors from your data that would be too pale are darkened, and the tooltip, the search
+box and the help card are light. To follow the visitor's system setting:
+
+``` js
+const light = matchMedia('(prefers-color-scheme: light)');
+const background = () => light.matches ? '#ffffff' : '#0e1624';
+const viva = Viva.render(graph, {background: background()});
+light.addEventListener('change', () => viva.setBackground(background()));
+```
+
+The canvas is all `render()` paints: the rest of the page is yours.
 
 **Reacting to the user.** The view reports taps, hovers, drags and selection changes, each with
 the node under the pointer:
@@ -177,6 +191,7 @@ exported. [src/render.js](src/render.js) is a few hundred lines that show how th
   and a dozen more. ([source](examples/graphs.html), [data](examples/data))
 * [Hello](https://anvaka.github.io/VivaGraphJS/examples/hello.html): four nodes, one call. ([source](examples/hello.html))
 * [Colors from the data](https://anvaka.github.io/VivaGraphJS/examples/groups.html), with a legend. ([source](examples/groups.html))
+* [Light and dark](https://anvaka.github.io/VivaGraphJS/examples/light.html): a white background, and a button that switches. ([source](examples/light.html))
 * [20,000 nodes](https://anvaka.github.io/VivaGraphJS/examples/big.html), on WebGPU where the device has one. ([source](examples/big.html))
 * [3D](https://anvaka.github.io/VivaGraphJS/examples/3d.html): a cube of 1,728 nodes. ([source](examples/3d.html))
 * [A graph that grows](https://anvaka.github.io/VivaGraphJS/examples/dynamic.html): tap a node to add more. ([source](examples/dynamic.html))

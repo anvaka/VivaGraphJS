@@ -1,2 +1,2 @@
 // Kept equal to package.json's version (test/render.test.js checks)
-export default '1.0.0-alpha.1';
+export default '1.0.0-alpha.2';

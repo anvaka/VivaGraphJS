@@ -1,6 +1,6 @@
 {
   "name": "vivagraphjs",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Draws graphs in the browser: force layout, WebGL drawing, labels and interaction in one call",
   "type": "module",
   "main": "dist/vivagraph.js",
@@ -45,7 +45,7 @@
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "ngraph.events": "^1.4.0",
-    "ngraph.forcelayout": "https://codeload.github.com/anvaka/ngraph.forcelayout/tar.gz/6818df8a7d073e38032cdbda70f0859f1eff8a3e",
+    "ngraph.forcelayout": "https://codeload.github.com/anvaka/ngraph.forcelayout/tar.gz/36077fae1a640bac16ec52ac9405fcb5554e4300",
     "ngraph.graph": "^20.1.2",
     "puppeteer-core": "^25.18.1",
     "rollup": "^4.68.8",

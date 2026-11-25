@@ -16,7 +16,7 @@ import createEvents from 'ngraph.events';
 import {
   createLayout, createScene, createView, placeNodes,
   styleNodes, fitLayout, labelNodes, hoverNodes, dragNodes, selectNodes, inspectNodes,
-  navigateNodes, searchNodes, pulseNodes
+  navigateNodes, searchNodes, pulseNodes, parseColor, themeOf
 } from './deps.js';
 import {frameBudgetOf, hasHardwareWebGPU, stepsForFrame} from './device.js';
 import {hasNames} from './names.js';
@@ -44,7 +44,8 @@ const DEFAULTS = {
   autoStop: true,
   // Start running at once
   run: true,
-  // Canvas color
+  // Canvas color, any CSS color. A light one gets the light look: dark links, text and rings,
+  // light tooltip and search box.
   background: '#0e1624',
   // Options of the view's style module (colorBy, palette, color, ...); false: don't attach it
   style: {},
@@ -82,7 +83,7 @@ export default function render(graph, target, options) {
   let layout = startLayout();
   let view, fitter = null;
   try {
-    view = createView(scene, Object.assign({graph, layout}, settings.view));
+    view = createView(scene, Object.assign({graph, layout, theme: themeOf(hexOf(settings.background))}, settings.view));
     attachModules();
   } catch (e) {
     // e.g. WebGL lacks what the view needs: leave nothing behind
@@ -130,6 +131,7 @@ export default function render(graph, target, options) {
     isRunning: () => isRunning,
     restart,
     fit,
+    setBackground,
     stats,
     setStepsPerFrame(n) { stepsPerFrame = Math.max(0, Math.round(n) || 0); },
     on(name, fn) { events.on(name, fn); return api; },
@@ -162,6 +164,8 @@ export default function render(graph, target, options) {
       // Node sizes follow the length of links
       if (springLength > 0 && springLength !== 10) style.unit = springLength / 10;
       view.use(styleNodes, Object.assign(style, settings.style));
+    } else {
+      clearTo(settings.background);
     }
     if (settings.fit) {
       // No room for labels at the sides when there are none
@@ -177,7 +181,7 @@ export default function render(graph, target, options) {
       view.use(searchNodes);
       // A node that search goes to comes close and sends out two fading rings: on a big graph it
       // is a dot among thousands. Fit (the 0 key) goes back to the whole drawing.
-      view.use(pulseNodes, {color: 0x7fe7efff});
+      view.use(pulseNodes);
       view.on('search', e => { if (e.node && fitter) fitter.zoomTo(e.node); });
     }
     if (settings.labels === true) view.use(labelNodes);
@@ -271,6 +275,26 @@ export default function render(graph, target, options) {
       resumeIfSettled();
       fit();
     });
+  }
+
+  /**
+   * A new canvas color. Whether it is dark or light, the colors that follow the background
+   * change with it (links, text, rings, the tooltip and the search box).
+   */
+  function setBackground(color) {
+    if (disposed) return;
+    hexOf(color);
+    let style = view.getModule('style');
+    if (style) style.update({background: color});
+    else clearTo(color);
+  }
+
+  // Without the style module: the canvas color and the view's theme
+  function clearTo(color) {
+    let hex = hexOf(color);
+    let rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+    scene.setClearColor(rgb[0], rgb[1], rgb[2], 1);
+    view.setTheme(themeOf(hex));
   }
 
   /** Back to the whole drawing, following it again */
@@ -386,6 +410,13 @@ export default function render(graph, target, options) {
     scene.dispose();
     stage.dispose();
   }
+}
+
+// '#rrggbb' for a CSS color
+function hexOf(color) {
+  let hex = parseColor(String(color));
+  if (!hex) throw new Error('The background has to be a color, such as `#ffffff` or `white`. Got: ' + color);
+  return hex;
 }
 
 function isElement(value) {

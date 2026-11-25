@@ -5,18 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VivaGraph: real graphs</title>
 <link rel="icon" href="data:,">
+<script>
+  // Light or dark: what the address says (?theme=light), or else what the visitor's system is
+  // set to. Known before the page draws, so it does not flash in the other one.
+  const BACKGROUND = {light: '#ffffff', dark: '#0e1624'};
+  const systemLight = matchMedia('(prefers-color-scheme: light)');
+  function themeNow() {
+    const asked = new URLSearchParams(location.search).get('theme');
+    return Object.hasOwn(BACKGROUND, asked) ? asked : systemLight.matches ? 'light' : 'dark';
+  }
+  document.documentElement.dataset.theme = themeNow();
+</script>
 <style>
   /* The canvas color, so the page does not flash before the first frame */
-  html {background: #0e1624}
-  #about {position: fixed; left: 12px; top: 12px; max-width: min(26em, calc(100vw - 24px)); font: 13px/1.45 system-ui, sans-serif; color: #e6ebf2}
-  #about select {font: inherit; color: inherit; background: #151e2d; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 4px 6px; max-width: 100%}
-  #about p {margin: 8px 0 0; color: #a9b4c4}
+  html {background: #0e1624; --text: #e6ebf2; --quiet: #a9b4c4; --control: #151e2d; --edge: rgba(255, 255, 255, 0.2)}
+  html[data-theme=light] {background: #ffffff; --text: #1b2433; --quiet: #556070; --control: #ffffff; --edge: rgba(27, 36, 51, 0.25)}
+  #about {position: fixed; left: 12px; top: 12px; max-width: min(26em, calc(100vw - 24px)); font: 13px/1.45 system-ui, sans-serif; color: var(--text)}
+  #about select, #about button {font: inherit; color: inherit; background: var(--control); border: 1px solid var(--edge); border-radius: 6px; padding: 4px 6px; max-width: 100%}
+  #about button {cursor: pointer; padding: 4px 10px}
+  #controls {display: flex; gap: 6px}
+  #controls select {min-width: 0}
+  #about p {margin: 8px 0 0; color: var(--quiet)}
   #about a {color: inherit}
 </style>
 </head>
 <body>
 <div id="about">
-  <select id="pick" aria-label="Graph"></select>
+  <div id="controls">
+    <select id="pick" aria-label="Graph"></select>
+    <button id="theme"></button>
+  </div>
   <p id="text">Loading…</p>
   <p id="credit"></p>
 </div>
@@ -48,11 +66,36 @@
   const pick = document.getElementById('pick');
   for (const key in GRAPHS) pick.add(new Option(GRAPHS[key], key));
   // Picking a graph changes the address, so every graph has a link and Back goes to the last one
-  pick.onchange = () => { history.pushState(null, '', '?graph=' + pick.value); show(); };
-  window.onpopstate = show;
+  pick.onchange = () => { history.pushState(null, '', address({graph: pick.value})); show(); };
+  window.onpopstate = () => { show(); paint(); };
+
+  // The button names the look it switches to. A look picked here stays in the address, and with
+  // it in links to the page; until then the page follows the system.
+  const button = document.getElementById('theme');
+  button.onclick = () => {
+    history.replaceState(null, '', address({theme: themeNow() === 'light' ? 'dark' : 'light'}));
+    paint();
+  };
+  systemLight.addEventListener('change', paint);
 
   let viva = null, turn = 0;
   show();
+  paint();
+
+  // The address of now, with one part changed
+  function address(change) {
+    const params = new URLSearchParams(location.search);
+    for (const key in change) params.set(key, change[key]);
+    return '?' + params;
+  }
+
+  // The page and the graph in the look of now
+  function paint() {
+    const theme = themeNow();
+    document.documentElement.dataset.theme = theme;
+    button.textContent = theme === 'light' ? 'Dark' : 'Light';
+    if (viva) viva.setBackground(BACKGROUND[theme]);
+  }
 
   // Draws the graph that the address names, in place of the one on screen
   function show() {
@@ -73,7 +116,11 @@
       if (file.palette) style.palette = file.palette;
       if (file.linkData && file.linkColors) style.linkColors = file.linkColors;
       if (viva) viva.dispose();
-      viva = Viva.render(graph, {style, labels: file.importance ? {importance: file.importance} : true});
+      viva = Viva.render(graph, {
+        background: BACKGROUND[themeNow()],
+        style,
+        labels: file.importance ? {importance: file.importance} : true
+      });
 
       const count = n => n.toLocaleString('en-US');
       document.getElementById('text').textContent =
