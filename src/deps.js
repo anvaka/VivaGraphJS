@@ -13,5 +13,5 @@ export {default as placeNodes} from 'ngraph.forcelayout/modules/pivot/index.js';
 export {
   default as createView,
   styleNodes, fitLayout, labelNodes, hoverNodes, dragNodes, selectNodes, inspectNodes,
-  navigateNodes, searchNodes, pulseNodes, PALETTE
+  navigateNodes, searchNodes, pulseNodes, PALETTE, parseColor, themeOf
 } from 'ngraph.forcelayout/modules/view/index.js';
