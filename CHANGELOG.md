@@ -7,6 +7,8 @@
   between the dark and the light look.
 * `background` takes any CSS color (`'white'`, `'rgb(250, 250, 250)'`), and applies with
   `style: false` too.
+* The real graphs example is light or dark as the visitor's system is, with a button that
+  switches; `?theme=light` or `?theme=dark` in its address fixes the look.
 
 # 1.0.0-alpha.1 (2026-11-22)
 

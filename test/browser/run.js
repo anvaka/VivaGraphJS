@@ -514,6 +514,37 @@ test('the real graphs example loads a file, colors it and names its nodes', asyn
   await page.close();
 });
 
+test('the real graphs example is light or dark as the system is, and its button switches', async () => {
+  let look = page => page.evaluate(() => ({
+    graph: viva.view.getTheme(),
+    page: getComputedStyle(document.documentElement).backgroundColor,
+    button: document.getElementById('theme').textContent,
+    address: location.search
+  }));
+  let page = await browser.newPage();
+  page.errors = [];
+  page.on('pageerror', e => page.errors.push(e.message));
+  await page.emulateMediaFeatures([{name: 'prefers-color-scheme', value: 'light'}]);
+  await page.goto(`${base}/examples/graphs.html?graph=miserables`);
+  await page.waitForFunction(() => /77 nodes/.test(document.getElementById('text').textContent));
+  assert.deepEqual(await look(page), {graph: 'light', page: 'rgb(255, 255, 255)', button: 'Dark', address: '?graph=miserables'});
+
+  // The system changes: the page follows
+  await page.emulateMediaFeatures([{name: 'prefers-color-scheme', value: 'dark'}]);
+  await page.waitForFunction(() => viva.view.getTheme() === 'dark');
+  assert.deepEqual(await look(page), {graph: 'dark', page: 'rgb(14, 22, 36)', button: 'Light', address: '?graph=miserables'});
+
+  // The button: the choice goes into the address, and stays when another graph is picked
+  await page.click('#theme');
+  assert.deepEqual(await look(page), {graph: 'light', page: 'rgb(255, 255, 255)', button: 'Dark', address: '?graph=miserables&theme=light'});
+  await page.select('#pick', 'countries');
+  await page.waitForFunction(() => /252 nodes/.test(document.getElementById('text').textContent));
+  assert.deepEqual(await look(page), {graph: 'light', page: 'rgb(255, 255, 255)', button: 'Dark', address: '?graph=countries&theme=light'});
+  assert.deepEqual(await cornerColor(page), [255, 255, 255], 'the canvas is white');
+  assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
 // [r, g, b] of the page's bottom right pixel, where no node or label is, from a screenshot
 async function cornerColor(page) {
   let size = page.viewport();
